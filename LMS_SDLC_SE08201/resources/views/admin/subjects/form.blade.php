@@ -20,18 +20,26 @@
             <input type="text" name="subject_code" value="{{ old('subject_code', $subject?->subject_code) }}" required
                    class="w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm uppercase focus:border-indigo-500 outline-none">
         </div>
-        <div>
+        <div class="relative" id="majorSelectContainer">
             <label class="block text-sm font-medium text-slate-700 mb-2">Thuộc các chuyên ngành</label>
             @php($selected = collect(old('major_ids', $subject?->majors?->pluck('major_id')->all() ?? [])))
-            <div class="grid gap-2 sm:grid-cols-2">
-                @foreach ($majors as $major)
-                    <label class="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm hover:bg-slate-50">
-                        <input type="checkbox" name="major_ids[]" value="{{ $major->major_id }}"
-                               @checked($selected->contains($major->major_id))
-                               class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
-                        {{ $major->major_name }} <span class="text-xs text-slate-400">({{ $major->major_code }})</span>
-                    </label>
-                @endforeach
+            
+            <div id="majorSelectDisplay" class="w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm cursor-pointer focus:border-indigo-500 bg-white flex items-center justify-between">
+                <span id="majorSelectText" class="text-slate-400">Chọn chuyên ngành...</span>
+                <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            </div>
+
+            <div id="majorSelectDropdown" class="absolute z-10 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg hidden max-h-60 overflow-y-auto">
+                <div class="p-2 grid gap-1">
+                    @foreach ($majors as $major)
+                        <label class="flex items-center gap-2 rounded-md px-3 py-2 text-sm hover:bg-slate-50 cursor-pointer">
+                            <input type="checkbox" name="major_ids[]" value="{{ $major->major_id }}" data-code="{{ $major->major_code }}"
+                                   @checked($selected->contains($major->major_id))
+                                   class="major-checkbox rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+                            {{ $major->major_name }} <span class="text-xs text-slate-400">({{ $major->major_code }})</span>
+                        </label>
+                    @endforeach
+                </div>
             </div>
         </div>
         <div>
@@ -48,4 +56,48 @@
         </div>
     </form>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const container = document.getElementById('majorSelectContainer');
+        const display = document.getElementById('majorSelectDisplay');
+        const dropdown = document.getElementById('majorSelectDropdown');
+        const text = document.getElementById('majorSelectText');
+        const checkboxes = document.querySelectorAll('.major-checkbox');
+
+        function updateDisplay() {
+            const selectedCodes = Array.from(checkboxes)
+                .filter(cb => cb.checked)
+                .map(cb => cb.dataset.code);
+            
+            if (selectedCodes.length > 0) {
+                text.textContent = selectedCodes.join(', ');
+                text.classList.remove('text-slate-400');
+                text.classList.add('text-slate-800');
+            } else {
+                text.textContent = 'Chọn chuyên ngành...';
+                text.classList.remove('text-slate-800');
+                text.classList.add('text-slate-400');
+            }
+        }
+
+        display.addEventListener('click', function(e) {
+            dropdown.classList.toggle('hidden');
+            e.stopPropagation();
+        });
+
+        checkboxes.forEach(cb => {
+            cb.addEventListener('change', updateDisplay);
+        });
+
+        document.addEventListener('click', function(e) {
+            if (!container.contains(e.target)) {
+                dropdown.classList.add('hidden');
+            }
+        });
+
+        // Cập nhật text ban đầu nếu đã có checkbox được check
+        updateDisplay();
+    });
+</script>
 @endsection
