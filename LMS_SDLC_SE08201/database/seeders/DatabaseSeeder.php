@@ -29,6 +29,11 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        $this->call([
+            SlotSeeder::class,
+            RoomSeeder::class,
+        ]);
+
         $pw = Hash::make('password');
 
         // ===== 1. Chuyên ngành =====
@@ -80,10 +85,10 @@ class DatabaseSeeder extends Seeder
 
         // ===== 4. Lớp học + buổi học =====
         $classDefs = [
-            ['class_name' => 'WD19301', 'subject' => 0, 'teacher' => 0, 'major' => 0, 'room' => 'P301', 'shift' => 'Ca 1 (07:15 - 09:15)'],
-            ['class_name' => 'DB19302', 'subject' => 1, 'teacher' => 1, 'major' => 0, 'room' => 'P205', 'shift' => 'Ca 2 (09:25 - 11:25)'],
-            ['class_name' => 'DS19303', 'subject' => 2, 'teacher' => 0, 'major' => 1, 'room' => 'P108', 'shift' => 'Ca 3 (12:30 - 14:30)'],
-            ['class_name' => 'UX19304', 'subject' => 4, 'teacher' => 2, 'major' => 2, 'room' => 'Lab A2', 'shift' => 'Ca 4 (14:40 - 16:40)'],
+            ['class_name' => 'WD19301', 'subject' => 0, 'teacher' => 0, 'major' => 0, 'room_id' => 2, 'slot_id' => 1],
+            ['class_name' => 'DB19302', 'subject' => 1, 'teacher' => 1, 'major' => 0, 'room_id' => 1, 'slot_id' => 2],
+            ['class_name' => 'DS19303', 'subject' => 2, 'teacher' => 0, 'major' => 1, 'room_id' => 3, 'slot_id' => 3],
+            ['class_name' => 'UX19304', 'subject' => 4, 'teacher' => 2, 'major' => 2, 'room_id' => 4, 'slot_id' => 4],
         ];
 
         $classes = collect();
@@ -104,8 +109,8 @@ class DatabaseSeeder extends Seeder
                 ClassSession::create([
                     'class_id' => $class->class_id,
                     'session_date' => $start->copy()->addWeeks($s),
-                    'room' => $def['room'],
-                    'shift' => $def['shift'],
+                    'room_id' => $def['room_id'],
+                    'slot_id' => $def['slot_id'],
                 ]);
             }
             $classes->push($class);
