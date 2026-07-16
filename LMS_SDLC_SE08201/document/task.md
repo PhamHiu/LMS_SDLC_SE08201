@@ -45,19 +45,19 @@
 
 ## Module 3: Frontend Form
 
-- [ ] 3.1 — Viết lại form: input Tên lớp (text, required)
-- [ ] 3.2 — Viết lại form: select Chuyên ngành (từ `$majors`, `id="major_select"`)
-- [ ] 3.3 — Viết lại form: select Môn học (rỗng ban đầu, disabled)
-- [ ] 3.4 — Viết lại form: select Giảng viên (rỗng ban đầu, disabled)
-- [ ] 3.5 — Viết lại form: input Ngày bắt đầu (date, `id="start_date"`)
-- [ ] 3.6 — Viết lại form: input Số buổi học (number, min=1 max=60)
-- [ ] 3.7 — Viết lại form: select Phòng học (từ `$rooms`)
-- [ ] 3.8 — Viết lại form: readonly Ngày kết thúc (tự tính)
-- [ ] 3.9 — Viết lại form: select Trạng thái
-- [ ] 3.10 — Xây dựng bảng TKB: header Thứ 2 → Chủ nhật (7 cột)
-- [ ] 3.11 — Xây dựng bảng TKB: body 6 hàng (Ca 1 → Ca 6, label từ `$slots`)
-- [ ] 3.12 — Mỗi ô TKB là `<button>` với `data-day`, `data-slot-id` + hidden inputs
-- [ ] 3.13 — Responsive: `overflow-x-auto` cho bảng TKB trên mobile
+- [x] 3.1 — Viết lại form: input Tên lớp (text, required)
+- [x] 3.2 — Viết lại form: select Chuyên ngành (từ `$majors`, `id="major_select"`)
+- [x] 3.3 — Viết lại form: select Môn học (rỗng ban đầu, disabled)
+- [x] 3.4 — Viết lại form: select Giảng viên (rỗng ban đầu, disabled)
+- [x] 3.5 — Viết lại form: input Ngày bắt đầu (date, `id="start_date"`)
+- [x] 3.6 — Viết lại form: input Số buổi học (number, min=1 max=60)
+- [x] 3.7 — Viết lại form: select Phòng học (từ `$rooms`)
+- [x] 3.8 — Viết lại form: readonly Ngày kết thúc (tự tính)
+- [x] 3.9 — Viết lại form: select Trạng thái
+- [x] 3.10 — Xây dựng bảng TKB: header Thứ 2 → Chủ nhật (7 cột)
+- [x] 3.11 — Xây dựng bảng TKB: body 6 hàng (Ca 1 → Ca 6, label từ `$slots`)
+- [x] 3.12 — Mỗi ô TKB là `<button>` với `data-day`, `data-slot-id` + hidden inputs
+- [x] 3.13 — Responsive: `overflow-x-auto` cho bảng TKB trên mobile
 - **Commit:** `[UI] Giao diện form tạo lớp + lưới thời khóa biểu`
 
 ---
@@ -104,7 +104,7 @@
 |--------|-----------|-----------|
 | 1. Database & Models | 13 / 13 | 13 |
 | 2. Backend API | 13 / 13 | 13 |
-| 3. Frontend Form | 0 / 13 | 13 |
+| 3. Frontend Form | 13 / 13 | 13 |
 | 4. AJAX & Conflict | 0 / 11 | 11 |
 | 5. Edit & Polish | 0 / 13 | 13 |
 | **Tổng cộng** | **0 / 63** | **63** |
