@@ -14,7 +14,7 @@ class ClassSession extends Model
     protected $primaryKey = 'session_id';
     public $timestamps = false;
 
-    protected $fillable = ['class_id', 'session_date', 'room', 'shift'];
+    protected $fillable = ['class_id', 'session_date', 'slot_id', 'room_id'];
 
     protected function casts(): array
     {
@@ -24,6 +24,16 @@ class ClassSession extends Model
     public function classRoom()
     {
         return $this->belongsTo(ClassRoom::class, 'class_id', 'class_id');
+    }
+
+    public function slot()
+    {
+        return $this->belongsTo(Slot::class, 'slot_id', 'slot_id');
+    }
+
+    public function room()
+    {
+        return $this->belongsTo(Room::class, 'room_id', 'room_id');
     }
 
     public function attendances()
