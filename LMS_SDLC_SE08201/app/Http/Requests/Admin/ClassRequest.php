@@ -11,6 +11,15 @@ class ClassRequest extends FormRequest
         return $this->user()->isAdmin();
     }
 
+    protected function prepareForValidation()
+    {
+        if ($this->has('selected_slots') && is_string($this->selected_slots)) {
+            $this->merge([
+                'selected_slots' => json_decode($this->selected_slots, true)
+            ]);
+        }
+    }
+
     public function rules(): array
     {
         return [
@@ -18,12 +27,13 @@ class ClassRequest extends FormRequest
             'user_id' => ['required', 'exists:users,user_id'], // giảng viên
             'subject_id' => ['required', 'exists:subjects,subject_id'],
             'major_id' => ['required', 'exists:majors,major_id'],
-            'start_date' => ['required', 'date'],
-            'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
-            'total_sessions' => ['required', 'integer', 'min:1', 'max:60'],
+            'start_date' => [$this->isMethod('post') ? 'required' : 'nullable', 'date'],
+            'total_sessions' => [$this->isMethod('post') ? 'required' : 'nullable', 'integer', 'min:1', 'max:60'],
             'status' => ['required', 'in:0,1,2'],
-            'room' => ['nullable', 'string', 'max:100'],
-            'shift' => ['nullable', 'string', 'max:50'],
+            'room_id' => ['nullable', 'exists:rooms,room_id'],
+            'selected_slots' => [$this->isMethod('post') ? 'required' : 'nullable', 'array'],
+            'selected_slots.*.day_of_week' => ['required_with:selected_slots', 'integer', 'min:1', 'max:7'],
+            'selected_slots.*.slot_id' => ['required_with:selected_slots', 'exists:slots,slot_id'],
         ];
     }
 
@@ -35,8 +45,8 @@ class ClassRequest extends FormRequest
             'subject_id.required' => 'Vui lòng chọn môn học.',
             'major_id.required' => 'Vui lòng chọn chuyên ngành.',
             'start_date.required' => 'Vui lòng chọn ngày bắt đầu.',
-            'end_date.after_or_equal' => 'Ngày kết thúc phải sau ngày bắt đầu.',
             'total_sessions.required' => 'Vui lòng nhập tổng số buổi học.',
+            'selected_slots.required' => 'Vui lòng chọn ít nhất một buổi học trong thời khóa biểu.',
         ];
     }
 }
