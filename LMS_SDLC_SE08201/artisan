@@ -11,4 +11,4 @@ $app = require_once __DIR__.'/bootstrap/app.php';
 
 $status = $app->handleCommand(new ArgvInput);
 
-exit($status);
+exit($status);  
