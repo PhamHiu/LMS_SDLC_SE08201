@@ -46,6 +46,8 @@ class ClassService
 
     public function delete(ClassRoom $class): void
     {
+        $class->sessions()->delete();
+        $class->enrollments()->delete();
         $class->delete();
     }
 
@@ -93,30 +95,38 @@ class ClassService
         $class->update(['end_date' => $endDate]);
     }
 
-    public function checkConflicts(string $sessionDate, int $slotId, int $teacherId, int $roomId): array
+    public function checkConflicts(string $sessionDate, int $slotId, int $teacherId, int $roomId, ?int $ignoreSessionId = null): array
     {
         $conflicts = [];
 
         // Check room conflict
-        $roomConflict = ClassSession::with('classRoom')
+        $roomQuery = ClassSession::with('classRoom')
             ->where('session_date', $sessionDate)
             ->where('slot_id', $slotId)
-            ->where('room_id', $roomId)
-            ->first();
+            ->where('room_id', $roomId);
+            
+        if ($ignoreSessionId) {
+            $roomQuery->where('session_id', '!=', $ignoreSessionId);
+        }
 
+        $roomConflict = $roomQuery->first();
         if ($roomConflict) {
             $conflicts[] = "Phòng đã có lớp " . $roomConflict->classRoom->class_name;
         }
 
         // Check teacher conflict
-        $teacherConflict = ClassSession::with('classRoom')
+        $teacherQuery = ClassSession::with('classRoom')
             ->where('session_date', $sessionDate)
             ->where('slot_id', $slotId)
             ->whereHas('classRoom', function ($query) use ($teacherId) {
                 $query->where('user_id', $teacherId);
-            })
-            ->first();
+            });
+            
+        if ($ignoreSessionId) {
+            $teacherQuery->where('session_id', '!=', $ignoreSessionId);
+        }
 
+        $teacherConflict = $teacherQuery->first();
         if ($teacherConflict) {
             $conflicts[] = "GV đã có lịch dạy lớp " . $teacherConflict->classRoom->class_name;
         }

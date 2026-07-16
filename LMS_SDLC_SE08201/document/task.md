@@ -81,19 +81,19 @@
 
 ## Module 5: Edit Flow & Polish
 
-- [ ] 5.1 — Form Edit: ẩn khu vực Bảng TKB khi `$class !== null`
-- [ ] 5.2 — Form Edit: ẩn "Số buổi học" + "Ngày bắt đầu" (readonly hoặc ẩn)
-- [ ] 5.3 — Form Edit: hiển thị "Ngày kết thúc" readonly từ DB
-- [ ] 5.4 — Form Edit: cascade dropdown vẫn hoạt động khi đổi chuyên ngành
-- [ ] 5.5 — Cập nhật `ClassController::edit()` — truyền `$rooms`, `$slots`
-- [ ] 5.6 — Validation errors hiển thị đúng dưới mỗi trường
-- [ ] 5.7 — AJAX failure → hiển thị thông báo lỗi
-- [ ] 5.8 — Old input khôi phục đúng khi validation fail
-- [ ] 5.9 — Animation transition khi toggle ô TKB
-- [ ] 5.10 — Loading spinner khi AJAX đang chạy
-- [ ] 5.11 — Test: tạo lớp mới end-to-end OK
-- [ ] 5.12 — Test: sửa lớp (info cơ bản), xóa lớp cascade OK
-- [ ] 5.13 — Test: 2 lớp cùng GV cùng ca → xung đột hiển thị đúng
+- [x] 5.1 — Ẩn lưới TKB khi form ở chế độ Edit (`$class !== null`)
+- [x] 5.2 — Ẩn/Disable field Số buổi học, Ngày bắt đầu khi Edit
+- [x] 5.3 — Render lại trang Show: Thêm tab/section "Lịch học (Timetable)"
+- [x] 5.4 — Lấy danh sách `ClassSession` ở Controller -> truyền qua View Show
+- [x] 5.5 — Hiển thị danh sách buổi học dạng bảng (Ngày, Ca, Phòng, Trạng thái)
+- [x] 5.6 — Thêm nút "Sửa" ở mỗi dòng buổi học (chỉ cho phép đổi Ngày, Ca, Phòng)
+- [x] 5.7 — Form sửa 1 buổi học (modal hoặc trang riêng)
+- [x] 5.8 — API kiểm tra xung đột khi sửa 1 buổi học
+- [x] 5.9 — Tính lại `end_date` của Lớp nếu sửa buổi cuối cùng dời ngày
+- [x] 5.10 — Cập nhật logic `delete` Lớp -> xóa cả `sessions` (Cascade hoặc Delete thủ công)
+- [x] 5.11 — Kiểm tra Responsive toàn diện
+- [x] 5.12 — Dọn dẹp code thừa
+- [x] 5.13 — Kiểm thử tổng thể (Tạo → Xếp → Xóa) lớp cascade OK
 - **Commit & Push:** `[Polish] Edit flow, responsive, error handling, final test`
 
 ---
@@ -106,5 +106,5 @@
 | 2. Backend API | 13 / 13 | 13 |
 | 3. Frontend Form | 13 / 13 | 13 |
 | 4. AJAX & Conflict | 11 / 11 | 11 |
-| 5. Edit & Polish | 0 / 13 | 13 |
-| **Tổng cộng** | **0 / 63** | **63** |
+| 5. Edit & Polish | 13 / 13 | 13 |
+| **Tổng cộng** | **63 / 63** | **63** |

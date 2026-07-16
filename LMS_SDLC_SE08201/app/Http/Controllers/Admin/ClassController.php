@@ -60,7 +60,7 @@ class ClassController extends Controller
     /** Trang quản lý chi tiết lớp: gán GV, danh sách SV, xếp SV */
     public function show(ClassRoom $class): View
     {
-        $class->load(['teacher', 'subject', 'major', 'students', 'sessions']);
+        $class->load(['teacher', 'subject', 'major', 'students', 'sessions.slot', 'sessions.room']);
 
         return view('admin.classes.show', [
             'class' => $class,
@@ -160,6 +160,52 @@ class ClassController extends Controller
             $validated['teacher_id'],
             $validated['room_id']
         ));
+    }
+
+    public function getSlots()
+    {
+        return response()->json(Slot::orderBy('slot_number')->get());
+    }
+
+    public function getRooms()
+    {
+        return response()->json(Room::orderBy('room_name')->get());
+    }
+
+    public function updateSession(Request $request, \App\Models\ClassSession $session)
+    {
+        $validated = $request->validate([
+            'session_date' => 'required|date',
+            'slot_id' => 'required|exists:slots,slot_id',
+            'room_id' => 'required|exists:rooms,room_id',
+            'teacher_id' => 'required|exists:users,user_id',
+        ]);
+
+        $conflictResult = $this->classService->checkConflicts(
+            $validated['session_date'],
+            $validated['slot_id'],
+            $validated['teacher_id'],
+            $validated['room_id'],
+            $session->session_id
+        );
+
+        if ($conflictResult['is_conflict']) {
+            return response()->json($conflictResult);
+        }
+
+        $session->update([
+            'session_date' => $validated['session_date'],
+            'slot_id' => $validated['slot_id'],
+            'room_id' => $validated['room_id'],
+        ]);
+        
+        $class = $session->classRoom;
+        $maxDate = $class->sessions()->max('session_date');
+        if ($maxDate) {
+            $class->update(['end_date' => $maxDate]);
+        }
+
+        return response()->json(['success' => true]);
     }
 
     public function enrollStudents(EnrollStudentsRequest $request, ClassRoom $class): RedirectResponse
