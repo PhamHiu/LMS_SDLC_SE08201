@@ -30,7 +30,7 @@ class ClassService
     {
         return DB::transaction(function () use ($data) {
             $class = ClassRoom::create($data);
-            $selectedSlots = json_decode($data['selected_slots'], true) ?? [];
+            $selectedSlots = $data['selected_slots'] ?? [];
             $this->generateSessions($class, $selectedSlots, $data['room_id'] ?? null);
 
             return $class;

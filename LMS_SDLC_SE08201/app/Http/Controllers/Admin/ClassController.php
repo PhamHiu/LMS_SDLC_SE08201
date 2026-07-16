@@ -65,6 +65,7 @@ class ClassController extends Controller
         return view('admin.classes.show', [
             'class' => $class,
             'availableStudents' => $this->classService->availableStudents($class),
+            'majors' => \App\Models\Major::orderBy('major_name')->get(),
         ]);
     }
 
