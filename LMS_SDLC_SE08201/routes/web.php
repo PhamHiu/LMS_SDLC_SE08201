@@ -1,0 +1,132 @@
+<?php
+
+use App\Http\Controllers\Admin;
+use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\ProfileController;
+use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\Student;
+use App\Http\Controllers\Teacher;
+use App\Services\AuthService;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
+
+/*
+|--------------------------------------------------------------------------
+| Luồng xử lý: Browser → Route → Middleware → FormRequest → Controller
+|              → Service → Model → DB → View → Browser
+|--------------------------------------------------------------------------
+*/
+
+// Trang chủ: điều hướng theo trạng thái đăng nhập + role
+Route::get('/', function (AuthService $authService) {
+    return Auth::check()
+        ? redirect($authService->homeRouteFor(Auth::user()))
+        : redirect()->route('login');
+})->name('home');
+
+// ===== AUTH (guest) =====
+Route::middleware('guest')->group(function () {
+    Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
+    Route::post('/login', [LoginController::class, 'login'])->name('login.post');
+    Route::get('/register', [RegisterController::class, 'showRegisterForm'])->name('register');
+    Route::post('/register', [RegisterController::class, 'register'])->name('register.post');
+});
+
+// ===== Dùng chung (đã đăng nhập) =====
+Route::middleware('auth')->group(function () {
+    Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
+});
+
+// ===== NHÓM 1: ADMIN =====
+Route::middleware(['auth', 'role:ADMIN'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/', [Admin\DashboardController::class, 'index'])->name('dashboard');
+
+    // Quản lý người dùng + reset mật khẩu
+    Route::resource('users', Admin\UserController::class)->except('show');
+    Route::post('users/{user}/reset-password', [Admin\UserController::class, 'resetPassword'])->name('users.reset-password');
+
+    // Quản lý chuyên ngành
+    Route::resource('majors', Admin\MajorController::class)->except('show');
+
+    // Quản lý môn học
+    Route::resource('subjects', Admin\SubjectController::class)->except('show');
+
+    // Quản lý lớp học: tạo lớp, gán GV, xếp SV, sinh buổi học
+    Route::resource('classes', Admin\ClassController::class);
+    Route::post('classes/{class}/students', [Admin\ClassController::class, 'enrollStudents'])->name('classes.students.enroll');
+    Route::delete('classes/{class}/students/{student}', [Admin\ClassController::class, 'removeStudent'])->name('classes.students.remove');
+
+    // Thông báo toàn hệ thống
+    Route::get('notifications', [Admin\NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('notifications', [Admin\NotificationController::class, 'store'])->name('notifications.store');
+    Route::delete('notifications/{notification}', [Admin\NotificationController::class, 'destroy'])->name('notifications.destroy');
+});
+
+// ===== NHÓM 2: TEACHER =====
+Route::middleware(['auth', 'role:TEACHER'])->prefix('teacher')->name('teacher.')->group(function () {
+    Route::get('/', [Teacher\DashboardController::class, 'index'])->name('dashboard');
+
+    // Lớp phụ trách + danh sách sinh viên
+    Route::get('classes', [Teacher\ClassController::class, 'index'])->name('classes.index');
+    Route::get('classes/{class}', [Teacher\ClassController::class, 'show'])->name('classes.show');
+
+    // Học liệu
+    Route::get('materials', [Teacher\MaterialController::class, 'index'])->name('materials.index');
+    Route::post('materials', [Teacher\MaterialController::class, 'store'])->name('materials.store');
+    Route::delete('materials/{material}', [Teacher\MaterialController::class, 'destroy'])->name('materials.destroy');
+    Route::get('materials/{material}/download', [Teacher\MaterialController::class, 'download'])->name('materials.download');
+
+    // Điểm danh theo buổi
+    Route::get('classes/{class}/sessions/{session}/attendance', [Teacher\AttendanceController::class, 'edit'])->name('attendance.edit');
+    Route::post('classes/{class}/sessions/{session}/attendance', [Teacher\AttendanceController::class, 'update'])->name('attendance.update');
+
+    // Bài tập / Quiz
+    Route::get('assignments', [Teacher\AssignmentController::class, 'index'])->name('assignments.index');
+    Route::get('classes/{class}/assignments/create', [Teacher\AssignmentController::class, 'create'])->name('assignments.create');
+    Route::post('classes/{class}/assignments', [Teacher\AssignmentController::class, 'store'])->name('assignments.store');
+    Route::get('assignments/{assignment}', [Teacher\AssignmentController::class, 'show'])->name('assignments.show');
+    Route::delete('assignments/{assignment}', [Teacher\AssignmentController::class, 'destroy'])->name('assignments.destroy');
+
+    // Chấm bài
+    Route::get('assignments/{assignment}/submissions', [Teacher\GradingController::class, 'index'])->name('grading.index');
+    Route::get('submissions/{submission}/download', [Teacher\GradingController::class, 'download'])->name('grading.download');
+    Route::post('submissions/{submission}/grade', [Teacher\GradingController::class, 'grade'])->name('grading.grade');
+
+    // Thông báo lớp
+    Route::get('notifications', [Teacher\NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('notifications', [Teacher\NotificationController::class, 'store'])->name('notifications.store');
+    Route::delete('notifications/{notification}', [Teacher\NotificationController::class, 'destroy'])->name('notifications.destroy');
+
+    // Thảo luận dưới bài tập
+    Route::post('assignments/{assignment}/discussions', [Teacher\DiscussionController::class, 'store'])->name('discussions.store');
+});
+
+// ===== NHÓM 3: STUDENT =====
+Route::middleware(['auth', 'role:STUDENT'])->prefix('student')->name('student.')->group(function () {
+    Route::get('/', [Student\DashboardController::class, 'index'])->name('dashboard');
+
+    // Lịch học & điểm danh
+    Route::get('schedule', [Student\ScheduleController::class, 'index'])->name('schedule.index');
+    Route::get('attendance', [Student\ScheduleController::class, 'attendance'])->name('attendance.index');
+
+    // Học liệu
+    Route::get('materials', [Student\MaterialController::class, 'index'])->name('materials.index');
+    Route::get('materials/{material}/download', [Student\MaterialController::class, 'download'])->name('materials.download');
+
+    // Bài tập: xem, làm quiz, nộp tự luận
+    Route::get('assignments', [Student\AssignmentController::class, 'index'])->name('assignments.index');
+    Route::get('assignments/{assignment}', [Student\AssignmentController::class, 'show'])->name('assignments.show');
+    Route::post('assignments/{assignment}/essay', [Student\AssignmentController::class, 'submitEssay'])->name('assignments.essay.submit');
+    Route::get('assignments/{assignment}/quiz', [Student\AssignmentController::class, 'takeQuiz'])->name('assignments.quiz.take');
+    Route::post('assignments/{assignment}/quiz', [Student\AssignmentController::class, 'submitQuiz'])->name('assignments.quiz.submit');
+
+    // Điểm số
+    Route::get('grades', [Student\GradeController::class, 'index'])->name('grades.index');
+
+    // Thông báo + thảo luận
+    Route::get('notifications', [Student\NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('assignments/{assignment}/discussions', [Student\DiscussionController::class, 'store'])->name('discussions.store');
+});

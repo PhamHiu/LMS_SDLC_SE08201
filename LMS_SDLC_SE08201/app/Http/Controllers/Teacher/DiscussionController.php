@@ -1,0 +1,33 @@
+<?php
+
+namespace App\Http\Controllers\Teacher;
+
+use App\Http\Controllers\Controller;
+use App\Http\Requests\DiscussionRequest;
+use App\Models\Assignment;
+use App\Services\DiscussionService;
+use App\Services\Teacher\AssignmentService;
+use Illuminate\Http\RedirectResponse;
+
+class DiscussionController extends Controller
+{
+    public function __construct(
+        private readonly DiscussionService $discussionService,
+        private readonly AssignmentService $assignmentService,
+    ) {
+    }
+
+    public function store(DiscussionRequest $request, Assignment $assignment): RedirectResponse
+    {
+        $this->assignmentService->authorizeAssignment($request->user(), $assignment);
+
+        $this->discussionService->post(
+            $request->user(),
+            $assignment,
+            $request->validated('comment'),
+            $request->validated('parent_id'),
+        );
+
+        return back()->with('success', 'Đã đăng bình luận.');
+    }
+}
