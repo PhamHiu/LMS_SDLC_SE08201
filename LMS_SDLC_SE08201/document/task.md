@@ -64,17 +64,17 @@
 
 ## Module 4: AJAX & Kiểm tra xung đột
 
-- [ ] 4.1 — JS: Chọn Chuyên ngành → fetch load Môn học → populate select
-- [ ] 4.2 — JS: Chọn Chuyên ngành → fetch load GV → populate select (kèm "Chưa phân ngành")
-- [ ] 4.3 — JS: Đổi Chuyên ngành → reset Môn + GV về rỗng
-- [ ] 4.4 — JS: Chọn Ngày bắt đầu → fetch load lịch hiện có → tô xám ô đã có lớp
-- [ ] 4.5 — JS: Click ô TKB → toggle class `selected` (xanh dương) + cập nhật hidden input
-- [ ] 4.6 — JS: Click ô + đã chọn GV/phòng → fetch `check-conflict` → tô màu xanh lá / đỏ
-- [ ] 4.7 — JS: Tooltip hiển thị chi tiết xung đột khi hover ô đỏ
-- [ ] 4.8 — JS: Tự tính `end_date` preview khi thay đổi ô / số buổi
-- [ ] 4.9 — JS: Hiển thị counter "Đã chọn X/Y buổi mỗi tuần"
-- [ ] 4.10 — JS: Validation client — không submit nếu 0 ô, cảnh báo ô xung đột
-- [ ] 4.11 — JS: Submit form → POST dữ liệu + `selected_slots` JSON → redirect / lỗi
+- [x] 4.1 — JS: Chọn Chuyên ngành → fetch load Môn học → populate select
+- [x] 4.2 — JS: Chọn Chuyên ngành → fetch load GV → populate select (kèm "Chưa phân ngành")
+- [x] 4.3 — JS: Đổi Chuyên ngành → reset Môn + GV về rỗng
+- [x] 4.4 — JS: Chọn Ngày bắt đầu → fetch load lịch hiện có → tô xám ô đã có lớp
+- [x] 4.5 — JS: Click ô TKB → toggle class `selected` (xanh dương) + cập nhật hidden input
+- [x] 4.6 — JS: Click ô + đã chọn GV/phòng → fetch `check-conflict` → tô màu xanh lá / đỏ
+- [x] 4.7 — JS: Tooltip hiển thị chi tiết xung đột khi hover ô đỏ
+- [x] 4.8 — JS: Tự tính `end_date` preview khi thay đổi ô / số buổi
+- [x] 4.9 — JS: Hiển thị counter "Đã chọn X/Y buổi mỗi tuần"
+- [x] 4.10 — JS: Validation client — không submit nếu 0 ô, cảnh báo ô xung đột
+- [x] 4.11 — JS: Submit form → POST dữ liệu + `selected_slots` JSON → redirect / lỗi
 - **Commit:** `[AJAX] Cascade dropdown, conflict check, tự tính end_date`
 
 ---
@@ -105,6 +105,6 @@
 | 1. Database & Models | 13 / 13 | 13 |
 | 2. Backend API | 13 / 13 | 13 |
 | 3. Frontend Form | 13 / 13 | 13 |
-| 4. AJAX & Conflict | 0 / 11 | 11 |
+| 4. AJAX & Conflict | 11 / 11 | 11 |
 | 5. Edit & Polish | 0 / 13 | 13 |
 | **Tổng cộng** | **0 / 63** | **63** |

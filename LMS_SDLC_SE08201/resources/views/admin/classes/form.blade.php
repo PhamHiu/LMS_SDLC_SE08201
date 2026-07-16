@@ -176,5 +176,226 @@
         </div>
     </form>
 </div>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const majorSelect = document.getElementById('major_select');
+        const subjectSelect = document.getElementById('subject_select');
+        const teacherSelect = document.getElementById('teacher_select');
+        const roomSelect = document.getElementById('room_select');
+        const startDateInput = document.getElementById('start_date');
+        const totalSessionsInput = document.getElementById('total_sessions');
+        const endDateDisplay = document.getElementById('end_date_display');
+        const tkbCells = document.querySelectorAll('.tkb-cell');
+        const selectedSlotsInput = document.getElementById('selected_slots');
+        const selectedCountDisplay = document.getElementById('selected_count');
+        const classForm = document.getElementById('class_form');
+        
+        let existingTimetable = [];
+        let selectedSlots = selectedSlotsInput ? JSON.parse(selectedSlotsInput.value || '[]') : [];
+        
+        majorSelect.addEventListener('change', async function() {
+            const majorId = this.value;
+            
+            subjectSelect.innerHTML = '<option value="">— Chọn môn học —</option>';
+            teacherSelect.innerHTML = '<option value="">— Chọn giảng viên —</option>';
+            
+            if (!majorId) {
+                subjectSelect.disabled = true;
+                teacherSelect.disabled = true;
+                return;
+            }
+            
+            subjectSelect.disabled = false;
+            teacherSelect.disabled = false;
+            
+            fetch(`/admin/classes/api/subjects-by-major?major_id=${majorId}`)
+                .then(res => res.json())
+                .then(data => {
+                    data.forEach(sub => {
+                        const option = new Option(`${sub.subject_code} — ${sub.subject_name}`, sub.subject_id);
+                        subjectSelect.add(option);
+                    });
+                    if (subjectSelect.dataset.selected) {
+                        subjectSelect.value = subjectSelect.dataset.selected;
+                    }
+                });
+                
+            fetch(`/admin/classes/api/teachers-by-major?major_id=${majorId}`)
+                .then(res => res.json())
+                .then(data => {
+                    let hasNullMajor = false;
+                    data.forEach(t => {
+                        if (t.major_id === null && !hasNullMajor) {
+                            const groupOpt = document.createElement('optgroup');
+                            groupOpt.label = '— Chưa phân ngành —';
+                            teacherSelect.appendChild(groupOpt);
+                            hasNullMajor = true;
+                        }
+                        const option = new Option(t.full_name, t.user_id);
+                        if (t.major_id === null) {
+                            teacherSelect.lastChild.appendChild(option);
+                        } else {
+                            teacherSelect.add(option);
+                        }
+                    });
+                    if (teacherSelect.dataset.selected) {
+                        teacherSelect.value = teacherSelect.dataset.selected;
+                    }
+                });
+        });
+        
+        if (majorSelect.value) {
+            majorSelect.dispatchEvent(new Event('change'));
+        }
 
+        async function loadExistingTimetable() {
+            if (!startDateInput) return;
+            const startDate = startDateInput.value;
+            const teacherId = teacherSelect.value;
+            const roomId = roomSelect.value;
+            
+            if (!startDate) return;
+            
+            let url = `/admin/classes/api/timetable?start_date=${startDate}`;
+            if (teacherId) url += `&teacher_id=${teacherId}`;
+            if (roomId) url += `&room_id=${roomId}`;
+            
+            const res = await fetch(url);
+            existingTimetable = await res.json();
+            
+            renderTimetable();
+        }
+        
+        if (startDateInput) {
+            startDateInput.addEventListener('change', loadExistingTimetable);
+            teacherSelect.addEventListener('change', loadExistingTimetable);
+            roomSelect.addEventListener('change', loadExistingTimetable);
+            totalSessionsInput.addEventListener('input', calculateEndDate);
+        }
+        
+        function renderTimetable() {
+            tkbCells.forEach(cell => {
+                cell.classList.remove('bg-indigo-500', 'border-indigo-600', 'bg-rose-100', 'border-rose-300', 'bg-slate-200', 'border-slate-300');
+                cell.classList.add('bg-slate-50', 'border-slate-300');
+                cell.title = '';
+                cell.querySelector('.cell-text').textContent = '+ Chọn';
+                cell.querySelector('.cell-text').classList.replace('text-white', 'text-slate-400');
+                cell.querySelector('.cell-text').classList.replace('text-rose-700', 'text-slate-400');
+                cell.dataset.status = 'empty';
+                
+                const day = parseInt(cell.dataset.day);
+                const slotId = parseInt(cell.dataset.slotId);
+                
+                const existing = existingTimetable.find(e => e.day_of_week === day && e.slot_id === slotId);
+                if (existing) {
+                    cell.classList.replace('bg-slate-50', 'bg-slate-200');
+                    cell.querySelector('.cell-text').textContent = existing.class_name;
+                    cell.title = `Đã có lớp ${existing.class_name}`;
+                    cell.dataset.status = 'occupied';
+                }
+                
+                const isSelected = selectedSlots.some(s => s.day_of_week === day && s.slot_id === slotId);
+                if (isSelected) {
+                    if (cell.dataset.status === 'occupied') {
+                        cell.classList.replace('bg-slate-200', 'bg-rose-100');
+                        cell.classList.replace('border-slate-300', 'border-rose-300');
+                        cell.querySelector('.cell-text').classList.replace('text-slate-400', 'text-rose-700');
+                        cell.dataset.status = 'conflict';
+                        cell.title = 'Xung đột: ' + cell.title;
+                    } else {
+                        cell.classList.replace('bg-slate-50', 'bg-indigo-500');
+                        cell.classList.replace('border-slate-300', 'border-indigo-600');
+                        cell.querySelector('.cell-text').classList.replace('text-slate-400', 'text-white');
+                        cell.querySelector('.cell-text').textContent = 'Đã chọn';
+                        cell.dataset.status = 'selected';
+                    }
+                }
+            });
+            
+            updateCounter();
+            calculateEndDate();
+        }
+        
+        tkbCells.forEach(cell => {
+            cell.addEventListener('click', async function() {
+                const day = parseInt(this.dataset.day);
+                const slotId = parseInt(this.dataset.slotId);
+                
+                const idx = selectedSlots.findIndex(s => s.day_of_week === day && s.slot_id === slotId);
+                if (idx > -1) {
+                    selectedSlots.splice(idx, 1);
+                } else {
+                    selectedSlots.push({day_of_week: day, slot_id: slotId});
+                }
+                
+                selectedSlotsInput.value = JSON.stringify(selectedSlots);
+                
+                if (idx === -1 && teacherSelect.value && startDateInput.value) {
+                    await loadExistingTimetable();
+                } else {
+                    renderTimetable();
+                }
+            });
+        });
+        
+        function updateCounter() {
+            if (selectedCountDisplay) {
+                selectedCountDisplay.textContent = selectedSlots.length;
+            }
+        }
+        
+        function calculateEndDate() {
+            if (!startDateInput || !startDateInput.value || selectedSlots.length === 0) {
+                if (endDateDisplay) endDateDisplay.textContent = '...';
+                return;
+            }
+            
+            const startDate = new Date(startDateInput.value);
+            const total = parseInt(totalSessionsInput.value) || 12;
+            let count = 0;
+            let current = new Date(startDate);
+            let end = new Date(startDate);
+            
+            const jsDayToOurDay = (d) => d === 0 ? 7 : d;
+            
+            for (let i = 0; i < 365; i++) {
+                const ourDay = jsDayToOurDay(current.getDay());
+                const slotsThisDay = selectedSlots.filter(s => s.day_of_week === ourDay);
+                
+                if (slotsThisDay.length > 0) {
+                    count += slotsThisDay.length;
+                    end = new Date(current);
+                }
+                if (count >= total) break;
+                
+                current.setDate(current.getDate() + 1);
+            }
+            
+            if (endDateDisplay) {
+                endDateDisplay.textContent = end.toLocaleDateString('vi-VN');
+            }
+        }
+        
+        if (startDateInput && startDateInput.value) {
+            loadExistingTimetable();
+        }
+
+        if (classForm) {
+            classForm.addEventListener('submit', function(e) {
+                if (selectedSlotsInput && !selectedSlotsInput.disabled && selectedSlots.length === 0) {
+                    e.preventDefault();
+                    alert('Vui lòng chọn ít nhất 1 ca học trên lưới thời khóa biểu!');
+                    return;
+                }
+                
+                const hasConflict = Array.from(tkbCells).some(c => c.dataset.status === 'conflict');
+                if (hasConflict) {
+                    if (!confirm('Có ca học đang bị xung đột lịch. Bạn có chắc chắn muốn tiếp tục tạo lớp?')) {
+                        e.preventDefault();
+                    }
+                }
+            });
+        }
+    });
+</script>
 @endsection
