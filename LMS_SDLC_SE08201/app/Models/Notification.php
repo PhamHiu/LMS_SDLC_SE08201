@@ -9,12 +9,18 @@ class Notification extends Model
     protected $table = 'notifications';
     protected $primaryKey = 'notification_id';
 
-    protected $fillable = ['user_id', 'class_id', 'title', 'body'];
+    protected $fillable = ['user_id', 'class_id', 'assignment_id', 'title', 'body'];
 
     /** Thông báo toàn hệ thống (không gắn lớp cụ thể) */
     public function isSystemWide(): bool
     {
         return $this->class_id === null;
+    }
+
+    /** Thông báo nhắc hạn bài tập (được sinh tự động) */
+    public function isDeadlineReminder(): bool
+    {
+        return $this->assignment_id !== null;
     }
 
     public function author()
@@ -25,5 +31,10 @@ class Notification extends Model
     public function classRoom()
     {
         return $this->belongsTo(ClassRoom::class, 'class_id', 'class_id');
+    }
+
+    public function assignment()
+    {
+        return $this->belongsTo(Assignment::class, 'assignment_id', 'assignment_id');
     }
 }
