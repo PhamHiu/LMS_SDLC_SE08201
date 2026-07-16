@@ -17,7 +17,8 @@ class UserService
             ->when($role, fn ($q) => $q->where('role', $role))
             ->when($search, fn ($q) => $q->where(function ($qq) use ($search) {
                 $qq->where('full_name', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%");
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('student_code', 'like', "%{$search}%");
             }))
             ->orderByDesc('user_id')
             ->paginate(10)
