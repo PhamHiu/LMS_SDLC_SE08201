@@ -7,11 +7,27 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class SubjectService
 {
-    public function paginate(?string $search = null): LengthAwarePaginator
+    public function paginate(?string $search = null, ?int $majorId = null): LengthAwarePaginator
     {
         return Subject::with('majors')->withCount('classes')
-            ->when($search, fn ($q) => $q->where('subject_name', 'like', "%{$search}%")
-                ->orWhere('subject_code', 'like', "%{$search}%"))
+            ->when($majorId, function ($q) use ($majorId) {
+                $q->whereHas('majors', function ($q2) use ($majorId) {
+                    $q2->where('majors.major_id', $majorId);
+                });
+            })
+            ->when($search, function ($q) use ($search) {
+                $q->where(function ($q2) use ($search) {
+                    $q2->where('subject_name', 'like', "%{$search}%")
+                        ->orWhere('subject_code', 'like', "%{$search}%")
+                        ->orWhereHas('majors', function ($q3) use ($search) {
+                            $q3->where('major_name', 'like', "%{$search}%")
+                               ->orWhere('major_code', 'like', "%{$search}%");
+                        })
+                        ->orWhereHas('classes', function ($q4) use ($search) {
+                            $q4->where('class_name', 'like', "%{$search}%");
+                        });
+                });
+            })
             ->orderBy('subject_code')
             ->paginate(10)
             ->withQueryString();
