@@ -9,7 +9,7 @@
     <div class="flex items-center justify-between w-full md:w-auto gap-3 order-1 md:order-none">
         <!-- Search bar -->
         <div class="flex-1 md:flex-none relative w-full md:w-64 lg:w-80">
-            <input type="text" name="search" value="{{ $search }}" placeholder="Tìm tên hoặc email..."
+            <input type="text" name="search" value="{{ $search }}" placeholder="Tìm mã, tên hoặc email..."
                    class="w-full rounded-lg border border-slate-300 pl-4 pr-10 py-2 text-sm focus:border-indigo-500 outline-none"
                    oninput="clearTimeout(this.delay); this.delay = setTimeout(() => document.getElementById('searchForm').submit(), 500)">
             <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
@@ -78,7 +78,10 @@
                             <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-sm font-bold text-indigo-600">{{ mb_substr($user->full_name, 0, 1) }}</span>
                             <div>
                                 <p class="font-semibold text-slate-700">{{ $user->full_name }}</p>
-                                <p class="text-xs text-slate-400">{{ $user->email }}</p>
+                                <p class="text-xs text-slate-400">
+                                    @if($user->student_code) <span class="font-medium text-slate-500">{{ $user->student_code }}</span> • @endif
+                                    {{ $user->email }}
+                                </p>
                             </div>
                         </div>
                     </td>

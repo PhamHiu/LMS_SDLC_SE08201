@@ -53,7 +53,7 @@
             <h3 class="font-bold text-slate-800">Xếp sinh viên vào lớp</h3>
         </div>
         <div class="px-5 pt-4 flex gap-3">
-            <input type="text" id="student_search" placeholder="Tìm tên, email..." class="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 outline-none">
+            <input type="text" id="student_search" placeholder="Tìm mã, tên, email..." class="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 outline-none">
             <select id="student_major_filter" class="w-1/3 rounded-lg border border-slate-300 px-3 py-2 text-sm bg-white focus:border-indigo-500 outline-none">
                 <option value="">Tất cả ngành</option>
                 @foreach ($majors as $major)
@@ -66,11 +66,15 @@
             <div class="max-h-72 space-y-1 overflow-y-auto rounded-lg border border-slate-200 p-3" id="student_list">
                 @forelse ($availableStudents as $sv)
                     <label class="student-item flex items-center gap-3 rounded-lg px-2 py-1.5 text-sm hover:bg-slate-50"
+                           data-code="{{ strtolower($sv->student_code ?? '') }}"
                            data-name="{{ strtolower($sv->full_name) }}"
                            data-email="{{ strtolower($sv->email) }}"
                            data-major="{{ $sv->major_id }}">
                         <input type="checkbox" name="student_ids[]" value="{{ $sv->user_id }}" class="student-checkbox rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
-                        <span class="font-medium text-slate-700">{{ $sv->full_name }}</span>
+                        <span class="font-medium text-slate-700">
+                            @if($sv->student_code) <span class="text-indigo-600 mr-1">[{{ $sv->student_code }}]</span> @endif
+                            {{ $sv->full_name }}
+                        </span>
                         <span class="text-xs text-slate-400">{{ $sv->email }} @if($sv->major) · {{ $sv->major->major_code }} @endif</span>
                     </label>
                 @empty
@@ -309,7 +313,7 @@
             let visibleCount = 0;
             
             studentItems.forEach(item => {
-                const nameMatch = item.dataset.name.includes(text) || item.dataset.email.includes(text);
+                const nameMatch = item.dataset.name.includes(text) || item.dataset.email.includes(text) || item.dataset.code.includes(text);
                 const majorMatch = major === "" || item.dataset.major === major;
                 
                 if (nameMatch && majorMatch) {
