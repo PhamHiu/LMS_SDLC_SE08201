@@ -7,6 +7,8 @@ use App\Http\Requests\Admin\ClassRequest;
 use App\Http\Requests\Admin\EnrollStudentsRequest;
 use App\Models\ClassRoom;
 use App\Models\Major;
+use App\Models\Room;
+use App\Models\Slot;
 use App\Models\Subject;
 use App\Models\User;
 use App\Services\Admin\ClassService;
@@ -41,6 +43,8 @@ class ClassController extends Controller
             'teachers' => User::where('role', User::ROLE_TEACHER)->orderBy('full_name')->get(),
             'subjects' => Subject::orderBy('subject_name')->get(),
             'majors' => Major::orderBy('major_name')->get(),
+            'rooms' => Room::orderBy('room_name')->get(),
+            'slots' => Slot::orderBy('slot_number')->get(),
         ]);
     }
 
@@ -71,6 +75,8 @@ class ClassController extends Controller
             'teachers' => User::where('role', User::ROLE_TEACHER)->orderBy('full_name')->get(),
             'subjects' => Subject::orderBy('subject_name')->get(),
             'majors' => Major::orderBy('major_name')->get(),
+            'rooms' => Room::orderBy('room_name')->get(),
+            'slots' => Slot::orderBy('slot_number')->get(),
         ]);
     }
 
@@ -86,6 +92,74 @@ class ClassController extends Controller
         $this->classService->delete($class);
 
         return redirect()->route('admin.classes.index')->with('success', 'Đã xóa lớp học.');
+    }
+
+    public function subjectsByMajor(Request $request)
+    {
+        $majorId = $request->query('major_id');
+        if (!$majorId) {
+            return response()->json([]);
+        }
+
+        $major = Major::with('subjects')->find($majorId);
+        if (!$major) {
+            return response()->json([]);
+        }
+
+        return response()->json($major->subjects()->orderBy('subject_name')->get(['subjects.subject_id', 'subject_name']));
+    }
+
+    public function teachersByMajor(Request $request)
+    {
+        $majorId = $request->query('major_id');
+        if (!$majorId) {
+            return response()->json([]);
+        }
+
+        $teachers = User::where('role', User::ROLE_TEACHER)
+            ->where(function($query) use ($majorId) {
+                $query->where('major_id', $majorId)
+                      ->orWhereNull('major_id');
+            })
+            ->orderBy('major_id', 'desc')
+            ->orderBy('full_name')
+            ->get(['user_id', 'full_name', 'major_id']);
+
+        return response()->json($teachers);
+    }
+
+    public function timetable(Request $request)
+    {
+        $startDate = $request->query('start_date');
+        $teacherId = $request->query('teacher_id');
+        $roomId = $request->query('room_id');
+        
+        if (!$startDate) {
+            return response()->json([]);
+        }
+
+        return response()->json($this->classService->getExistingTimetable(
+            $startDate,
+            $teacherId ? (int) $teacherId : null,
+            $roomId ? (int) $roomId : null
+        ));
+    }
+
+    public function checkConflict(Request $request)
+    {
+        $validated = $request->validate([
+            'session_date' => 'required|date',
+            'slot_id' => 'required|exists:slots,slot_id',
+            'teacher_id' => 'required|exists:users,user_id',
+            'room_id' => 'required|exists:rooms,room_id',
+        ]);
+
+        return response()->json($this->classService->checkConflicts(
+            $validated['session_date'],
+            $validated['slot_id'],
+            $validated['teacher_id'],
+            $validated['room_id']
+        ));
     }
 
     public function enrollStudents(EnrollStudentsRequest $request, ClassRoom $class): RedirectResponse

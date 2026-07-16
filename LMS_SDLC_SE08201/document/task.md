@@ -26,19 +26,19 @@
 
 ## Module 2: Backend API
 
-- [ ] 2.1 — Thêm route `GET classes/api/subjects-by-major` vào `web.php`
-- [ ] 2.2 — Thêm route `GET classes/api/teachers-by-major` vào `web.php`
-- [ ] 2.3 — Thêm route `GET classes/api/timetable` vào `web.php`
-- [ ] 2.4 — Thêm route `POST classes/api/check-conflict` vào `web.php`
-- [ ] 2.5 — Viết `ClassController::subjectsByMajor()` — trả JSON môn theo ngành
-- [ ] 2.6 — Viết `ClassController::teachersByMajor()` — trả JSON GV (kèm nhóm "Chưa phân ngành")
-- [ ] 2.7 — Viết `ClassController::timetable()` — trả JSON lịch hiện có từ ngày X
-- [ ] 2.8 — Viết `ClassController::checkConflict()` — trả JSON trạng thái xung đột
-- [ ] 2.9 — Viết lại `ClassService::generateSessions()` — nhận `selected_slots[]` + `room_id`, sinh buổi xoay vòng, tự tính `end_date`
-- [ ] 2.10 — Viết `ClassService::checkConflicts()` — kiểm tra xung đột GV/phòng/lớp
-- [ ] 2.11 — Viết `ClassService::getExistingTimetable()` — lấy sessions hiện có
-- [ ] 2.12 — Cập nhật `ClassRequest` — validation `selected_slots`, `room_id`; bỏ `room`, `shift`, `end_date`
-- [ ] 2.13 — Cập nhật `ClassController::create()` — truyền `$rooms`, `$slots` vào view
+- [x] 2.1 — Thêm route `GET classes/api/subjects-by-major` vào `web.php`
+- [x] 2.2 — Thêm route `GET classes/api/teachers-by-major` vào `web.php`
+- [x] 2.3 — Thêm route `GET classes/api/timetable` vào `web.php`
+- [x] 2.4 — Thêm route `POST classes/api/check-conflict` vào `web.php`
+- [x] 2.5 — Viết `ClassController::subjectsByMajor()` — trả JSON môn theo ngành
+- [x] 2.6 — Viết `ClassController::teachersByMajor()` — trả JSON GV (kèm nhóm "Chưa phân ngành")
+- [x] 2.7 — Viết `ClassController::timetable()` — trả JSON lịch hiện có từ ngày X
+- [x] 2.8 — Viết `ClassController::checkConflict()` — trả JSON trạng thái xung đột
+- [x] 2.9 — Viết lại `ClassService::generateSessions()` — nhận `selected_slots[]` + `room_id`, sinh buổi xoay vòng, tự tính `end_date`
+- [x] 2.10 — Viết `ClassService::checkConflicts()` — kiểm tra xung đột GV/phòng/lớp
+- [x] 2.11 — Viết `ClassService::getExistingTimetable()` — lấy sessions hiện có
+- [x] 2.12 — Cập nhật `ClassRequest` — validation `selected_slots`, `room_id`; bỏ `room`, `shift`, `end_date`
+- [x] 2.13 — Cập nhật `ClassController::create()` — truyền `$rooms`, `$slots` vào view
 - **Commit:** `[Backend] API cascade dropdown, timetable và check-conflict`
 
 ---
@@ -103,7 +103,7 @@
 | Module | Hoàn thành | Tổng tasks |
 |--------|-----------|-----------|
 | 1. Database & Models | 13 / 13 | 13 |
-| 2. Backend API | 0 / 13 | 13 |
+| 2. Backend API | 13 / 13 | 13 |
 | 3. Frontend Form | 0 / 13 | 13 |
 | 4. AJAX & Conflict | 0 / 11 | 11 |
 | 5. Edit & Polish | 0 / 13 | 13 |

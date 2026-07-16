@@ -55,6 +55,12 @@ Route::middleware(['auth', 'role:ADMIN'])->prefix('admin')->name('admin.')->grou
     Route::resource('subjects', Admin\SubjectController::class)->except('show');
 
     // Quản lý lớp học: tạo lớp, gán GV, xếp SV, sinh buổi học
+    Route::prefix('classes/api')->name('classes.api.')->group(function () {
+        Route::get('subjects-by-major', [Admin\ClassController::class, 'subjectsByMajor'])->name('subjects');
+        Route::get('teachers-by-major', [Admin\ClassController::class, 'teachersByMajor'])->name('teachers');
+        Route::get('timetable', [Admin\ClassController::class, 'timetable'])->name('timetable');
+        Route::post('check-conflict', [Admin\ClassController::class, 'checkConflict'])->name('conflict');
+    });
     Route::resource('classes', Admin\ClassController::class);
     Route::post('classes/{class}/students', [Admin\ClassController::class, 'enrollStudents'])->name('classes.students.enroll');
     Route::delete('classes/{class}/students/{student}', [Admin\ClassController::class, 'removeStudent'])->name('classes.students.remove');
