@@ -20,8 +20,9 @@ class SubjectController extends Controller
     public function index(Request $request): View
     {
         return view('admin.subjects.index', [
-            'subjects' => $this->subjectService->paginate($request->query('search')),
+            'subjects' => $this->subjectService->paginate($request->query('search'), $request->query('major_id')),
             'search' => $request->query('search'),
+            'majors' => Major::orderBy('major_name')->get(),
         ]);
     }
 
