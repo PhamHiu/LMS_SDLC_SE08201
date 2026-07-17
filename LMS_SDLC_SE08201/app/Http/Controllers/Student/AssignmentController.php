@@ -90,4 +90,74 @@ class AssignmentController extends Controller
             ->route('student.assignments.show', $assignment)
             ->with('success', "Hoàn thành bài Quiz! Điểm của bạn: {$submission->score}/{$assignment->max_score}.");
     }
+
+    /** Xem trước bài nộp */
+    public function previewSubmission(Request $request, \App\Models\Submission $submission): View
+    {
+        $user = $request->user();
+        if ($user->role === 'STUDENT' && $submission->user_id !== $user->user_id) {
+            abort(403);
+        }
+        if ($user->role === 'TEACHER' && $submission->assignment->classRoom->user_id !== $user->user_id) {
+            abort(403);
+        }
+
+        $type = $request->query('type', 'submit');
+        $filePath = $type === 'result' ? $submission->result_file_path : $submission->submit_file_path;
+        abort_unless($filePath, 404);
+
+        $filename = basename($filePath);
+        $ext = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
+        $fileType = 'other';
+        if (in_array($ext, ['pdf'])) {
+            $fileType = 'pdf';
+        } elseif (in_array($ext, ['docx'])) {
+            $fileType = 'docx';
+        } elseif (in_array($ext, ['png', 'jpg', 'jpeg', 'webp', 'gif'])) {
+            $fileType = 'image';
+        }
+
+        return view('shared.preview', [
+            'filename' => $filename,
+            'fileType' => $fileType,
+            'fileUrl' => route('student.submissions.file', ['submission' => $submission, 'type' => $type]),
+            'downloadUrl' => route('student.submissions.download-raw', ['submission' => $submission, 'type' => $type]),
+        ]);
+    }
+
+    /** Phục vụ file từ Storage */
+    public function serveSubmissionFile(Request $request, \App\Models\Submission $submission)
+    {
+        $user = $request->user();
+        if ($user->role === 'STUDENT' && $submission->user_id !== $user->user_id) {
+            abort(403);
+        }
+        if ($user->role === 'TEACHER' && $submission->assignment->classRoom->user_id !== $user->user_id) {
+            abort(403);
+        }
+
+        $type = $request->query('type', 'submit');
+        $filePath = $type === 'result' ? $submission->result_file_path : $submission->submit_file_path;
+        abort_unless($filePath && \Illuminate\Support\Facades\Storage::exists($filePath), 404);
+
+        return response()->file(storage_path('app/' . $filePath));
+    }
+
+    /** Tải file thô */
+    public function downloadSubmissionFileRaw(Request $request, \App\Models\Submission $submission)
+    {
+        $user = $request->user();
+        if ($user->role === 'STUDENT' && $submission->user_id !== $user->user_id) {
+            abort(403);
+        }
+        if ($user->role === 'TEACHER' && $submission->assignment->classRoom->user_id !== $user->user_id) {
+            abort(403);
+        }
+
+        $type = $request->query('type', 'submit');
+        $filePath = $type === 'result' ? $submission->result_file_path : $submission->submit_file_path;
+        abort_unless($filePath && \Illuminate\Support\Facades\Storage::exists($filePath), 404);
+
+        return response()->download(storage_path('app/' . $filePath));
+    }
 }
