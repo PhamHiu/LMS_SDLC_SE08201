@@ -17,15 +17,22 @@ class GradeService
             ->get()
             ->groupBy(fn ($s) => $s->assignment->class_id);
 
-        $byClass = $submissions->map(fn ($group) => [
-            'class' => $group->first()->assignment->classRoom,
-            'submissions' => $group->sortByDesc('submitted_at'),
-            'avg' => round((float) $group->whereNotNull('score')->avg('score'), 2),
-        ]);
+        $byClass = $submissions->map(function ($group) {
+            $avg = $group->whereNotNull('score')->avg('score');
+
+            return [
+                'class' => $group->first()->assignment->classRoom,
+                'submissions' => $group->sortByDesc('submitted_at'),
+                // null = chưa có bài nào được chấm (phân biệt với điểm trung bình = 0)
+                'avg' => $avg !== null ? round((float) $avg, 2) : null,
+            ];
+        });
+
+        $overallAvg = $student->submissions()->whereNotNull('score')->avg('score');
 
         return [
             'byClass' => $byClass,
-            'overallAvg' => round((float) $student->submissions()->whereNotNull('score')->avg('score'), 2),
+            'overallAvg' => $overallAvg !== null ? round((float) $overallAvg, 2) : null,
         ];
     }
 }

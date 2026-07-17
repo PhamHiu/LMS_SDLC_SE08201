@@ -50,6 +50,12 @@ class GradingController extends Controller
     {
         $this->assignmentService->authorizeAssignment($request->user(), $submission->assignment);
 
+        // Quiz do hệ thống tự chấm → chặn chấm/sửa điểm bằng tay (kể cả POST trực tiếp).
+        abort_if($submission->assignment->isQuiz(), 403, 'Bài Quiz được hệ thống tự chấm, không thể chấm tay.');
+
+        // Chỉ chấm khi sinh viên đã thực sự nộp bài.
+        abort_if($submission->submitted_at === null, 422, 'Sinh viên chưa nộp bài này.');
+
         $this->gradingService->grade($submission, $request->validated(), $request->file('result_file'));
 
         return back()->with('success', 'Đã chấm điểm cho '.$submission->student->full_name.'.');

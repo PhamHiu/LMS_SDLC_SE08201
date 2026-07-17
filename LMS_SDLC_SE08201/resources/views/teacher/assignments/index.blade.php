@@ -42,6 +42,7 @@
                     <td class="px-5 py-3">
                         <div class="flex justify-end gap-2">
                             <a href="{{ route('teacher.grading.index', $a) }}" class="rounded-lg bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700 hover:bg-emerald-100">Chấm bài</a>
+                            <a href="{{ route('teacher.assignments.edit', $a) }}" class="rounded-lg bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-700 hover:bg-amber-100">Sửa</a>
                             <form method="POST" action="{{ route('teacher.assignments.destroy', $a) }}" onsubmit="return confirm('Xóa bài tập này? Toàn bộ bài nộp sẽ bị xóa theo.')">
                                 @csrf @method('DELETE')
                                 <button class="rounded-lg bg-rose-50 px-3 py-1.5 text-xs font-medium text-rose-700 hover:bg-rose-100">Xóa</button>

@@ -5,7 +5,7 @@
 @section('content')
 <div class="mb-6 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 p-6 text-white shadow">
     <p class="text-sm text-indigo-100">Điểm trung bình tất cả bài tập</p>
-    <p class="mt-1 text-4xl font-extrabold">{{ $overallAvg ?: '—' }}</p>
+    <p class="mt-1 text-4xl font-extrabold">{{ $overallAvg !== null ? $overallAvg : '—' }}</p>
 </div>
 
 <div class="space-y-6">
@@ -16,7 +16,7 @@
                     <h2 class="font-bold text-slate-800">{{ $item['class']->class_name }}</h2>
                     <p class="text-xs text-slate-400">{{ $item['class']->subject?->subject_name }}</p>
                 </div>
-                <span class="rounded-full bg-indigo-50 px-3 py-1.5 text-sm font-bold text-indigo-700">TB: {{ $item['avg'] ?: '—' }}</span>
+                <span class="rounded-full bg-indigo-50 px-3 py-1.5 text-sm font-bold text-indigo-700">TB: {{ $item['avg'] !== null ? $item['avg'] : '—' }}</span>
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-sm">

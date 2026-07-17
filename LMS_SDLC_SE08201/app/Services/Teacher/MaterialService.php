@@ -51,6 +51,21 @@ class MaterialService
         ]);
     }
 
+    /**
+     * Giảng viên chỉ được tải học liệu thuộc môn của lớp mình phụ trách
+     * (chống IDOR khi đổi {material} trên URL).
+     */
+    public function authorizeDownload(User $teacher, Material $material): void
+    {
+        $subjectIds = $teacher->teachingClasses()->pluck('subject_id')->unique();
+
+        abort_unless(
+            $subjectIds->contains($material->subject_id),
+            403,
+            'Học liệu không thuộc môn bạn phụ trách.'
+        );
+    }
+
     public function delete(User $teacher, Material $material): void
     {
         if ($material->user_id !== $teacher->user_id) {

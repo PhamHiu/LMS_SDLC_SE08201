@@ -13,14 +13,27 @@ class AssignmentRequest extends FormRequest
 
     public function rules(): array
     {
+        // Khi sửa, route có tham số {assignment}; khi tạo mới thì null.
+        $assignment = $this->route('assignment');
+        $isUpdate = $assignment !== null;
+
+        // Bài tập đã có bài nộp → khóa câu hỏi (không bắt buộc, service cũng bỏ qua).
+        $lockedQuiz = $isUpdate && $assignment->submissions()->exists();
+        $needQuestions = $this->input('type') === 'quiz' && ! $lockedQuiz;
+
+        // Khi cập nhật: cho phép giữ nguyên hạn nộp cũ (kể cả đã qua) → bỏ after:now.
+        $dueRule = $isUpdate
+            ? ['required', 'date']
+            : ['required', 'date', 'after:now'];
+
         return [
             'title' => ['required', 'string', 'max:255'],
             'type' => ['required', 'in:essay,quiz'],
             'description' => ['nullable', 'string'],
-            'due_date' => ['required', 'date', 'after:now'],
+            'due_date' => $dueRule,
             'max_score' => ['required', 'numeric', 'min:1', 'max:100'],
-            // Câu hỏi trắc nghiệm — bắt buộc khi type = quiz
-            'questions' => ['required_if:type,quiz', 'array', 'min:1'],
+            // Câu hỏi trắc nghiệm — bắt buộc khi tạo quiz hoặc sửa quiz chưa có bài nộp
+            'questions' => $needQuestions ? ['required', 'array', 'min:1'] : ['nullable', 'array'],
             'questions.*.content' => ['required_with:questions', 'string'],
             'questions.*.option_a' => ['required_with:questions', 'string', 'max:255'],
             'questions.*.option_b' => ['required_with:questions', 'string', 'max:255'],

@@ -14,6 +14,17 @@ class DiscussionRequest extends FormRequest
         return $this->user() !== null;
     }
 
+    /**
+     * Cắt khoảng trắng đầu/cuối trước khi validate để chặn bình luận rỗng
+     * hoặc chỉ gồm dấu cách (Laravel `required` vẫn coi "   " là hợp lệ).
+     */
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('comment')) {
+            $this->merge(['comment' => trim((string) $this->input('comment'))]);
+        }
+    }
+
     public function rules(): array
     {
         return [

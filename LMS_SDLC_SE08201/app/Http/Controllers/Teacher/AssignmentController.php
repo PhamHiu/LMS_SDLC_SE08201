@@ -65,6 +65,31 @@ class AssignmentController extends Controller
         ]);
     }
 
+    /** Form sửa bài tập */
+    public function edit(Request $request, Assignment $assignment): View
+    {
+        $this->assignmentService->authorizeAssignment($request->user(), $assignment);
+
+        $assignment->load(['classRoom.subject', 'questions']);
+
+        return view('teacher.assignments.edit', [
+            'assignment' => $assignment,
+            // Không cho sửa loại bài / câu hỏi khi đã có bài nộp (tránh hỏng dữ liệu chấm)
+            'locked' => $assignment->submissions()->exists(),
+        ]);
+    }
+
+    public function update(AssignmentRequest $request, Assignment $assignment): RedirectResponse
+    {
+        $this->assignmentService->authorizeAssignment($request->user(), $assignment);
+
+        $this->assignmentService->update($assignment, $request->validated());
+
+        return redirect()
+            ->route('teacher.assignments.show', $assignment)
+            ->with('success', 'Đã cập nhật bài tập "'.$assignment->title.'".');
+    }
+
     public function destroy(Request $request, Assignment $assignment): RedirectResponse
     {
         $this->assignmentService->authorizeAssignment($request->user(), $assignment);

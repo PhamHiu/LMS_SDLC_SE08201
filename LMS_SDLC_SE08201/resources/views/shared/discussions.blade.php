@@ -7,6 +7,10 @@
         <h3 class="font-bold text-slate-800">💬 Thảo luận ({{ $assignment->discussions->count() }})</h3>
     </div>
 
+    @php
+        $me = auth()->user();
+        $destroyRoute = $me?->isTeacher() ? 'teacher.discussions.destroy' : 'student.discussions.destroy';
+    @endphp
     <div class="p-5">
         {{-- Form bình luận mới --}}
         <form method="POST" action="{{ $storeRoute }}" class="mb-5 flex gap-3">
@@ -30,6 +34,12 @@
                                 <span class="ml-1 text-xs text-slate-400">{{ $d->created_at?->diffForHumans() }}</span>
                             </p>
                             <p class="mt-1 text-sm text-slate-600">{{ $d->comment }}</p>
+                            @if ($me && ($d->user_id === $me->user_id || $me->isTeacher()))
+                                <form method="POST" action="{{ route($destroyRoute, $d) }}" onsubmit="return confirm('Xóa bình luận này? Các trả lời bên dưới cũng sẽ bị xóa.')" class="mt-1">
+                                    @csrf @method('DELETE')
+                                    <button class="text-xs font-medium text-rose-500 hover:underline">Xóa</button>
+                                </form>
+                            @endif
 
                             {{-- Replies --}}
                             @foreach ($d->replies as $reply)
@@ -44,6 +54,12 @@
                                             <span class="ml-1 text-slate-400">{{ $reply->created_at?->diffForHumans() }}</span>
                                         </p>
                                         <p class="mt-0.5 text-sm text-slate-600">{{ $reply->comment }}</p>
+                                        @if ($me && ($reply->user_id === $me->user_id || $me->isTeacher()))
+                                            <form method="POST" action="{{ route($destroyRoute, $reply) }}" onsubmit="return confirm('Xóa câu trả lời này?')" class="mt-0.5">
+                                                @csrf @method('DELETE')
+                                                <button class="text-[11px] font-medium text-rose-500 hover:underline">Xóa</button>
+                                            </form>
+                                        @endif
                                     </div>
                                 </div>
                             @endforeach

@@ -54,7 +54,10 @@ class StudentDashboardService
             'recentGrades' => $recentGrades,
             'weekSessions' => $weekSessions,
             'enrolledCount' => $classIds->count(),
-            'avgScore' => round((float) $student->submissions()->whereNotNull('score')->avg('score'), 2),
+            // null = chưa có điểm nào (phân biệt với điểm trung bình = 0)
+            'avgScore' => ($avg = $student->submissions()->whereNotNull('score')->avg('score')) !== null
+                ? round((float) $avg, 2)
+                : null,
             'attendanceRate' => $totalAtt > 0
                 ? round($attendances->whereIn('status', ['P', 'L'])->count() / $totalAtt * 100)
                 : null,

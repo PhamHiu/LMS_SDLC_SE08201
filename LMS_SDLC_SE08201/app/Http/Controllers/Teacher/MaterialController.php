@@ -45,8 +45,10 @@ class MaterialController extends Controller
         return back()->with('success', 'Đã xóa học liệu.');
     }
 
-    public function download(Material $material): StreamedResponse|RedirectResponse
+    public function download(Request $request, Material $material): StreamedResponse|RedirectResponse
     {
+        $this->materialService->authorizeDownload($request->user(), $material);
+
         if (! Storage::disk('public')->exists($material->file_path)) {
             return back()->with('error', 'File không tồn tại trên hệ thống (dữ liệu demo).');
         }

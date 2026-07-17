@@ -21,6 +21,7 @@ class Assignment extends Model
         return [
             'due_date' => 'datetime',
             'created_at' => 'datetime',
+            'max_score' => 'float',
         ];
     }
 
@@ -36,7 +37,7 @@ class Assignment extends Model
 
     public function isOverdue(): bool
     {
-        return $this->due_date->isPast();
+        return $this->due_date !== null && $this->due_date->isPast();
     }
 
     // ==== Quan hệ ====

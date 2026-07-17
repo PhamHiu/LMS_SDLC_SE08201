@@ -58,6 +58,12 @@ class AssignmentController extends Controller
 
         abort_unless($assignment->isQuiz(), 404);
 
+        if ($assignment->questions()->count() === 0) {
+            return redirect()
+                ->route('student.assignments.show', $assignment)
+                ->with('error', 'Bài Quiz này chưa có câu hỏi.');
+        }
+
         if ($this->submissionService->submissionOf($request->user(), $assignment)) {
             return redirect()
                 ->route('student.assignments.show', $assignment)

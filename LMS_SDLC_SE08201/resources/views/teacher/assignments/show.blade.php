@@ -13,7 +13,10 @@
             <p class="mt-1 text-sm text-slate-500">Lớp {{ $assignment->classRoom?->class_name }} · Hạn: {{ $assignment->due_date->format('H:i d/m/Y') }} · Thang điểm {{ $assignment->max_score }}</p>
             <p class="mt-1 text-sm text-slate-500">📥 {{ $submissionCount }}/{{ $studentCount }} sinh viên đã nộp</p>
         </div>
-        <a href="{{ route('teacher.grading.index', $assignment) }}" class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700">Xem bài nộp / Chấm điểm</a>
+        <div class="flex gap-2">
+            <a href="{{ route('teacher.assignments.edit', $assignment) }}" class="rounded-lg bg-amber-50 px-4 py-2 text-sm font-semibold text-amber-700 hover:bg-amber-100">Sửa bài tập</a>
+            <a href="{{ route('teacher.grading.index', $assignment) }}" class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700">Xem bài nộp / Chấm điểm</a>
+        </div>
     </div>
     @if ($assignment->description)
         <div class="mt-4 whitespace-pre-line rounded-xl bg-slate-50 p-4 text-sm text-slate-600">{{ $assignment->description }}</div>

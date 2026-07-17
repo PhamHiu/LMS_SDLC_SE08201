@@ -11,7 +11,7 @@
     </div>
     <div class="rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-700 p-5 text-white shadow">
         <p class="text-sm text-emerald-100">Điểm trung bình</p>
-        <p class="mt-1 text-3xl font-extrabold">{{ $avgScore ?: '—' }}</p>
+        <p class="mt-1 text-3xl font-extrabold">{{ $avgScore !== null ? $avgScore : '—' }}</p>
     </div>
     <div class="rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 p-5 text-white shadow">
         <p class="text-sm text-amber-100">Tỷ lệ chuyên cần</p>

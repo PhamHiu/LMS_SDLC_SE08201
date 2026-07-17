@@ -64,6 +64,48 @@ class AssignmentService
         });
     }
 
+    /**
+     * Cập nhật bài tập. Nếu bài tập ĐÃ có bài nộp thì KHÓA loại bài & bộ câu hỏi
+     * (chỉ cho sửa tiêu đề/mô tả/hạn nộp/thang điểm) để tránh làm hỏng dữ liệu
+     * đã chấm. Nếu CHƯA có bài nộp thì đồng bộ lại câu hỏi cho quiz.
+     */
+    public function update(Assignment $assignment, array $data): Assignment
+    {
+        return DB::transaction(function () use ($assignment, $data) {
+            $hasSubmissions = $assignment->submissions()->exists();
+            $type = $hasSubmissions ? $assignment->type : $data['type'];
+
+            $assignment->update([
+                'title' => $data['title'],
+                'type' => $type,
+                'description' => $data['description'] ?? null,
+                'due_date' => $data['due_date'],
+                'max_score' => $data['max_score'],
+            ]);
+
+            if (! $hasSubmissions) {
+                // Đồng bộ lại câu hỏi: xóa hết rồi tạo mới theo dữ liệu gửi lên
+                $assignment->questions()->delete();
+
+                if ($type === Assignment::TYPE_QUIZ) {
+                    foreach ($data['questions'] as $q) {
+                        Question::create([
+                            'assignment_id' => $assignment->assignment_id,
+                            'content' => $q['content'],
+                            'option_a' => $q['option_a'],
+                            'option_b' => $q['option_b'],
+                            'option_c' => $q['option_c'],
+                            'option_d' => $q['option_d'],
+                            'correct_answer' => $q['correct_answer'],
+                        ]);
+                    }
+                }
+            }
+
+            return $assignment;
+        });
+    }
+
     public function delete(Assignment $assignment): void
     {
         $assignment->delete();

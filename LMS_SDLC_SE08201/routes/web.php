@@ -96,6 +96,8 @@ Route::middleware(['auth', 'role:TEACHER'])->prefix('teacher')->name('teacher.')
     Route::get('classes/{class}/assignments/create', [Teacher\AssignmentController::class, 'create'])->name('assignments.create');
     Route::post('classes/{class}/assignments', [Teacher\AssignmentController::class, 'store'])->name('assignments.store');
     Route::get('assignments/{assignment}', [Teacher\AssignmentController::class, 'show'])->name('assignments.show');
+    Route::get('assignments/{assignment}/edit', [Teacher\AssignmentController::class, 'edit'])->name('assignments.edit');
+    Route::put('assignments/{assignment}', [Teacher\AssignmentController::class, 'update'])->name('assignments.update');
     Route::delete('assignments/{assignment}', [Teacher\AssignmentController::class, 'destroy'])->name('assignments.destroy');
 
     // Chấm bài
@@ -110,6 +112,7 @@ Route::middleware(['auth', 'role:TEACHER'])->prefix('teacher')->name('teacher.')
 
     // Thảo luận dưới bài tập
     Route::post('assignments/{assignment}/discussions', [Teacher\DiscussionController::class, 'store'])->name('discussions.store');
+    Route::delete('discussions/{discussion}', [Teacher\DiscussionController::class, 'destroy'])->name('discussions.destroy');
 });
 
 // ===== NHÓM 3: STUDENT =====
@@ -137,4 +140,5 @@ Route::middleware(['auth', 'role:STUDENT'])->prefix('student')->name('student.')
     // Thông báo + thảo luận
     Route::get('notifications', [Student\NotificationController::class, 'index'])->name('notifications.index');
     Route::post('assignments/{assignment}/discussions', [Student\DiscussionController::class, 'store'])->name('discussions.store');
+    Route::delete('discussions/{discussion}', [Student\DiscussionController::class, 'destroy'])->name('discussions.destroy');
 });

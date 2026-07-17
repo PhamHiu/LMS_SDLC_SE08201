@@ -6,8 +6,10 @@ use App\Models\Assignment;
 use App\Models\Submission;
 use App\Models\SubmissionDetail;
 use App\Models\User;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class SubmissionService
 {
@@ -52,6 +54,11 @@ class SubmissionService
         $existing = $this->submissionOf($student, $assignment);
         abort_if($existing && $existing->isGraded(), 422, 'Bài đã được chấm, không thể nộp lại.');
 
+        // Nộp lại: xóa file cũ để không để lại rác trên disk
+        if ($existing && $existing->submit_file_path) {
+            Storage::disk('public')->delete($existing->submit_file_path);
+        }
+
         $path = $file->store('submissions', 'public');
 
         return Submission::updateOrCreate(
@@ -67,40 +74,50 @@ class SubmissionService
     {
         abort_unless($assignment->isQuiz(), 422, 'Bài này không phải Quiz.');
         abort_if($assignment->isOverdue(), 422, 'Đã quá hạn làm bài.');
+        abort_if($assignment->questions()->count() === 0, 422, 'Quiz chưa có câu hỏi.');
         abort_if($this->submissionOf($student, $assignment) !== null, 422, 'Bạn đã làm bài Quiz này rồi.');
 
-        return DB::transaction(function () use ($student, $assignment, $answers) {
-            $submission = Submission::create([
-                'user_id' => $student->user_id,
-                'assignment_id' => $assignment->assignment_id,
-                'submitted_at' => now(),
-            ]);
-
-            $questions = $assignment->questions;
-            $correct = 0;
-
-            foreach ($questions as $question) {
-                $selected = $answers[$question->question_id] ?? null;
-
-                SubmissionDetail::create([
-                    'submission_id' => $submission->submission_id,
-                    'question_id' => $question->question_id,
-                    'selected_option' => $selected,
+        try {
+            return DB::transaction(function () use ($student, $assignment, $answers) {
+                $submission = Submission::create([
+                    'user_id' => $student->user_id,
+                    'assignment_id' => $assignment->assignment_id,
+                    'submitted_at' => now(),
                 ]);
 
-                if ($selected === $question->correct_answer) {
-                    $correct++;
+                $questions = $assignment->questions;
+                $correct = 0;
+
+                foreach ($questions as $question) {
+                    $selected = $answers[$question->question_id] ?? null;
+
+                    SubmissionDetail::create([
+                        'submission_id' => $submission->submission_id,
+                        'question_id' => $question->question_id,
+                        'selected_option' => $selected,
+                    ]);
+
+                    if ($selected === $question->correct_answer) {
+                        $correct++;
+                    }
                 }
+
+                // Tự động chấm điểm theo tỷ lệ câu đúng
+                $score = $questions->count() > 0
+                    ? round($correct / $questions->count() * $assignment->max_score, 2)
+                    : 0;
+
+                $submission->update(['score' => $score, 'graded_at' => now()]);
+
+                return $submission;
+            });
+        } catch (QueryException $e) {
+            // Nộp đồng thời 2 lần: unique(user_id, assignment_id) chặn bản ghi thứ 2.
+            // Báo lỗi thân thiện thay vì lỗi 500, chỉ khi đúng là đã tồn tại bài nộp.
+            if ($this->submissionOf($student, $assignment)) {
+                abort(422, 'Bạn đã làm bài Quiz này rồi.');
             }
-
-            // Tự động chấm điểm theo tỷ lệ câu đúng
-            $score = $questions->count() > 0
-                ? round($correct / $questions->count() * $assignment->max_score, 2)
-                : 0;
-
-            $submission->update(['score' => $score, 'graded_at' => now()]);
-
-            return $submission;
-        });
+            throw $e;
+        }
     }
 }
