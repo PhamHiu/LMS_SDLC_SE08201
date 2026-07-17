@@ -42,6 +42,15 @@ class SubmissionService
     }
 
     /**
+     * Sinh viên có được xem đáp án của bài Quiz sau khi nộp hay không.
+     * Chỉ đúng khi là Quiz VÀ giáo viên đã bật "Cho phép xem đáp án".
+     */
+    public function canRevealAnswers(Assignment $assignment): bool
+    {
+        return $assignment->allowsAnswerReview();
+    }
+
+    /**
      * Nộp bài tự luận (upload file). Cho phép nộp lại trước hạn nếu chưa chấm.
      */
     public function submitEssay(User $student, Assignment $assignment, UploadedFile $file): Submission

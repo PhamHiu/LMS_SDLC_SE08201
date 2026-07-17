@@ -30,29 +30,36 @@
                     <p class="mt-1 text-xs text-emerald-600">Nộp lúc {{ $submission->submitted_at?->format('H:i d/m/Y') }} · Hệ thống tự động chấm</p>
                 </div>
 
-                {{-- Xem lại bài làm --}}
-                <div class="rounded-2xl border border-slate-200 bg-white shadow-sm">
-                    <div class="border-b border-slate-100 px-5 py-4"><h3 class="font-bold text-slate-800">Xem lại bài làm</h3></div>
-                    <div class="space-y-4 p-5">
-                        @foreach ($submission->details as $i => $detail)
-                            @php($q = $detail->question)
-                            @if ($q)
-                                <div class="rounded-xl border p-4 {{ $detail->isCorrect() ? 'border-emerald-200 bg-emerald-50/40' : 'border-rose-200 bg-rose-50/40' }}">
-                                    <p class="text-sm font-semibold text-slate-700">Câu {{ $i + 1 }}: {{ $q->content }} {{ $detail->isCorrect() ? '✅' : '❌' }}</p>
-                                    <div class="mt-2 space-y-1 text-sm">
-                                        @foreach ($q->options() as $key => $option)
-                                            <p class="rounded-lg px-3 py-1.5
-                                                {{ $key === $q->correct_answer ? 'bg-emerald-100 font-semibold text-emerald-700' : ($key === $detail->selected_option ? 'bg-rose-100 text-rose-700' : 'text-slate-500') }}">
-                                                {{ $key }}. {{ $option }}
-                                                {{ $key === $q->correct_answer ? '— Đáp án đúng' : ($key === $detail->selected_option ? '— Bạn chọn' : '') }}
-                                            </p>
-                                        @endforeach
+                @if ($canViewAnswers)
+                    {{-- Xem lại bài làm — chỉ khi giáo viên cho phép xem đáp án --}}
+                    <div class="rounded-2xl border border-slate-200 bg-white shadow-sm">
+                        <div class="border-b border-slate-100 px-5 py-4"><h3 class="font-bold text-slate-800">Xem lại bài làm & đáp án</h3></div>
+                        <div class="space-y-4 p-5">
+                            @foreach ($submission->details as $i => $detail)
+                                @php($q = $detail->question)
+                                @if ($q)
+                                    <div class="rounded-xl border p-4 {{ $detail->isCorrect() ? 'border-emerald-200 bg-emerald-50/40' : 'border-rose-200 bg-rose-50/40' }}">
+                                        <p class="text-sm font-semibold text-slate-700">Câu {{ $i + 1 }}: {{ $q->content }} {{ $detail->isCorrect() ? '✅' : '❌' }}</p>
+                                        <div class="mt-2 space-y-1 text-sm">
+                                            @foreach ($q->options() as $key => $option)
+                                                <p class="rounded-lg px-3 py-1.5
+                                                    {{ $key === $q->correct_answer ? 'bg-emerald-100 font-semibold text-emerald-700' : ($key === $detail->selected_option ? 'bg-rose-100 text-rose-700' : 'text-slate-500') }}">
+                                                    {{ $key }}. {{ $option }}
+                                                    {{ $key === $q->correct_answer ? '— Đáp án đúng' : ($key === $detail->selected_option ? '— Bạn chọn' : '') }}
+                                                </p>
+                                            @endforeach
+                                        </div>
                                     </div>
-                                </div>
-                            @endif
-                        @endforeach
+                                @endif
+                            @endforeach
+                        </div>
                     </div>
-                </div>
+                @else
+                    {{-- Giáo viên chưa bật "Cho phép xem đáp án" → chỉ hiện trạng thái đã nộp --}}
+                    <div class="rounded-2xl border border-slate-200 bg-white p-5 text-sm text-slate-500 shadow-sm">
+                        🔒 Giáo viên chưa cho phép xem đáp án của bài Quiz này. Bạn chỉ có thể xem điểm và trạng thái đã nộp.
+                    </div>
+                @endif
             @elseif ($assignment->isOverdue())
                 <div class="rounded-2xl border border-slate-200 bg-white p-6 text-center shadow-sm">
                     <p class="text-slate-500">⌛ Bài Quiz đã hết hạn làm bài.</p>
@@ -71,10 +78,27 @@
                 <div class="rounded-2xl border border-emerald-200 bg-emerald-50/50 p-6 shadow-sm">
                     <h3 class="font-bold text-emerald-800">✅ Đã chấm điểm</h3>
                     <p class="mt-2 text-3xl font-extrabold text-emerald-700">{{ $submission->score }}<span class="text-lg font-semibold text-emerald-500">/{{ $assignment->max_score }}</span></p>
+
+                    {{-- File bài làm đã nộp --}}
+                    @if ($submission->submit_file_path)
+                        <a href="{{ asset('storage/'.$submission->submit_file_path) }}" target="_blank"
+                           class="mt-3 inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-600 hover:border-indigo-300 hover:text-indigo-700">
+                            📄 Xem file bài làm đã nộp
+                        </a>
+                    @endif
+
+                    {{-- File nhận xét/kết quả do giảng viên đính kèm --}}
+                    @if ($submission->result_file_path)
+                        <a href="{{ asset('storage/'.$submission->result_file_path) }}" target="_blank"
+                           class="mt-2 inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-medium text-emerald-700 hover:border-emerald-400">
+                            📎 File nhận xét của giảng viên
+                        </a>
+                    @endif
+
                     @if ($submission->feedback)
                         <div class="mt-3 rounded-lg bg-white p-3 text-sm text-slate-600">
                             <p class="text-xs font-bold uppercase text-slate-400">Nhận xét của giảng viên</p>
-                            <p class="mt-1">{{ $submission->feedback }}</p>
+                            <p class="mt-1 whitespace-pre-line">{{ $submission->feedback }}</p>
                         </div>
                     @endif
                     <p class="mt-2 text-xs text-emerald-600">Chấm lúc {{ $submission->graded_at?->format('H:i d/m/Y') }}</p>
@@ -83,6 +107,12 @@
                 <div class="rounded-2xl border border-sky-200 bg-sky-50/50 p-6 shadow-sm">
                     <h3 class="font-bold text-sky-800">📥 Đã nộp bài — chờ giảng viên chấm</h3>
                     <p class="mt-1 text-sm text-sky-600">Nộp lúc {{ $submission->submitted_at->format('H:i d/m/Y') }}</p>
+                    @if ($submission->submit_file_path)
+                        <a href="{{ asset('storage/'.$submission->submit_file_path) }}" target="_blank"
+                           class="mt-3 inline-flex items-center gap-2 rounded-lg border border-sky-200 bg-white px-3 py-2 text-sm font-medium text-sky-700 hover:border-sky-400">
+                            📄 Xem file bài làm đã nộp
+                        </a>
+                    @endif
                 </div>
             @endif
 

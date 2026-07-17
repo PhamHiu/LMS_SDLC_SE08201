@@ -39,9 +39,9 @@ class StudentDashboardService
             ->get();
 
         // Lịch học tuần này
-        $weekSessions = ClassSession::with('classRoom.subject')
+        $weekSessions = ClassSession::with('classRoom.subject', 'slot', 'room')
             ->whereIn('class_id', $classIds)
-            ->whereBetween('session_date', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()])
+            ->whereBetween('session_date', [Carbon::now()->startOfWeek(Carbon::MONDAY), Carbon::now()->endOfWeek(Carbon::SUNDAY)])
             ->orderBy('session_date')
             ->get();
 

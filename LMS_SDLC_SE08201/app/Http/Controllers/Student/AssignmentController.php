@@ -38,6 +38,7 @@ class AssignmentController extends Controller
         return view('student.assignments.show', [
             'assignment' => $assignment,
             'submission' => $this->submissionService->submissionOf($request->user(), $assignment),
+            'canViewAnswers' => $this->submissionService->canRevealAnswers($assignment),
         ]);
     }
 

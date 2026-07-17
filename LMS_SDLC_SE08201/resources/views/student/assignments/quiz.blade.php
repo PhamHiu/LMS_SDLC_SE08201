@@ -13,6 +13,13 @@
             <span id="progress" class="rounded-full bg-purple-100 px-3 py-1.5 text-sm font-bold text-purple-700">0/{{ $assignment->questions->count() }}</span>
         </div>
 
+        {{-- Cho sinh viên biết trước: sau khi nộp có được xem đáp án không --}}
+        <div class="mb-5 rounded-xl border px-4 py-3 text-sm {{ $assignment->allowsAnswerReview() ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-slate-200 bg-slate-50 text-slate-500' }}">
+            {{ $assignment->allowsAnswerReview()
+                ? '👁️ Sau khi nộp, bạn sẽ được xem lại đáp án đúng của từng câu.'
+                : '🔒 Giáo viên không cho phép xem đáp án — sau khi nộp bạn chỉ thấy điểm và trạng thái đã nộp.' }}
+        </div>
+
         <form method="POST" action="{{ route('student.assignments.quiz.submit', $assignment) }}"
               onsubmit="return confirm('Nộp bài? Bạn chỉ được làm 1 lần duy nhất và không thể sửa lại.')">
             @csrf

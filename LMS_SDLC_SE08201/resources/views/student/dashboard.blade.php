@@ -33,7 +33,8 @@
                         <a href="{{ route('student.assignments.show', $a) }}" class="block truncate text-sm font-semibold text-indigo-600 hover:underline">{{ $a->title }}</a>
                         <p class="text-xs text-slate-400">{{ $a->classRoom?->class_name }} · {{ $a->typeLabel() }}</p>
                     </div>
-                    <span class="shrink-0 rounded-full px-2.5 py-1 text-xs font-medium {{ $a->due_date->diffInHours(now()) < 48 ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700' }}">
+                    <span class="deadline-countdown shrink-0 rounded-full px-2.5 py-1 text-xs font-medium bg-amber-100 text-amber-700"
+                          data-deadline="{{ $a->due_date->toIso8601String() }}">
                         {{ $a->due_date->diffForHumans() }}
                     </span>
                 </li>
@@ -58,7 +59,7 @@
                     </div>
                     <div class="min-w-0 flex-1">
                         <p class="truncate text-sm font-semibold text-slate-700">{{ $s->classRoom?->class_name }} — {{ $s->classRoom?->subject?->subject_name }}</p>
-                        <p class="text-xs text-slate-400">{{ $s->room }} · {{ $s->shift }}</p>
+                        <p class="text-xs text-slate-400">🏫 {{ $s->room?->room_name ?? '—' }} · {{ $s->slot?->label ?? '—' }}</p>
                     </div>
                 </li>
             @empty
@@ -114,4 +115,6 @@
         </ul>
     </div>
 </div>
+
+@include('shared.deadline-countdown')
 @endsection

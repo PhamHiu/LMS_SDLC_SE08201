@@ -34,6 +34,9 @@
                             <tr class="hover:bg-slate-50">
                                 <td class="px-5 py-3">
                                     <a href="{{ route('student.assignments.show', $sub->assignment) }}" class="font-semibold text-indigo-600 hover:underline">{{ $sub->assignment?->title }}</a>
+                                    @if ($sub->submit_file_path)
+                                        <a href="{{ asset('storage/'.$sub->submit_file_path) }}" target="_blank" class="mt-0.5 block text-xs text-slate-400 hover:text-indigo-600">📄 File bài làm</a>
+                                    @endif
                                 </td>
                                 <td class="px-5 py-3 text-xs text-slate-500">{{ $sub->assignment?->typeLabel() }}</td>
                                 <td class="px-5 py-3 text-xs text-slate-500">{{ $sub->submitted_at?->format('H:i d/m/Y') }}</td>
@@ -44,7 +47,7 @@
                                         <span class="rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-700">Chờ chấm</span>
                                     @endif
                                 </td>
-                                <td class="px-5 py-3 text-xs text-slate-500">{{ $sub->feedback ?? '—' }}</td>
+                                <td class="px-5 py-3 text-xs text-slate-500"><span class="whitespace-pre-line">{{ $sub->feedback ?? '—' }}</span></td>
                             </tr>
                         @endforeach
                     </tbody>
