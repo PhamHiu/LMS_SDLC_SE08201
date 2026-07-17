@@ -236,12 +236,12 @@ class DashboardService
         // ==========================
         // 5. ATTENDANCE STATS
         // ==========================
-        $qAtt = Attendance::join('class_sessions', 'attendances.session_id', '=', 'class_sessions.session_id')
-            ->join('classes', 'class_sessions.class_id', '=', 'classes.class_id');
+        $qAtt = Attendance::join('sessions', 'attendances.session_id', '=', 'sessions.session_id')
+            ->join('classes', 'sessions.class_id', '=', 'classes.class_id');
         if ($majorId) $qAtt->where('classes.major_id', $majorId);
         if ($subjectId) $qAtt->where('classes.subject_id', $subjectId);
-        if ($dateFrom) $qAtt->where('class_sessions.session_date', '>=', Carbon::parse($dateFrom)->startOfDay());
-        if ($dateTo) $qAtt->where('class_sessions.session_date', '<=', Carbon::parse($dateTo)->endOfDay());
+        if ($dateFrom) $qAtt->where('sessions.session_date', '>=', Carbon::parse($dateFrom)->startOfDay());
+        if ($dateTo) $qAtt->where('sessions.session_date', '<=', Carbon::parse($dateTo)->endOfDay());
         
         $attendanceStats = [
             'P' => (clone $qAtt)->where('attendances.status', 'P')->count(),
