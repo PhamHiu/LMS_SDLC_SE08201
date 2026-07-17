@@ -168,7 +168,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function fetchFilterOptions() {
         const formData = new FormData(form);
         const query = new URLSearchParams(formData).toString();
-        fetch(`/admin/analytics/filter-options?${query}`)
+        fetch("{{ route('admin.analytics.filter-options') }}?" + query)
             .then(res => res.json())
             .then(data => {
                 const currentSubject = subjectSelect.value;
@@ -218,7 +218,8 @@ document.addEventListener('DOMContentLoaded', function() {
         
         updateExportLinks(query);
 
-        fetch(`/admin/analytics/${currentTab}?${query}`)
+        const baseUrl = "{{ url('admin/analytics') }}";
+        fetch(`${baseUrl}/${currentTab}?${query}`)
             .then(res => res.json())
             .then(data => {
                 renderContent(currentTab, data);

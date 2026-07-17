@@ -157,8 +157,11 @@ class DashboardService
         $majorId = $filters['major_id'] ?? null;
         $subjectId = $filters['subject_id'] ?? null;
 
+        // Xác định xem người dùng có đang chủ động filter theo ngày không
+        $isCustomDate = !empty($filters['date_from']) || !empty($filters['date_to']);
+
         // Nếu không có khoảng ngày, lấy 12 tuần (gần 3 tháng)
-        if (!$dateFrom && !$dateTo) {
+        if (!$isCustomDate) {
             $dateFrom = Carbon::now()->subWeeks(12)->startOfWeek()->format('Y-m-d');
             $dateTo = Carbon::now()->endOfWeek()->format('Y-m-d');
         }
@@ -181,14 +184,23 @@ class DashboardService
             $query->where('classes.subject_id', $subjectId);
         }
 
-        // Gom nhóm theo tuần ISO: %x-W%v
-        $query->selectRaw("
-            DATE_FORMAT(submissions.graded_at, '%x-W%v') as week_key,
-            MIN(DATE(submissions.graded_at)) as week_start,
-            ROUND(AVG(submissions.score), 2) as avg_score
-        ")
-        ->groupBy('week_key')
-        ->orderBy('week_key');
+        if ($isCustomDate) {
+            // Gom nhóm theo ngày
+            $query->selectRaw("
+                DATE(submissions.graded_at) as period_key,
+                MIN(DATE(submissions.graded_at)) as period_start,
+                ROUND(AVG(submissions.score), 2) as avg_score
+            ");
+        } else {
+            // Gom nhóm theo tuần ISO: %x-W%v
+            $query->selectRaw("
+                DATE_FORMAT(submissions.graded_at, '%x-W%v') as period_key,
+                MIN(DATE(submissions.graded_at)) as period_start,
+                ROUND(AVG(submissions.score), 2) as avg_score
+            ");
+        }
+        
+        $query->groupBy('period_key')->orderBy('period_key');
 
         $results = $query->get();
 
@@ -196,8 +208,11 @@ class DashboardService
         $scores = [];
 
         foreach ($results as $row) {
-            // Hiển thị tuần có ngày bắt đầu
-            $labels[] = 'Tuần ' . Carbon::parse($row->week_start)->format('d/m/Y');
+            if ($isCustomDate) {
+                $labels[] = Carbon::parse($row->period_start)->format('d/m/Y');
+            } else {
+                $labels[] = 'Tuần ' . Carbon::parse($row->period_start)->format('d/m/Y');
+            }
             $scores[] = (float) $row->avg_score;
         }
 

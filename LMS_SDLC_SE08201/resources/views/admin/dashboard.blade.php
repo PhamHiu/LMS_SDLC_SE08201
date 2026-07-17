@@ -331,7 +331,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const scoreTrendForm = document.getElementById('scoreTrendFilterForm');
     function loadScoreTrend() {
         const query = new URLSearchParams(new FormData(scoreTrendForm)).toString();
-        fetch(`/admin/dashboard/score-trend?${query}`)
+        fetch("{{ route('admin.dashboard.score-trend') }}?" + query)
             .then(res => res.json())
             .then(data => {
                 scoreTrendChart.data.labels = data.labels;
