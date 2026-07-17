@@ -67,6 +67,28 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Đăng ký DataLabels plugin
+    Chart.register(ChartDataLabels);
+    Chart.defaults.maintainAspectRatio = false; // Fix lỗi tràn khung
+    
+    // Config mặc định cho datalabels của biểu đồ tròn
+    const pieDatalabelsConfig = {
+        anchor: 'end',
+        align: 'end',
+        offset: 5,
+        color: '#475569',
+        font: { weight: 'bold', size: 11 },
+        formatter: (value, ctx) => {
+            if (!value) return ''; // Ẩn nếu = 0
+            let sum = 0;
+            let dataArr = ctx.chart.data.datasets[0].data;
+            dataArr.map(data => { sum += Number(data); });
+            if (sum === 0) return value;
+            let percentage = (value * 100 / sum).toFixed(1) + "%";
+            return value + " (" + percentage + ")";
+        }
+    };
+
     let currentTab = 'grades';
     let charts = {};
 
@@ -149,6 +171,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     data: Object.values(data.distribution),
                     backgroundColor: '#6366f1'
                 }]
+            },
+            options: {
+                plugins: {
+                    legend: { position: 'right' },
+                    datalabels: { display: false }
+                }
             }
         });
     }
@@ -168,6 +196,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     data: [data.summary.present_count, data.summary.absent_count, data.summary.late_count],
                     backgroundColor: ['#10b981', '#ef4444', '#f59e0b']
                 }]
+            },
+            options: {
+                layout: { padding: 30 },
+                plugins: {
+                    legend: { position: 'right' },
+                    datalabels: pieDatalabelsConfig
+                }
             }
         });
     }

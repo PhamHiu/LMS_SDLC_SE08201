@@ -112,6 +112,28 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Đăng ký DataLabels plugin
+    Chart.register(ChartDataLabels);
+    Chart.defaults.maintainAspectRatio = false; // Fix lỗi tràn khung
+    
+    // Config mặc định cho datalabels của biểu đồ tròn
+    const pieDatalabelsConfig = {
+        anchor: 'end',
+        align: 'end',
+        offset: 5,
+        color: '#475569',
+        font: { weight: 'bold', size: 11 },
+        formatter: (value, ctx) => {
+            if (!value) return ''; // Ẩn nếu = 0
+            let sum = 0;
+            let dataArr = ctx.chart.data.datasets[0].data;
+            dataArr.map(data => { sum += Number(data); });
+            if (sum === 0) return value;
+            let percentage = (value * 100 / sum).toFixed(1) + "%";
+            return value + " (" + percentage + ")";
+        }
+    };
+
     let currentTab = 'grades';
     let charts = {}; // Lưu trữ instance của Chart.js để destroy khi update
 
@@ -122,7 +144,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Chuyển tab
     tabs.forEach(tab => {
         tab.addEventListener('click', () => {
-            // Update active state
             tabs.forEach(t => {
                 t.classList.remove('border-indigo-500', 'text-indigo-600', 'font-bold');
                 t.classList.add('border-transparent', 'text-slate-500', 'font-medium');
@@ -130,7 +151,6 @@ document.addEventListener('DOMContentLoaded', function() {
             tab.classList.remove('border-transparent', 'text-slate-500', 'font-medium');
             tab.classList.add('border-indigo-500', 'text-indigo-600', 'font-bold');
 
-            // Show content
             document.querySelectorAll('.tab-pane').forEach(p => p.classList.add('hidden'));
             currentTab = tab.dataset.tab;
             document.getElementById(currentTab + '-content').classList.remove('hidden');
@@ -139,13 +159,11 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Form submit (Filter)
     form.addEventListener('submit', (e) => {
         e.preventDefault();
         loadData();
     });
 
-    // Cập nhật href của nút xuất báo cáo
     function updateExportLinks(queryStr) {
         document.querySelectorAll('.export-link').forEach(link => {
             const baseUrl = link.dataset.baseUrl;
@@ -153,17 +171,14 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Hàm load data từ API
     function loadData() {
         loader.classList.remove('hidden');
         
         const formData = new FormData(form);
         const query = new URLSearchParams(formData).toString();
         
-        // Cập nhật href cho export buttons trước
         updateExportLinks(query);
 
-        // Fetch API
         fetch(`/admin/analytics/${currentTab}?${query}`)
             .then(res => res.json())
             .then(data => {
@@ -178,7 +193,6 @@ document.addEventListener('DOMContentLoaded', function() {
             });
     }
 
-    // Render nội dung tùy theo tab
     function renderContent(tab, data) {
         if (tab === 'grades') renderGrades(data);
         if (tab === 'attendance') renderAttendance(data);
@@ -193,13 +207,11 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function renderGrades(data) {
-        // Summary
         document.getElementById('gr-avg').innerText = data.summary.avg_score;
         document.getElementById('gr-max').innerText = data.summary.max_score;
         document.getElementById('gr-min').innerText = data.summary.min_score;
         document.getElementById('gr-total').innerText = data.summary.total_graded;
 
-        // Chart Distribution
         destroyChart('gr-dist-chart');
         charts['gr-dist-chart'] = new Chart(document.getElementById('gr-dist-chart'), {
             type: 'bar',
@@ -210,10 +222,15 @@ document.addEventListener('DOMContentLoaded', function() {
                     data: Object.values(data.distribution),
                     backgroundColor: '#6366f1'
                 }]
+            },
+            options: {
+                plugins: {
+                    legend: { position: 'right' },
+                    datalabels: { display: false }
+                }
             }
         });
 
-        // Chart Trend
         destroyChart('gr-trend-chart');
         charts['gr-trend-chart'] = new Chart(document.getElementById('gr-trend-chart'), {
             type: 'line',
@@ -226,7 +243,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     tension: 0.3
                 }]
             },
-            options: { scales: { y: { min: 0, max: 10 } } }
+            options: { 
+                scales: { y: { min: 0, max: 10 } },
+                plugins: {
+                    legend: { position: 'right' },
+                    datalabels: { display: false }
+                }
+            }
         });
     }
 
@@ -236,7 +259,6 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('att-a').innerText = data.summary.absent_count;
         document.getElementById('att-l').innerText = data.summary.late_count;
 
-        // Chart P/A/L
         destroyChart('att-pie-chart');
         charts['att-pie-chart'] = new Chart(document.getElementById('att-pie-chart'), {
             type: 'pie',
@@ -246,10 +268,16 @@ document.addEventListener('DOMContentLoaded', function() {
                     data: [data.summary.present_count, data.summary.absent_count, data.summary.late_count],
                     backgroundColor: ['#10b981', '#ef4444', '#f59e0b']
                 }]
+            },
+            options: {
+                layout: { padding: 30 },
+                plugins: {
+                    legend: { position: 'right' },
+                    datalabels: pieDatalabelsConfig
+                }
             }
         });
 
-        // Chart Trend
         destroyChart('att-trend-chart');
         charts['att-trend-chart'] = new Chart(document.getElementById('att-trend-chart'), {
             type: 'line',
@@ -262,7 +290,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     tension: 0.3
                 }]
             },
-            options: { scales: { y: { min: 0, max: 100 } } }
+            options: { 
+                scales: { y: { min: 0, max: 100 } },
+                plugins: {
+                    legend: { position: 'right' },
+                    datalabels: { display: false }
+                }
+            }
         });
     }
 
@@ -281,6 +315,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     data: [data.status_chart.active, data.status_chart.pending, data.status_chart.closed],
                     backgroundColor: ['#10b981', '#f59e0b', '#ef4444']
                 }]
+            },
+            options: {
+                layout: { padding: 30 },
+                plugins: {
+                    legend: { position: 'right' },
+                    datalabels: pieDatalabelsConfig
+                }
             }
         });
     }
@@ -300,6 +341,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     data: [data.summary.total_students, data.summary.total_teachers, data.summary.total_admins],
                     backgroundColor: ['#6366f1', '#10b981', '#f43f5e']
                 }]
+            },
+            options: {
+                layout: { padding: 30 },
+                plugins: {
+                    legend: { position: 'right' },
+                    datalabels: pieDatalabelsConfig
+                }
             }
         });
 
@@ -313,6 +361,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     data: Object.values(data.major_chart),
                     backgroundColor: '#8b5cf6'
                 }]
+            },
+            options: {
+                plugins: {
+                    legend: { position: 'right' },
+                    datalabels: { display: false }
+                }
             }
         });
     }

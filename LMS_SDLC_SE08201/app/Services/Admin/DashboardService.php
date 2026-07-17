@@ -63,7 +63,7 @@ class DashboardService
 
         // 3. Tỷ lệ SV theo ngành
         $studentsByMajor = User::where('role', User::ROLE_STUDENT)
-            ->whereNotNull('major_id')
+            ->whereNotNull('users.major_id')
             ->join('majors', 'users.major_id', '=', 'majors.major_id')
             ->selectRaw('majors.major_name, COUNT(*) as count')
             ->groupBy('majors.major_name')

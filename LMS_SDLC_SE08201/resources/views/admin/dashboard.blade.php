@@ -256,23 +256,44 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // === 1. Line Chart: Xu hướng điểm TB ===
-    const scoreTrendData = @json($score_trend);
-    new Chart(document.getElementById('scoreTrendChart'), {
+    Chart.register(ChartDataLabels);
+
+    const pieDatalabelsConfig = {
+        anchor: 'end',
+        align: 'end',
+        offset: 5,
+        color: '#475569',
+        font: { weight: 'bold', size: 11 },
+        formatter: (value, ctx) => {
+            if (!value) return ''; 
+            let sum = 0;
+            let dataArr = ctx.chart.data.datasets[0].data;
+            dataArr.map(data => { sum += Number(data); });
+            if (sum === 0) return value;
+            let percentage = (value * 100 / sum).toFixed(1) + "%";
+            return value + " (" + percentage + ")";
+        }
+    };
+
+    // === 1. Line Chart: Hoạt động trong tháng ===
+    const monthlyLabels = @json(array_keys($monthly_activity));
+    const monthlyValues = @json(array_values($monthly_activity));
+    new Chart(document.getElementById('monthlyChart'), {
         type: 'line',
         data: {
-            labels: scoreTrendData.map(d => d.period),
+            labels: monthlyLabels,
             datasets: [{
-                label: 'Điểm TB',
-                data: scoreTrendData.map(d => d.avg_score),
+                label: 'Lượt nộp bài',
+                data: monthlyValues,
                 borderColor: '#6366f1',
                 backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                borderWidth: 2,
+                pointBackgroundColor: '#fff',
+                pointBorderColor: '#6366f1',
+                pointBorderWidth: 2,
+                pointRadius: 4,
                 fill: true,
-                tension: 0.4,
-                pointBackgroundColor: '#6366f1',
-                pointRadius: 5,
-                pointHoverRadius: 7,
-                borderWidth: 3
+                tension: 0.4
             }]
         },
         options: {
@@ -280,22 +301,17 @@ document.addEventListener('DOMContentLoaded', function() {
             maintainAspectRatio: false,
             plugins: {
                 legend: { display: false },
-                tooltip: {
-                    backgroundColor: '#1e1b4b',
-                    titleFont: { size: 13 },
-                    bodyFont: { size: 12 },
-                    padding: 12,
-                    cornerRadius: 8
-                }
+                tooltip: { backgroundColor: '#1e1b4b', padding: 10, cornerRadius: 8 },
+                datalabels: { display: false }
             },
             scales: {
-                y: { beginAtZero: true, max: 10, grid: { color: '#f1f5f9' } },
-                x: { grid: { display: false } }
+                x: { grid: { display: false }, ticks: { font: { size: 12 } } },
+                y: { beginAtZero: true, grid: { color: '#f1f5f9' }, ticks: { font: { size: 12 } } }
             }
         }
     });
 
-    // === 2. Doughnut: Phân bố điểm ===
+    // === 2. Doughnut: Phân bố điểm số ===
     const scoreDist = @json($score_distribution);
     new Chart(document.getElementById('scoreDistChart'), {
         type: 'doughnut',
@@ -310,9 +326,12 @@ document.addEventListener('DOMContentLoaded', function() {
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false,
+            layout: { padding: 30 },
             plugins: {
-                legend: { position: 'bottom', labels: { padding: 15, usePointStyle: true, pointStyle: 'circle' } },
-                tooltip: { backgroundColor: '#1e1b4b', padding: 10, cornerRadius: 8 }
+                legend: { position: 'right', labels: { padding: 15, usePointStyle: true, pointStyle: 'circle' } },
+                tooltip: { backgroundColor: '#1e1b4b', padding: 10, cornerRadius: 8 },
+                datalabels: pieDatalabelsConfig
             },
             cutout: '60%'
         }
@@ -334,9 +353,12 @@ document.addEventListener('DOMContentLoaded', function() {
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false,
+            layout: { padding: 30 },
             plugins: {
-                legend: { position: 'bottom', labels: { padding: 12, usePointStyle: true, pointStyle: 'circle', font: { size: 11 } } },
-                tooltip: { backgroundColor: '#1e1b4b', padding: 10, cornerRadius: 8 }
+                legend: { position: 'right', labels: { padding: 12, usePointStyle: true, pointStyle: 'circle', font: { size: 11 } } },
+                tooltip: { backgroundColor: '#1e1b4b', padding: 10, cornerRadius: 8 },
+                datalabels: pieDatalabelsConfig
             },
             cutout: '60%'
         }
@@ -366,7 +388,8 @@ document.addEventListener('DOMContentLoaded', function() {
             maintainAspectRatio: false,
             plugins: {
                 legend: { display: false },
-                tooltip: { backgroundColor: '#1e1b4b', padding: 10, cornerRadius: 8 }
+                tooltip: { backgroundColor: '#1e1b4b', padding: 10, cornerRadius: 8 },
+                datalabels: { display: false }
             },
             scales: {
                 x: { beginAtZero: true, max: 10, grid: { color: '#f1f5f9' } },
@@ -390,9 +413,12 @@ document.addEventListener('DOMContentLoaded', function() {
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false,
+            layout: { padding: 30 },
             plugins: {
-                legend: { display: false },
-                tooltip: { backgroundColor: '#1e1b4b', padding: 10, cornerRadius: 8 }
+                legend: { position: 'right' },
+                tooltip: { backgroundColor: '#1e1b4b', padding: 10, cornerRadius: 8 },
+                datalabels: pieDatalabelsConfig
             }
         }
     });
