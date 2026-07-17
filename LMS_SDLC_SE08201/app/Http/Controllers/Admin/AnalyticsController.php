@@ -32,6 +32,40 @@ class AnalyticsController extends Controller
     }
 
     /**
+     * API: Trả về options phụ thuộc nhau cho Filter
+     */
+    public function filterOptions(Request $request)
+    {
+        $majorId = $request->query('major_id');
+        $subjectId = $request->query('subject_id');
+        $classId = $request->query('class_id');
+
+        $subjects = Subject::when($majorId, function($q) use ($majorId) {
+            $q->whereHas('classes', fn($c) => $c->where('major_id', $majorId));
+        })->get(['subject_id', 'subject_name']);
+
+        $classes = ClassRoom::when($majorId, fn($q) => $q->where('major_id', $majorId))
+            ->when($subjectId, fn($q) => $q->where('subject_id', $subjectId))
+            ->get(['class_id', 'class_name']);
+
+        $teachersQuery = User::where('role', User::ROLE_TEACHER);
+        if ($majorId || $subjectId || $classId) {
+            $teachersQuery->whereHas('classes', function($q) use ($majorId, $subjectId, $classId) {
+                if ($majorId) $q->where('major_id', $majorId);
+                if ($subjectId) $q->where('subject_id', $subjectId);
+                if ($classId) $q->where('class_id', $classId);
+            });
+        }
+        $teachers = $teachersQuery->get(['user_id', 'full_name']);
+
+        return response()->json([
+            'subjects' => $subjects,
+            'classes' => $classes,
+            'teachers' => $teachers,
+        ]);
+    }
+
+    /**
      * API: Thống kê Điểm số
      */
     public function grades(AnalyticsFilterRequest $request)

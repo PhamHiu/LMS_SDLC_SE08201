@@ -75,6 +75,7 @@ Route::middleware(['auth', 'role:ADMIN'])->prefix('admin')->name('admin.')->grou
     // Thống kê & Báo cáo
     Route::prefix('analytics')->name('analytics.')->group(function () {
         Route::get('/', [Admin\AnalyticsController::class, 'index'])->name('index');
+        Route::get('/filter-options', [Admin\AnalyticsController::class, 'filterOptions'])->name('filter-options');
         Route::get('/grades', [Admin\AnalyticsController::class, 'grades'])->name('grades');
         Route::get('/attendance', [Admin\AnalyticsController::class, 'attendance'])->name('attendance');
         Route::get('/courses', [Admin\AnalyticsController::class, 'courses'])->name('courses');

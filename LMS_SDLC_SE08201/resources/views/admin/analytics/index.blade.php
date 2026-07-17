@@ -164,6 +164,49 @@ document.addEventListener('DOMContentLoaded', function() {
         loadData();
     });
 
+    const majorSelect = form.querySelector('[name="major_id"]');
+    const subjectSelect = form.querySelector('[name="subject_id"]');
+    const classSelect = form.querySelector('[name="class_id"]');
+    const teacherSelect = form.querySelector('[name="teacher_id"]');
+
+    function fetchFilterOptions() {
+        const formData = new FormData(form);
+        const query = new URLSearchParams(formData).toString();
+        fetch(`/admin/analytics/filter-options?${query}`)
+            .then(res => res.json())
+            .then(data => {
+                const currentSubject = subjectSelect.value;
+                const currentClass = classSelect.value;
+                const currentTeacher = teacherSelect.value;
+
+                subjectSelect.innerHTML = '<option value="">Tất cả</option>';
+                data.subjects.forEach(s => {
+                    let opt = new Option(s.subject_name, s.subject_id);
+                    if (s.subject_id == currentSubject) opt.selected = true;
+                    subjectSelect.add(opt);
+                });
+
+                classSelect.innerHTML = '<option value="">Tất cả</option>';
+                data.classes.forEach(c => {
+                    let opt = new Option(c.class_name, c.class_id);
+                    if (c.class_id == currentClass) opt.selected = true;
+                    classSelect.add(opt);
+                });
+
+                teacherSelect.innerHTML = '<option value="">Tất cả</option>';
+                data.teachers.forEach(t => {
+                    let opt = new Option(t.full_name, t.user_id);
+                    if (t.user_id == currentTeacher) opt.selected = true;
+                    teacherSelect.add(opt);
+                });
+            })
+            .catch(err => console.error('Lỗi filter:', err));
+    }
+
+    [majorSelect, subjectSelect, classSelect].forEach(select => {
+        if(select) select.addEventListener('change', fetchFilterOptions);
+    });
+
     function updateExportLinks(queryStr) {
         document.querySelectorAll('.export-link').forEach(link => {
             const baseUrl = link.dataset.baseUrl;
