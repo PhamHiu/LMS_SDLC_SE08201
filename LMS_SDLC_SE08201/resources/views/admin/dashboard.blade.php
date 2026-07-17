@@ -87,7 +87,7 @@
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
                 <h2 class="font-bold text-slate-800">📈 Xu hướng điểm trung bình</h2>
             </div>
-            <div class="relative w-full h-[280px] sm:h-[350px]">
+            <div class="relative" style="height: 280px;">
                 <canvas id="scoreTrendChart"></canvas>
             </div>
         </div>
@@ -97,14 +97,14 @@
             {{-- Doughnut: Phân bố điểm --}}
             <div class="rounded-2xl border border-slate-200 bg-white shadow-sm p-5">
                 <h2 class="font-bold text-slate-800 mb-4">🍩 Phân bố điểm số</h2>
-                <div class="relative w-full aspect-square sm:aspect-[4/3] lg:aspect-video">
+                <div class="relative w-full" style="height: 250px;">
                     <canvas id="scoreDistChart"></canvas>
                 </div>
             </div>
             {{-- Doughnut: SV theo ngành --}}
             <div class="rounded-2xl border border-slate-200 bg-white shadow-sm p-5">
                 <h2 class="font-bold text-slate-800 mb-4">🍩 Sinh viên theo ngành</h2>
-                <div class="relative w-full aspect-square sm:aspect-[4/3] lg:aspect-video">
+                <div class="relative w-full" style="height: 250px;">
                     <canvas id="studentMajorChart"></canvas>
                 </div>
             </div>
@@ -113,7 +113,7 @@
         {{-- 4. Horizontal Bar: Top môn điểm cao --}}
         <div class="rounded-2xl border border-slate-200 bg-white shadow-sm p-5">
             <h2 class="font-bold text-slate-800 mb-4">📊 Top môn có điểm trung bình cao nhất</h2>
-            <div class="relative w-full h-[300px] sm:h-[400px]">
+            <div class="relative" style="height: 300px;">
                 <canvas id="topSubjectsChart"></canvas>
             </div>
         </div>
@@ -123,7 +123,7 @@
             <div class="grid gap-6 md:grid-cols-2 items-center">
                 <div>
                     <h2 class="font-bold text-slate-800 mb-4">🥧 Tỷ lệ điểm danh</h2>
-                    <div class="relative w-full aspect-square sm:aspect-[4/3] lg:aspect-video">
+                    <div class="relative w-full" style="height: 220px;">
                         <canvas id="attendanceChart"></canvas>
                     </div>
                 </div>
@@ -337,20 +337,19 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     const dashboardForm = document.getElementById('globalDashboardFilterForm');
-    const legendPos = window.innerWidth < 1024 ? 'bottom' : 'right';
 
     // === Khởi tạo 4 biểu đồ rỗng (trend đã có ở trên) ===
     const scoreDistChart = new Chart(document.getElementById('scoreDistChart'), {
         type: 'doughnut',
         data: { labels: [], datasets: [{ data: [], backgroundColor: ['#ef4444', '#f97316', '#eab308', '#22c55e', '#6366f1'], borderWidth: 2, borderColor: '#fff' }] },
-        options: { responsive: true, maintainAspectRatio: false, layout: { padding: 10 }, plugins: { legend: { position: legendPos, labels: { padding: 10, usePointStyle: true, pointStyle: 'circle', font: { size: 10 } } }, tooltip: { backgroundColor: '#1e1b4b', padding: 10, cornerRadius: 8 }, datalabels: pieDatalabelsConfig }, cutout: '50%' }
+        options: { responsive: true, maintainAspectRatio: false, layout: { padding: 10 }, plugins: { legend: { position: 'right', labels: { padding: 10, usePointStyle: true, pointStyle: 'circle', font: { size: 10 } } }, tooltip: { backgroundColor: '#1e1b4b', padding: 10, cornerRadius: 8 }, datalabels: pieDatalabelsConfig }, cutout: '50%' }
     });
 
     const majorColors = ['#6366f1', '#06b6d4', '#8b5cf6', '#ec4899', '#f97316', '#14b8a6', '#ef4444', '#84cc16'];
     const studentMajorChart = new Chart(document.getElementById('studentMajorChart'), {
         type: 'doughnut',
         data: { labels: [], datasets: [{ data: [], backgroundColor: majorColors, borderWidth: 2, borderColor: '#fff' }] },
-        options: { responsive: true, maintainAspectRatio: false, layout: { padding: 10 }, plugins: { legend: { position: legendPos, labels: { padding: 10, usePointStyle: true, pointStyle: 'circle', font: { size: 10 } } }, tooltip: { backgroundColor: '#1e1b4b', padding: 10, cornerRadius: 8 }, datalabels: pieDatalabelsConfig }, cutout: '50%' }
+        options: { responsive: true, maintainAspectRatio: false, layout: { padding: 10 }, plugins: { legend: { position: 'right', labels: { padding: 10, usePointStyle: true, pointStyle: 'circle', font: { size: 10 } } }, tooltip: { backgroundColor: '#1e1b4b', padding: 10, cornerRadius: 8 }, datalabels: pieDatalabelsConfig }, cutout: '50%' }
     });
 
     const topSubjectsChart = new Chart(document.getElementById('topSubjectsChart'), {
@@ -362,7 +361,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const attendanceChart = new Chart(document.getElementById('attendanceChart'), {
         type: 'pie',
         data: { labels: ['Có mặt (P)', 'Vắng (A)', 'Muộn (L)'], datasets: [{ data: [0, 0, 0], backgroundColor: ['#10b981', '#ef4444', '#f59e0b'], borderWidth: 2, borderColor: '#fff' }] },
-        options: { responsive: true, maintainAspectRatio: false, layout: { padding: 10 }, plugins: { legend: { position: legendPos, labels: { padding: 10, usePointStyle: true, pointStyle: 'circle', font: { size: 10 } } }, tooltip: { backgroundColor: '#1e1b4b', padding: 10, cornerRadius: 8 }, datalabels: pieDatalabelsConfig } }
+        options: { responsive: true, maintainAspectRatio: false, layout: { padding: 10 }, plugins: { legend: { position: 'right', labels: { padding: 10, usePointStyle: true, pointStyle: 'circle', font: { size: 10 } } }, tooltip: { backgroundColor: '#1e1b4b', padding: 10, cornerRadius: 8 }, datalabels: pieDatalabelsConfig } }
     });
 
     function loadDashboardCharts() {
