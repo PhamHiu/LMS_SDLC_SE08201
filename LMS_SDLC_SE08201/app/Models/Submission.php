@@ -43,4 +43,10 @@ class Submission extends Model
     {
         return $this->hasMany(SubmissionDetail::class, 'submission_id', 'submission_id');
     }
+
+    public function comments()
+    {
+        return $this->hasMany(SubmissionComment::class, 'submission_id', 'submission_id')
+            ->orderBy('created_at', 'asc');
+    }
 }
