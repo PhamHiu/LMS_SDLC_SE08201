@@ -17,9 +17,21 @@ class User extends Authenticatable
     public const ROLE_STUDENT = 'STUDENT';
 
     protected $fillable = [
-        'major_id', 'role', 'email', 'hashpassword', 'full_name',
+        'major_id', 'role', 'student_code', 'email', 'hashpassword', 'full_name',
         'date_of_birth', 'gender', 'address', 'phone', 'avatar',
     ];
+
+    protected static function booted()
+    {
+        static::created(function ($user) {
+            if (empty($user->student_code)) {
+                $year = $user->created_at ? $user->created_at->format('y') : date('y');
+                $paddedId = str_pad($user->user_id, 5, '0', STR_PAD_LEFT);
+                $user->student_code = 'HL' . $year . $paddedId;
+                $user->saveQuietly();
+            }
+        });
+    }
 
     protected $hidden = ['hashpassword', 'remember_token'];
 
