@@ -3,29 +3,11 @@
 @section('title', 'Dashboard quản trị')
 
 @section('content')
-<div class="mb-6 flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+<div class="mb-6 flex items-center justify-between">
     <div>
         <h1 class="text-2xl font-bold text-slate-800">Dashboard</h1>
         <p class="text-sm text-slate-500 mt-1">Tổng quan hoạt động hệ thống</p>
     </div>
-    {{-- Global Filter Form --}}
-    <form id="globalDashboardFilterForm" class="flex flex-wrap items-center gap-2 text-sm bg-white p-2 rounded-xl shadow-sm border border-slate-200">
-        <input type="date" name="date_from" class="rounded-lg border-slate-200 focus:border-indigo-500 focus:ring-indigo-500 py-1.5 px-2" title="Từ ngày">
-        <span class="text-slate-400">-</span>
-        <input type="date" name="date_to" class="rounded-lg border-slate-200 focus:border-indigo-500 focus:ring-indigo-500 py-1.5 px-2" title="Đến ngày">
-        <select name="major_id" class="rounded-lg border-slate-200 focus:border-indigo-500 focus:ring-indigo-500 py-1.5 px-2 max-w-[150px]">
-            <option value="">Tất cả ngành</option>
-            @foreach ($majors as $m)
-                <option value="{{ $m->major_id }}">{{ $m->major_name }}</option>
-            @endforeach
-        </select>
-        <select name="subject_id" class="rounded-lg border-slate-200 focus:border-indigo-500 focus:ring-indigo-500 py-1.5 px-2 max-w-[150px]">
-            <option value="">Tất cả môn</option>
-            @foreach ($subjects as $s)
-                <option value="{{ $s->subject_id }}">{{ $s->subject_name }}</option>
-            @endforeach
-        </select>
-    </form>
 </div>
 
 {{-- ===== KPI CARDS (5 cards hàng ngang) ===== --}}
@@ -74,6 +56,51 @@
         </div>
         <p class="mt-2 text-3xl font-extrabold">{{ $attendance_rate !== null ? $attendance_rate.'%' : '—' }}</p>
         <p class="mt-1 text-xs text-cyan-100">Tỷ lệ toàn hệ thống</p>
+    </div>
+</div>
+
+{{-- ===== BỘ LỌC TOÀN CỤC (GLOBAL FILTER) ===== --}}
+<div class="mt-8 mb-4 flex flex-col gap-3">
+    <div class="flex items-center justify-between xl:hidden">
+        <h2 class="font-bold text-slate-700 text-lg">Bộ lọc dữ liệu</h2>
+        <button id="mobileFilterToggleBtn" type="button" class="flex items-center justify-center h-10 w-10 rounded-xl border border-slate-200 bg-white text-slate-500 hover:bg-slate-50 shadow-sm transition">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+            </svg>
+        </button>
+    </div>
+
+    <div id="filterContainer" class="hidden xl:block transition-all duration-300">
+        <form id="globalDashboardFilterForm" class="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3 text-sm bg-white p-4 rounded-2xl shadow-sm border border-slate-200 w-full">
+            <div class="flex flex-col sm:flex-row sm:items-center gap-2 flex-1 sm:flex-none">
+                <input type="date" name="date_from" class="rounded-xl border-slate-200 focus:border-indigo-500 focus:ring-indigo-500 py-2 px-3 w-full sm:w-auto text-slate-600" title="Từ ngày">
+                <span class="text-slate-400 hidden sm:inline">-</span>
+                <input type="date" name="date_to" class="rounded-xl border-slate-200 focus:border-indigo-500 focus:ring-indigo-500 py-2 px-3 w-full sm:w-auto text-slate-600" title="Đến ngày">
+            </div>
+            
+            <select name="major_id" class="rounded-xl border-slate-200 focus:border-indigo-500 focus:ring-indigo-500 py-2 px-3 w-full sm:w-auto sm:max-w-[160px] text-slate-600">
+                <option value="">Tất cả ngành</option>
+                @foreach ($majors as $m)
+                    <option value="{{ $m->major_id }}">{{ $m->major_name }}</option>
+                @endforeach
+            </select>
+            
+            <select name="subject_id" class="rounded-xl border-slate-200 focus:border-indigo-500 focus:ring-indigo-500 py-2 px-3 w-full sm:w-auto sm:max-w-[160px] text-slate-600">
+                <option value="">Tất cả môn</option>
+                @foreach ($subjects as $s)
+                    <option value="{{ $s->subject_id }}">{{ $s->subject_name }}</option>
+                @endforeach
+            </select>
+            
+            <div class="flex-1 hidden sm:block"></div>
+            
+            <button type="reset" id="resetDashboardFilterBtn" class="flex items-center justify-center gap-2 h-10 px-4 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-600 font-medium transition w-full sm:w-auto mt-2 sm:mt-0" title="Làm mới bộ lọc">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                <span>Làm mới</span>
+            </button>
+        </form>
     </div>
 </div>
 
@@ -428,6 +455,26 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if(dashboardMajorSelect) {
         dashboardMajorSelect.addEventListener('change', fetchDashboardFilterOptions);
+    }
+
+    // Toggle filter form on mobile
+    const mobileFilterToggleBtn = document.getElementById('mobileFilterToggleBtn');
+    const filterContainer = document.getElementById('filterContainer');
+    if(mobileFilterToggleBtn && filterContainer) {
+        mobileFilterToggleBtn.addEventListener('click', () => {
+            filterContainer.classList.toggle('hidden');
+        });
+    }
+
+    // Reset bộ lọc
+    const resetDashboardFilterBtn = document.getElementById('resetDashboardFilterBtn');
+    if(resetDashboardFilterBtn) {
+        resetDashboardFilterBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            dashboardForm.reset();
+            dashboardSubjectSelect.innerHTML = '<option value="">Tất cả môn</option>'; // Reset cascaded options
+            loadDashboardCharts();
+        });
     }
 });
 </script>
