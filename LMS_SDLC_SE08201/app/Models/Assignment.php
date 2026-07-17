@@ -14,13 +14,14 @@ class Assignment extends Model
     public const TYPE_ESSAY = 'essay';
     public const TYPE_QUIZ = 'quiz';
 
-    protected $fillable = ['class_id', 'title', 'type', 'description', 'due_date', 'max_score'];
+    protected $fillable = ['class_id', 'title', 'type', 'description', 'due_date', 'max_score', 'attachment_path', 'show_answer_after_submit'];
 
     protected function casts(): array
     {
         return [
             'due_date' => 'datetime',
             'created_at' => 'datetime',
+            'show_answer_after_submit' => 'boolean',
         ];
     }
 

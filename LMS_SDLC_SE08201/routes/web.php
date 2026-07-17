@@ -38,6 +38,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
+    
+    // File preview & serving routes (shared between student and teacher)
+    Route::get('/submissions/{submission}/preview', [Student\AssignmentController::class, 'previewSubmission'])->name('submissions.preview');
+    Route::get('/submissions/{submission}/file', [Student\AssignmentController::class, 'serveSubmissionFile'])->name('student.submissions.file');
+    Route::get('/submissions/{submission}/download-raw', [Student\AssignmentController::class, 'downloadSubmissionFileRaw'])->name('student.submissions.download-raw');
 });
 
 // ===== NHÓM 1: ADMIN =====
@@ -63,6 +68,8 @@ Route::middleware(['auth', 'role:ADMIN'])->prefix('admin')->name('admin.')->grou
         Route::post('check-conflict', [Admin\ClassController::class, 'checkConflict'])->name('conflict');
         Route::post('sessions/{session}/update', [Admin\ClassController::class, 'updateSession'])->name('sessions.update');
     });
+
+    // Quản lý lớp học: tạo lớp, gán GV, xếp SV, sinh buổi học
     Route::resource('classes', Admin\ClassController::class);
     Route::post('classes/{class}/students', [Admin\ClassController::class, 'enrollStudents'])->name('classes.students.enroll');
     Route::delete('classes/{class}/students/{student}', [Admin\ClassController::class, 'removeStudent'])->name('classes.students.remove');
@@ -95,13 +102,19 @@ Route::middleware(['auth', 'role:TEACHER'])->prefix('teacher')->name('teacher.')
     Route::get('assignments', [Teacher\AssignmentController::class, 'index'])->name('assignments.index');
     Route::get('classes/{class}/assignments/create', [Teacher\AssignmentController::class, 'create'])->name('assignments.create');
     Route::post('classes/{class}/assignments', [Teacher\AssignmentController::class, 'store'])->name('assignments.store');
+    Route::post('assignments/generate-quiz', [Teacher\AssignmentController::class, 'generateQuiz'])->name('assignments.generate-quiz');
     Route::get('assignments/{assignment}', [Teacher\AssignmentController::class, 'show'])->name('assignments.show');
+    Route::get('assignments/{assignment}/edit', [Teacher\AssignmentController::class, 'edit'])->name('assignments.edit');
+    Route::put('assignments/{assignment}', [Teacher\AssignmentController::class, 'update'])->name('assignments.update');
     Route::delete('assignments/{assignment}', [Teacher\AssignmentController::class, 'destroy'])->name('assignments.destroy');
 
     // Chấm bài
     Route::get('assignments/{assignment}/submissions', [Teacher\GradingController::class, 'index'])->name('grading.index');
+    Route::get('submissions/{submission}/show', [Teacher\GradingController::class, 'show'])->name('grading.show');
     Route::get('submissions/{submission}/download', [Teacher\GradingController::class, 'download'])->name('grading.download');
     Route::post('submissions/{submission}/grade', [Teacher\GradingController::class, 'grade'])->name('grading.grade');
+    Route::post('submissions/{submission}/comment', [Teacher\GradingController::class, 'comment'])->name('grading.comment');
+    Route::delete('comments/{comment}', [Teacher\GradingController::class, 'deleteComment'])->name('grading.delete-comment');
 
     // Thông báo lớp
     Route::get('notifications', [Teacher\NotificationController::class, 'index'])->name('notifications.index');

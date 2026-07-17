@@ -39,7 +39,13 @@ class AssignmentController extends Controller
     {
         $this->classService->authorizeClass($request->user(), $class);
 
-        $assignment = $this->assignmentService->create($class, $request->validated());
+        $data = $request->validated();
+        if ($request->hasFile('attachment')) {
+            $data['attachment_path'] = $request->file('attachment')->store('assignments/attachments', 'public');
+        }
+        $data['show_answer_after_submit'] = $request->has('show_answer_after_submit');
+
+        $assignment = $this->assignmentService->create($class, $data);
 
         return redirect()
             ->route('teacher.assignments.show', $assignment)
@@ -63,6 +69,63 @@ class AssignmentController extends Controller
             'submissionCount' => $assignment->submissions()->whereNotNull('submitted_at')->count(),
             'studentCount' => $assignment->classRoom->students()->count(),
         ]);
+    }
+
+    public function edit(Request $request, Assignment $assignment): View
+    {
+        $this->assignmentService->authorizeAssignment($request->user(), $assignment);
+
+        $assignment->load('questions');
+        return view('teacher.assignments.edit', ['assignment' => $assignment]);
+    }
+
+    public function update(AssignmentRequest $request, Assignment $assignment): RedirectResponse
+    {
+        $this->assignmentService->authorizeAssignment($request->user(), $assignment);
+
+        $data = $request->validated();
+        if ($request->hasFile('attachment')) {
+            $data['attachment_path'] = $request->file('attachment')->store('assignments/attachments', 'public');
+        }
+        $data['show_answer_after_submit'] = $request->has('show_answer_after_submit');
+
+        $this->assignmentService->update($assignment, $data);
+
+        return redirect()
+            ->route('teacher.assignments.show', $assignment)
+            ->with('success', 'Cập nhật bài tập "'.$assignment->title.'" thành công.');
+    }
+
+    public function generateQuiz(Request $request, \App\Services\Teacher\AiQuizService $aiService)
+    {
+        $request->validate([
+            'topic' => 'required|string',
+            'quantity' => 'required|integer|min:1|max:10',
+            'reference_document' => 'nullable|file|mimes:txt,pdf,docx,doc|max:5120',
+        ]);
+
+        try {
+            $filePath = null;
+            $originalExtension = null;
+            if ($request->hasFile('reference_document')) {
+                $file = $request->file('reference_document');
+                $filePath = $file->getRealPath();
+                $originalExtension = $file->getClientOriginalExtension();
+            }
+
+            $questions = $aiService->generateQuestions(
+                $request->input('topic'),
+                $request->input('quantity'),
+                $filePath,
+                $originalExtension
+            );
+            return response()->json(['success' => true, 'questions' => $questions]);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('AI generateQuiz Error: ' . $e->getMessage(), [
+                'exception' => $e
+            ]);
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
     }
 
     public function destroy(Request $request, Assignment $assignment): RedirectResponse

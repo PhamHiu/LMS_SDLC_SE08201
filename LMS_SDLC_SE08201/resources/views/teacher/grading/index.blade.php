@@ -34,39 +34,19 @@
                     @else
                         <span class="rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-700">Chờ chấm</span>
                     @endif
-                    @if ($sub->submit_file_path)
-                        <a href="{{ route('teacher.grading.download', $sub) }}" class="rounded-lg bg-indigo-50 px-3 py-1.5 text-xs font-medium text-indigo-700 hover:bg-indigo-100">⬇ Tải bài làm</a>
+                    @if (!$assignment->isQuiz())
+                        @if ($sub->isGraded() && $sub->result_file_path)
+                            <a href="{{ route('teacher.grading.show', $sub) }}?mode=original" class="rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-200 border border-slate-200 transition-colors">📄 Mở bản gốc</a>
+                            <a href="{{ route('teacher.grading.show', $sub) }}" class="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-700 transition-colors">📝 Mở bản đã chấm</a>
+                        @else
+                            <a href="{{ route('teacher.grading.show', $sub) }}" class="rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-indigo-700 transition-colors">Chấm chi tiết</a>
+                        @endif
                     @endif
                 </div>
             </div>
 
             @if ($assignment->isQuiz())
                 <p class="mt-3 rounded-lg bg-purple-50 px-4 py-2 text-sm text-purple-700">Bài Quiz — hệ thống đã tự động chấm điểm.</p>
-            @else
-                {{-- Form chấm điểm tự luận --}}
-                <details class="mt-4" {{ $sub->isGraded() ? '' : 'open' }}>
-                    <summary class="cursor-pointer text-sm font-semibold text-indigo-600 hover:underline">{{ $sub->isGraded() ? 'Chấm lại / sửa nhận xét' : 'Chấm điểm ngay' }}</summary>
-                    <form method="POST" action="{{ route('teacher.grading.grade', $sub) }}" enctype="multipart/form-data" class="mt-3 grid gap-3 sm:grid-cols-4">
-                        @csrf
-                        <div>
-                            <label class="block text-xs font-medium text-slate-500 mb-1">Điểm (tối đa {{ $assignment->max_score }})</label>
-                            <input type="number" name="score" value="{{ $sub->score }}" min="0" max="{{ $assignment->max_score }}" step="0.25" required
-                                   class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 outline-none">
-                        </div>
-                        <div class="sm:col-span-2">
-                            <label class="block text-xs font-medium text-slate-500 mb-1">Nhận xét</label>
-                            <input type="text" name="feedback" value="{{ $sub->feedback }}" placeholder="Nhận xét cho sinh viên..."
-                                   class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 outline-none">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-medium text-slate-500 mb-1">File feedback (tùy chọn)</label>
-                            <input type="file" name="result_file" class="block w-full text-xs text-slate-500 file:mr-2 file:rounded file:border-0 file:bg-slate-100 file:px-2 file:py-1.5 file:text-xs">
-                        </div>
-                        <div class="sm:col-span-4">
-                            <button class="rounded-lg bg-emerald-600 px-5 py-2 text-sm font-semibold text-white hover:bg-emerald-700">💾 Lưu điểm</button>
-                        </div>
-                    </form>
-                </details>
             @endif
         </div>
     @empty
