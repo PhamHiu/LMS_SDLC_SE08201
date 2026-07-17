@@ -327,7 +327,7 @@ document.addEventListener('DOMContentLoaded', function() {
             maintainAspectRatio: false,
             layout: { padding: 10 },
             plugins: {
-                legend: { position: 'bottom', labels: { padding: 10, usePointStyle: true, pointStyle: 'circle', font: { size: 10 } } },
+                legend: { position: 'right', labels: { padding: 10, usePointStyle: true, pointStyle: 'circle', font: { size: 10 } } },
                 tooltip: { backgroundColor: '#1e1b4b', padding: 10, cornerRadius: 8 },
                 datalabels: pieDatalabelsConfig
             },
@@ -354,7 +354,7 @@ document.addEventListener('DOMContentLoaded', function() {
             maintainAspectRatio: false,
             layout: { padding: 10 },
             plugins: {
-                legend: { position: 'bottom', labels: { padding: 10, usePointStyle: true, pointStyle: 'circle', font: { size: 10 } } },
+                legend: { position: 'right', labels: { padding: 10, usePointStyle: true, pointStyle: 'circle', font: { size: 10 } } },
                 tooltip: { backgroundColor: '#1e1b4b', padding: 10, cornerRadius: 8 },
                 datalabels: pieDatalabelsConfig
             },
@@ -414,7 +414,7 @@ document.addEventListener('DOMContentLoaded', function() {
             maintainAspectRatio: false,
             layout: { padding: 10 },
             plugins: {
-                legend: { position: 'bottom', labels: { padding: 10, usePointStyle: true, pointStyle: 'circle', font: { size: 10 } } },
+                legend: { position: 'right', labels: { padding: 10, usePointStyle: true, pointStyle: 'circle', font: { size: 10 } } },
                 tooltip: { backgroundColor: '#1e1b4b', padding: 10, cornerRadius: 8 },
                 datalabels: pieDatalabelsConfig
             }
