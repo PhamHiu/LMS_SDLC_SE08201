@@ -38,6 +38,16 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('slots_rooms_update_sessions');
+        // Khôi phục bảng sessions về trạng thái trước: bỏ FK slot_id/room_id,
+        // trả lại 2 cột text room/shift như ban đầu.
+        Schema::table('sessions', function (Blueprint $table) {
+            $table->dropConstrainedForeignId('slot_id');
+            $table->dropConstrainedForeignId('room_id');
+            $table->string('room', 100)->nullable()->after('session_date');
+            $table->string('shift', 50)->nullable()->after('room');
+        });
+
+        Schema::dropIfExists('rooms');
+        Schema::dropIfExists('slots');
     }
 };
