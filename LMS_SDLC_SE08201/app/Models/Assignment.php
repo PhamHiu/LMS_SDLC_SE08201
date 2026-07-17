@@ -56,6 +56,12 @@ class Assignment extends Model
         return $this->hasMany(Submission::class, 'assignment_id', 'assignment_id');
     }
 
+    /** Thông báo nhắc hạn gắn với bài tập (tối đa 1 — chống trùng) */
+    public function notifications()
+    {
+        return $this->hasMany(Notification::class, 'assignment_id', 'assignment_id');
+    }
+
     public function discussions()
     {
         return $this->hasMany(Discussion::class, 'assignment_id', 'assignment_id');

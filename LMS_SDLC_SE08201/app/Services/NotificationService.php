@@ -2,9 +2,11 @@
 
 namespace App\Services;
 
+use App\Models\Assignment;
 use App\Models\Notification;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Log;
 
 class NotificationService
 {
@@ -77,5 +79,62 @@ class NotificationService
         }
 
         return Notification::with('author')->orderByDesc('created_at')->take($limit)->get();
+    }
+
+    /**
+     * Sinh thông báo nhắc hạn cho các bài tập sắp đến hạn nộp.
+     *
+     * Chống trùng: mỗi bài tập chỉ tạo DUY NHẤT 1 thông báo nhắc hạn
+     * (kiểm tra qua cột `assignment_id`, được ràng buộc unique ở CSDL).
+     * Vì vậy có thể chạy lệnh nhiều lần trong ngày mà không gửi lặp.
+     *
+     * @param  int  $daysAhead  Ngưỡng ngày: chỉ nhắc bài có hạn trong khoảng [hiện tại, +N ngày]
+     * @return int  Số thông báo mới được tạo
+     */
+    public function sendAssignmentDeadlineReminders(int $daysAhead = 3): int
+    {
+        $now = now();
+        $deadline = $now->copy()->addDays($daysAhead);
+
+        // Bài tập còn hạn và sắp đến hạn, chưa có thông báo nhắc hạn nào
+        $assignments = Assignment::with('classRoom')
+            ->whereNotNull('due_date')
+            ->whereBetween('due_date', [$now, $deadline])
+            ->whereDoesntHave('notifications')
+            ->get();
+
+        $created = 0;
+        foreach ($assignments as $assignment) {
+            // Bỏ qua bài tập không còn gắn với lớp hợp lệ
+            if (! $assignment->classRoom) {
+                continue;
+            }
+
+            // Chốt chặn thứ 2 (phòng khi chạy song song): kiểm tra tồn tại trước khi tạo
+            $exists = Notification::where('assignment_id', $assignment->assignment_id)->exists();
+            if ($exists) {
+                continue;
+            }
+
+            Notification::create([
+                'user_id' => $assignment->classRoom->user_id, // giảng viên đứng lớp là người đăng
+                'class_id' => $assignment->class_id,
+                'assignment_id' => $assignment->assignment_id,
+                'title' => 'Nhắc hạn nộp: '.$assignment->title,
+                'body' => sprintf(
+                    'Bài tập "%s" (%s) sẽ hết hạn nộp vào %s. Các em hoàn thành và nộp đúng hạn nhé.',
+                    $assignment->title,
+                    $assignment->typeLabel(),
+                    $assignment->due_date->format('d/m/Y H:i')
+                ),
+            ]);
+            $created++;
+        }
+
+        if ($created > 0) {
+            Log::info("NotificationService: đã tạo {$created} thông báo nhắc hạn bài tập.");
+        }
+
+        return $created;
     }
 }
