@@ -71,6 +71,21 @@ Route::middleware(['auth', 'role:ADMIN'])->prefix('admin')->name('admin.')->grou
     Route::get('notifications', [Admin\NotificationController::class, 'index'])->name('notifications.index');
     Route::post('notifications', [Admin\NotificationController::class, 'store'])->name('notifications.store');
     Route::delete('notifications/{notification}', [Admin\NotificationController::class, 'destroy'])->name('notifications.destroy');
+
+    // Thống kê & Báo cáo
+    Route::prefix('analytics')->name('analytics.')->group(function () {
+        Route::get('/', [Admin\AnalyticsController::class, 'index'])->name('index');
+        Route::get('/grades', [Admin\AnalyticsController::class, 'grades'])->name('grades');
+        Route::get('/attendance', [Admin\AnalyticsController::class, 'attendance'])->name('attendance');
+        Route::get('/courses', [Admin\AnalyticsController::class, 'courses'])->name('courses');
+        Route::get('/users', [Admin\AnalyticsController::class, 'users'])->name('users');
+    });
+    Route::prefix('reports')->name('reports.')->group(function () {
+        Route::get('/grades/export', [Admin\ReportController::class, 'exportGrades'])->name('grades.export');
+        Route::get('/attendance/export', [Admin\ReportController::class, 'exportAttendance'])->name('attendance.export');
+        Route::get('/courses/export', [Admin\ReportController::class, 'exportCourses'])->name('courses.export');
+        Route::get('/users/export', [Admin\ReportController::class, 'exportUsers'])->name('users.export');
+    });
 });
 
 // ===== NHÓM 2: TEACHER =====
@@ -110,6 +125,17 @@ Route::middleware(['auth', 'role:TEACHER'])->prefix('teacher')->name('teacher.')
 
     // Thảo luận dưới bài tập
     Route::post('assignments/{assignment}/discussions', [Teacher\DiscussionController::class, 'store'])->name('discussions.store');
+
+    // Thống kê lớp
+    Route::prefix('analytics')->name('analytics.')->group(function () {
+        Route::get('/', [Teacher\AnalyticsController::class, 'index'])->name('index');
+        Route::get('/grades', [Teacher\AnalyticsController::class, 'grades'])->name('grades');
+        Route::get('/attendance', [Teacher\AnalyticsController::class, 'attendance'])->name('attendance');
+    });
+    Route::prefix('reports')->name('reports.')->group(function () {
+        Route::get('/grades/export', [Teacher\ReportController::class, 'exportGrades'])->name('grades.export');
+        Route::get('/attendance/export', [Teacher\ReportController::class, 'exportAttendance'])->name('attendance.export');
+    });
 });
 
 // ===== NHÓM 3: STUDENT =====
