@@ -50,7 +50,7 @@ class AnalyticsController extends Controller
 
         $teachersQuery = User::where('role', User::ROLE_TEACHER);
         if ($majorId || $subjectId || $classId) {
-            $teachersQuery->whereHas('classes', function($q) use ($majorId, $subjectId, $classId) {
+            $teachersQuery->whereHas('teachingClasses', function($q) use ($majorId, $subjectId, $classId) {
                 if ($majorId) $q->where('major_id', $majorId);
                 if ($subjectId) $q->where('subject_id', $subjectId);
                 if ($classId) $q->where('class_id', $classId);
