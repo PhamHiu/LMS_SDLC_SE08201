@@ -347,6 +347,29 @@ document.addEventListener('DOMContentLoaded', function() {
     // Auto submit lọc khi form change
     scoreTrendForm.addEventListener('change', loadScoreTrend);
 
+    const dashboardMajorSelect = scoreTrendForm.querySelector('[name="major_id"]');
+    const dashboardSubjectSelect = scoreTrendForm.querySelector('[name="subject_id"]');
+
+    function fetchDashboardFilterOptions() {
+        const query = new URLSearchParams(new FormData(scoreTrendForm)).toString();
+        fetch("{{ route('admin.analytics.filter-options') }}?" + query)
+            .then(res => res.json())
+            .then(data => {
+                const currentSubject = dashboardSubjectSelect.value;
+                dashboardSubjectSelect.innerHTML = '<option value="">Tất cả môn</option>';
+                data.subjects.forEach(s => {
+                    let opt = new Option(s.subject_name, s.subject_id);
+                    if (s.subject_id == currentSubject) opt.selected = true;
+                    dashboardSubjectSelect.add(opt);
+                });
+            })
+            .catch(err => console.error('Lỗi filter options:', err));
+    }
+
+    if(dashboardMajorSelect) {
+        dashboardMajorSelect.addEventListener('change', fetchDashboardFilterOptions);
+    }
+
     // === 2. Doughnut: Phân bố điểm số ===
     const scoreDist = @json($score_distribution);
     new Chart(document.getElementById('scoreDistChart'), {
