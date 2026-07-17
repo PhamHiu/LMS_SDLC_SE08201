@@ -44,7 +44,7 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth', 'role:ADMIN'])->prefix('admin')->name('admin.')->group(function () {
     Route::prefix('dashboard')->group(function () {
         Route::get('/', [Admin\DashboardController::class, 'index'])->name('dashboard');
-        Route::get('/score-trend', [Admin\DashboardController::class, 'scoreTrendApi'])->name('dashboard.score-trend');
+        Route::get('/charts-data', [Admin\DashboardController::class, 'chartsDataApi'])->name('dashboard.charts-data');
     });
 
     // Quản lý người dùng + reset mật khẩu

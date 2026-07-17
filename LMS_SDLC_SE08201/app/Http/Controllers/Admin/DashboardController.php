@@ -20,10 +20,10 @@ class DashboardController extends Controller
         return view('admin.dashboard', $data);
     }
 
-    public function scoreTrendApi(\Illuminate\Http\Request $request)
+    public function chartsDataApi(\Illuminate\Http\Request $request)
     {
         return response()->json(
-            $this->dashboardService->getScoreTrend($request->all())
+            $this->dashboardService->getDashboardCharts($request->all())
         );
     }
 }

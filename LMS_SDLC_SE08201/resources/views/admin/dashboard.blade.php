@@ -3,6 +3,31 @@
 @section('title', 'Dashboard quản trị')
 
 @section('content')
+<div class="mb-6 flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+    <div>
+        <h1 class="text-2xl font-bold text-slate-800">Dashboard</h1>
+        <p class="text-sm text-slate-500 mt-1">Tổng quan hoạt động hệ thống</p>
+    </div>
+    {{-- Global Filter Form --}}
+    <form id="globalDashboardFilterForm" class="flex flex-wrap items-center gap-2 text-sm bg-white p-2 rounded-xl shadow-sm border border-slate-200">
+        <input type="date" name="date_from" class="rounded-lg border-slate-200 focus:border-indigo-500 focus:ring-indigo-500 py-1.5 px-2" title="Từ ngày">
+        <span class="text-slate-400">-</span>
+        <input type="date" name="date_to" class="rounded-lg border-slate-200 focus:border-indigo-500 focus:ring-indigo-500 py-1.5 px-2" title="Đến ngày">
+        <select name="major_id" class="rounded-lg border-slate-200 focus:border-indigo-500 focus:ring-indigo-500 py-1.5 px-2 max-w-[150px]">
+            <option value="">Tất cả ngành</option>
+            @foreach ($majors as $m)
+                <option value="{{ $m->major_id }}">{{ $m->major_name }}</option>
+            @endforeach
+        </select>
+        <select name="subject_id" class="rounded-lg border-slate-200 focus:border-indigo-500 focus:ring-indigo-500 py-1.5 px-2 max-w-[150px]">
+            <option value="">Tất cả môn</option>
+            @foreach ($subjects as $s)
+                <option value="{{ $s->subject_id }}">{{ $s->subject_name }}</option>
+            @endforeach
+        </select>
+    </form>
+</div>
+
 {{-- ===== KPI CARDS (5 cards hàng ngang) ===== --}}
 <div class="grid gap-4 grid-cols-2 sm:grid-cols-3 xl:grid-cols-5">
     {{-- Card 1: Tổng người dùng --}}
@@ -61,23 +86,6 @@
         <div class="rounded-2xl border border-slate-200 bg-white shadow-sm p-5">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
                 <h2 class="font-bold text-slate-800">📈 Xu hướng điểm trung bình</h2>
-                <form id="scoreTrendFilterForm" class="flex flex-wrap items-center gap-2 text-xs">
-                    <input type="date" name="date_from" class="rounded-lg border-slate-200 focus:border-indigo-500 focus:ring-indigo-500 py-1.5 px-2" title="Từ ngày">
-                    <span class="text-slate-400">-</span>
-                    <input type="date" name="date_to" class="rounded-lg border-slate-200 focus:border-indigo-500 focus:ring-indigo-500 py-1.5 px-2" title="Đến ngày">
-                    <select name="major_id" class="rounded-lg border-slate-200 focus:border-indigo-500 focus:ring-indigo-500 py-1.5 px-2 max-w-[140px]">
-                        <option value="">Tất cả ngành</option>
-                        @foreach ($majors as $m)
-                            <option value="{{ $m->major_id }}">{{ $m->major_name }}</option>
-                        @endforeach
-                    </select>
-                    <select name="subject_id" class="rounded-lg border-slate-200 focus:border-indigo-500 focus:ring-indigo-500 py-1.5 px-2 max-w-[140px]">
-                        <option value="">Tất cả môn</option>
-                        @foreach ($subjects as $s)
-                            <option value="{{ $s->subject_id }}">{{ $s->subject_name }}</option>
-                        @endforeach
-                    </select>
-                </form>
             </div>
             <div class="relative" style="height: 280px;">
                 <canvas id="scoreTrendChart"></canvas>
@@ -328,30 +336,79 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    const scoreTrendForm = document.getElementById('scoreTrendFilterForm');
-    function loadScoreTrend() {
-        const query = new URLSearchParams(new FormData(scoreTrendForm)).toString();
-        fetch("{{ route('admin.dashboard.score-trend') }}?" + query)
+    const dashboardForm = document.getElementById('globalDashboardFilterForm');
+
+    // === Khởi tạo 4 biểu đồ rỗng (trend đã có ở trên) ===
+    const scoreDistChart = new Chart(document.getElementById('scoreDistChart'), {
+        type: 'doughnut',
+        data: { labels: [], datasets: [{ data: [], backgroundColor: ['#ef4444', '#f97316', '#eab308', '#22c55e', '#6366f1'], borderWidth: 2, borderColor: '#fff' }] },
+        options: { responsive: true, maintainAspectRatio: false, layout: { padding: 10 }, plugins: { legend: { position: 'right', labels: { padding: 10, usePointStyle: true, pointStyle: 'circle', font: { size: 10 } } }, tooltip: { backgroundColor: '#1e1b4b', padding: 10, cornerRadius: 8 }, datalabels: pieDatalabelsConfig }, cutout: '50%' }
+    });
+
+    const majorColors = ['#6366f1', '#06b6d4', '#8b5cf6', '#ec4899', '#f97316', '#14b8a6', '#ef4444', '#84cc16'];
+    const studentMajorChart = new Chart(document.getElementById('studentMajorChart'), {
+        type: 'doughnut',
+        data: { labels: [], datasets: [{ data: [], backgroundColor: majorColors, borderWidth: 2, borderColor: '#fff' }] },
+        options: { responsive: true, maintainAspectRatio: false, layout: { padding: 10 }, plugins: { legend: { position: 'right', labels: { padding: 10, usePointStyle: true, pointStyle: 'circle', font: { size: 10 } } }, tooltip: { backgroundColor: '#1e1b4b', padding: 10, cornerRadius: 8 }, datalabels: pieDatalabelsConfig }, cutout: '50%' }
+    });
+
+    const topSubjectsChart = new Chart(document.getElementById('topSubjectsChart'), {
+        type: 'bar',
+        data: { labels: [], datasets: [{ label: 'Điểm TB', data: [], backgroundColor: [], borderRadius: 6, barThickness: 24 }] },
+        options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { backgroundColor: '#1e1b4b', padding: 10, cornerRadius: 8 }, datalabels: { display: false } }, scales: { x: { beginAtZero: true, max: 10, grid: { color: '#f1f5f9' } }, y: { grid: { display: false }, ticks: { font: { size: 12 } } } } }
+    });
+
+    const attendanceChart = new Chart(document.getElementById('attendanceChart'), {
+        type: 'pie',
+        data: { labels: ['Có mặt (P)', 'Vắng (A)', 'Muộn (L)'], datasets: [{ data: [0, 0, 0], backgroundColor: ['#10b981', '#ef4444', '#f59e0b'], borderWidth: 2, borderColor: '#fff' }] },
+        options: { responsive: true, maintainAspectRatio: false, layout: { padding: 10 }, plugins: { legend: { position: 'right', labels: { padding: 10, usePointStyle: true, pointStyle: 'circle', font: { size: 10 } } }, tooltip: { backgroundColor: '#1e1b4b', padding: 10, cornerRadius: 8 }, datalabels: pieDatalabelsConfig } }
+    });
+
+    function loadDashboardCharts() {
+        const query = new URLSearchParams(new FormData(dashboardForm)).toString();
+        fetch("{{ route('admin.dashboard.charts-data') }}?" + query)
             .then(res => res.json())
             .then(data => {
-                scoreTrendChart.data.labels = data.labels;
-                scoreTrendChart.data.datasets[0].data = data.scores;
+                // 1. Trend
+                scoreTrendChart.data.labels = data.scoreTrend.labels;
+                scoreTrendChart.data.datasets[0].data = data.scoreTrend.scores;
                 scoreTrendChart.update();
+
+                // 2. Score Dist
+                scoreDistChart.data.labels = Object.keys(data.scoreDist);
+                scoreDistChart.data.datasets[0].data = Object.values(data.scoreDist);
+                scoreDistChart.update();
+
+                // 3. Students by Major
+                studentMajorChart.data.labels = data.studentsMajor.labels;
+                studentMajorChart.data.datasets[0].data = data.studentsMajor.counts;
+                studentMajorChart.data.datasets[0].backgroundColor = majorColors.slice(0, data.studentsMajor.labels.length);
+                studentMajorChart.update();
+
+                // 4. Top Subjects
+                topSubjectsChart.data.labels = data.topSubjects.labels;
+                topSubjectsChart.data.datasets[0].data = data.topSubjects.scores;
+                topSubjectsChart.data.datasets[0].backgroundColor = data.topSubjects.scores.map((_, i) => majorColors[i % majorColors.length]);
+                topSubjectsChart.update();
+
+                // 5. Attendance
+                attendanceChart.data.datasets[0].data = [data.attendance.P, data.attendance.A, data.attendance.L];
+                attendanceChart.update();
             })
             .catch(err => console.error(err));
     }
     
     // Gọi Ajax lấy data lần đầu
-    loadScoreTrend();
+    loadDashboardCharts();
 
     // Auto submit lọc khi form change
-    scoreTrendForm.addEventListener('change', loadScoreTrend);
+    dashboardForm.addEventListener('change', loadDashboardCharts);
 
-    const dashboardMajorSelect = scoreTrendForm.querySelector('[name="major_id"]');
-    const dashboardSubjectSelect = scoreTrendForm.querySelector('[name="subject_id"]');
+    const dashboardMajorSelect = dashboardForm.querySelector('[name="major_id"]');
+    const dashboardSubjectSelect = dashboardForm.querySelector('[name="subject_id"]');
 
     function fetchDashboardFilterOptions() {
-        const query = new URLSearchParams(new FormData(scoreTrendForm)).toString();
+        const query = new URLSearchParams(new FormData(dashboardForm)).toString();
         fetch("{{ route('admin.analytics.filter-options') }}?" + query)
             .then(res => res.json())
             .then(data => {
@@ -369,118 +426,6 @@ document.addEventListener('DOMContentLoaded', function() {
     if(dashboardMajorSelect) {
         dashboardMajorSelect.addEventListener('change', fetchDashboardFilterOptions);
     }
-
-    // === 2. Doughnut: Phân bố điểm số ===
-    const scoreDist = @json($score_distribution);
-    new Chart(document.getElementById('scoreDistChart'), {
-        type: 'doughnut',
-        data: {
-            labels: Object.keys(scoreDist),
-            datasets: [{
-                data: Object.values(scoreDist),
-                backgroundColor: ['#ef4444', '#f97316', '#eab308', '#22c55e', '#6366f1'],
-                borderWidth: 2,
-                borderColor: '#fff'
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            layout: { padding: 10 },
-            plugins: {
-                legend: { position: 'right', labels: { padding: 10, usePointStyle: true, pointStyle: 'circle', font: { size: 10 } } },
-                tooltip: { backgroundColor: '#1e1b4b', padding: 10, cornerRadius: 8 },
-                datalabels: pieDatalabelsConfig
-            },
-            cutout: '50%'
-        }
-    });
-
-    // === 3. Doughnut: SV theo ngành ===
-    const majorData = @json($students_by_major);
-    const majorColors = ['#6366f1', '#06b6d4', '#8b5cf6', '#ec4899', '#f97316', '#14b8a6', '#ef4444', '#84cc16'];
-    new Chart(document.getElementById('studentMajorChart'), {
-        type: 'doughnut',
-        data: {
-            labels: majorData.map(d => d.major_name),
-            datasets: [{
-                data: majorData.map(d => d.count),
-                backgroundColor: majorColors.slice(0, majorData.length),
-                borderWidth: 2,
-                borderColor: '#fff'
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            layout: { padding: 10 },
-            plugins: {
-                legend: { position: 'right', labels: { padding: 10, usePointStyle: true, pointStyle: 'circle', font: { size: 10 } } },
-                tooltip: { backgroundColor: '#1e1b4b', padding: 10, cornerRadius: 8 },
-                datalabels: pieDatalabelsConfig
-            },
-            cutout: '50%'
-        }
-    });
-
-    // === 4. Horizontal Bar: Top môn điểm cao ===
-    const topSubjects = @json($top_subjects_by_score);
-    new Chart(document.getElementById('topSubjectsChart'), {
-        type: 'bar',
-        data: {
-            labels: topSubjects.map(d => d.subject_name),
-            datasets: [{
-                label: 'Điểm TB',
-                data: topSubjects.map(d => d.avg_score),
-                backgroundColor: topSubjects.map((_, i) => {
-                    const colors = ['#6366f1', '#8b5cf6', '#a78bfa', '#c4b5fd', '#06b6d4', '#14b8a6', '#22c55e', '#84cc16'];
-                    return colors[i % colors.length];
-                }),
-                borderRadius: 6,
-                borderSkipped: false,
-                barThickness: 24
-            }]
-        },
-        options: {
-            indexAxis: 'y',
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false },
-                tooltip: { backgroundColor: '#1e1b4b', padding: 10, cornerRadius: 8 },
-                datalabels: { display: false }
-            },
-            scales: {
-                x: { beginAtZero: true, max: 10, grid: { color: '#f1f5f9' } },
-                y: { grid: { display: false }, ticks: { font: { size: 12 } } }
-            }
-        }
-    });
-
-    // === 5. Pie: Điểm danh P/A/L ===
-    const attStats = @json($attendance_stats);
-    new Chart(document.getElementById('attendanceChart'), {
-        type: 'pie',
-        data: {
-            labels: ['Có mặt (P)', 'Vắng (A)', 'Muộn (L)'],
-            datasets: [{
-                data: [attStats.P, attStats.A, attStats.L],
-                backgroundColor: ['#10b981', '#ef4444', '#f59e0b'],
-                borderWidth: 2,
-                borderColor: '#fff'
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            layout: { padding: 10 },
-            plugins: {
-                legend: { position: 'right', labels: { padding: 10, usePointStyle: true, pointStyle: 'circle', font: { size: 10 } } },
-                tooltip: { backgroundColor: '#1e1b4b', padding: 10, cornerRadius: 8 },
-                datalabels: pieDatalabelsConfig
-            }
-        }
-    });
 });
 </script>
 @endpush

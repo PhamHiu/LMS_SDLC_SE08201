@@ -53,39 +53,16 @@ class DashboardService
             ->get();
 
         // 2. Tỷ lệ phân bố điểm (5 khoảng)
-        $scoreDistribution = [
-            '0-2'  => Submission::whereNotNull('score')->where('score', '>=', 0)->where('score', '<', 2)->count(),
-            '2-4'  => Submission::whereNotNull('score')->where('score', '>=', 2)->where('score', '<', 4)->count(),
-            '4-6'  => Submission::whereNotNull('score')->where('score', '>=', 4)->where('score', '<', 6)->count(),
-            '6-8'  => Submission::whereNotNull('score')->where('score', '>=', 6)->where('score', '<', 8)->count(),
-            '8-10' => Submission::whereNotNull('score')->where('score', '>=', 8)->where('score', '<=', 10)->count(),
-        ];
+        $scoreDistribution = [];
 
         // 3. Tỷ lệ SV theo ngành
-        $studentsByMajor = User::where('role', User::ROLE_STUDENT)
-            ->whereNotNull('users.major_id')
-            ->join('majors', 'users.major_id', '=', 'majors.major_id')
-            ->selectRaw('majors.major_name, COUNT(*) as count')
-            ->groupBy('majors.major_name')
-            ->get();
+        $studentsByMajor = [];
 
         // 4. Top 8 môn có điểm TB cao nhất
-        $topSubjectsByScore = Submission::whereNotNull('score')
-            ->join('assignments', 'submissions.assignment_id', '=', 'assignments.assignment_id')
-            ->join('classes', 'assignments.class_id', '=', 'classes.class_id')
-            ->join('subjects', 'classes.subject_id', '=', 'subjects.subject_id')
-            ->selectRaw('subjects.subject_name, ROUND(AVG(submissions.score), 2) as avg_score')
-            ->groupBy('subjects.subject_name')
-            ->orderByDesc('avg_score')
-            ->take(8)
-            ->get();
+        $topSubjectsByScore = [];
 
         // 5. Tỷ lệ điểm danh P/A/L
-        $attendanceStats = [
-            'P' => Attendance::where('status', 'P')->count(),
-            'A' => Attendance::where('status', 'A')->count(),
-            'L' => Attendance::where('status', 'L')->count(),
-        ];
+        $attendanceStats = [];
 
         // 6. Lịch học hôm nay
         $todaySessions = ClassSession::with(['classRoom.subject', 'classRoom.teacher', 'slot', 'room'])
@@ -128,11 +105,11 @@ class DashboardService
             'attendance_rate'       => $attendanceRate,
 
             // Khung trái - Biểu đồ
-            'score_trend'           => [], // Đã chuyển sang lấy qua AJAX
-            'score_distribution'    => $scoreDistribution,
-            'students_by_major'     => $studentsByMajor,
-            'top_subjects_by_score' => $topSubjectsByScore,
-            'attendance_stats'      => $attendanceStats,
+            'score_trend'           => [], // Lấy qua AJAX
+            'score_distribution'    => [], // Lấy qua AJAX
+            'students_by_major'     => [], // Lấy qua AJAX
+            'top_subjects_by_score' => [], // Lấy qua AJAX
+            'attendance_stats'      => [], // Lấy qua AJAX
             'today_sessions'        => $todaySessions,
 
             // Khung phải - Bảng
@@ -148,77 +125,139 @@ class DashboardService
     }
 
     /**
-     * Lấy dữ liệu xu hướng điểm trung bình qua AJAX, có hỗ trợ bộ lọc.
+     * Lấy dữ liệu 5 biểu đồ qua AJAX, có hỗ trợ bộ lọc chung.
      */
-    public function getScoreTrend(array $filters): array
+    public function getDashboardCharts(array $filters): array
     {
         $dateFrom = $filters['date_from'] ?? null;
         $dateTo = $filters['date_to'] ?? null;
         $majorId = $filters['major_id'] ?? null;
         $subjectId = $filters['subject_id'] ?? null;
 
-        // Xác định xem người dùng có đang chủ động filter theo ngày không
+        // ==========================
+        // 1. SCORE TREND
+        // ==========================
         $isCustomDate = !empty($filters['date_from']) || !empty($filters['date_to']);
-
-        // Nếu không có khoảng ngày, lấy 12 tuần (gần 3 tháng)
+        $trendDateFrom = $dateFrom;
+        $trendDateTo = $dateTo;
         if (!$isCustomDate) {
-            $dateFrom = Carbon::now()->subWeeks(12)->startOfWeek()->format('Y-m-d');
-            $dateTo = Carbon::now()->endOfWeek()->format('Y-m-d');
+            $trendDateFrom = Carbon::now()->subWeeks(12)->startOfWeek()->format('Y-m-d');
+            $trendDateTo = Carbon::now()->endOfWeek()->format('Y-m-d');
         }
 
-        $query = Submission::join('assignments', 'submissions.assignment_id', '=', 'assignments.assignment_id')
+        $qTrend = Submission::join('assignments', 'submissions.assignment_id', '=', 'assignments.assignment_id')
             ->join('classes', 'assignments.class_id', '=', 'classes.class_id')
             ->whereNotNull('submissions.score')
             ->whereNotNull('submissions.graded_at');
 
-        if ($dateFrom) {
-            $query->where('submissions.graded_at', '>=', Carbon::parse($dateFrom)->startOfDay());
-        }
-        if ($dateTo) {
-            $query->where('submissions.graded_at', '<=', Carbon::parse($dateTo)->endOfDay());
-        }
-        if ($majorId) {
-            $query->where('classes.major_id', $majorId);
-        }
-        if ($subjectId) {
-            $query->where('classes.subject_id', $subjectId);
-        }
+        if ($trendDateFrom) $qTrend->where('submissions.graded_at', '>=', Carbon::parse($trendDateFrom)->startOfDay());
+        if ($trendDateTo) $qTrend->where('submissions.graded_at', '<=', Carbon::parse($trendDateTo)->endOfDay());
+        if ($majorId) $qTrend->where('classes.major_id', $majorId);
+        if ($subjectId) $qTrend->where('classes.subject_id', $subjectId);
 
         if ($isCustomDate) {
-            // Gom nhóm theo ngày
-            $query->selectRaw("
-                DATE(submissions.graded_at) as period_key,
-                MIN(DATE(submissions.graded_at)) as period_start,
-                ROUND(AVG(submissions.score), 2) as avg_score
-            ");
+            $qTrend->selectRaw("DATE(submissions.graded_at) as period_key, MIN(DATE(submissions.graded_at)) as period_start, ROUND(AVG(submissions.score), 2) as avg_score");
         } else {
-            // Gom nhóm theo tuần ISO: %x-W%v
-            $query->selectRaw("
-                DATE_FORMAT(submissions.graded_at, '%x-W%v') as period_key,
-                MIN(DATE(submissions.graded_at)) as period_start,
-                ROUND(AVG(submissions.score), 2) as avg_score
-            ");
+            $qTrend->selectRaw("DATE_FORMAT(submissions.graded_at, '%x-W%v') as period_key, MIN(DATE(submissions.graded_at)) as period_start, ROUND(AVG(submissions.score), 2) as avg_score");
         }
+        $qTrend->groupBy('period_key')->orderBy('period_key');
+        $trendResults = $qTrend->get();
+
+        $labelsTrend = [];
+        $scoresTrend = [];
+        foreach ($trendResults as $row) {
+            $labelsTrend[] = $isCustomDate ? Carbon::parse($row->period_start)->format('d/m/Y') : 'Tuần ' . Carbon::parse($row->period_start)->format('d/m/Y');
+            $scoresTrend[] = (float) $row->avg_score;
+        }
+
+        // ==========================
+        // 2. SCORE DISTRIBUTION
+        // ==========================
+        $qDist = Submission::whereNotNull('score');
+        if ($majorId || $subjectId || $dateFrom || $dateTo) {
+            $qDist->join('assignments', 'submissions.assignment_id', '=', 'assignments.assignment_id')
+                  ->join('classes', 'assignments.class_id', '=', 'classes.class_id');
+            if ($majorId) $qDist->where('classes.major_id', $majorId);
+            if ($subjectId) $qDist->where('classes.subject_id', $subjectId);
+            if ($dateFrom) $qDist->where('submissions.graded_at', '>=', Carbon::parse($dateFrom)->startOfDay());
+            if ($dateTo) $qDist->where('submissions.graded_at', '<=', Carbon::parse($dateTo)->endOfDay());
+        }
+
+        $scoreDistribution = [
+            '0-2'  => (clone $qDist)->where('score', '>=', 0)->where('score', '<', 2)->count(),
+            '2-4'  => (clone $qDist)->where('score', '>=', 2)->where('score', '<', 4)->count(),
+            '4-6'  => (clone $qDist)->where('score', '>=', 4)->where('score', '<', 6)->count(),
+            '6-8'  => (clone $qDist)->where('score', '>=', 6)->where('score', '<', 8)->count(),
+            '8-10' => (clone $qDist)->where('score', '>=', 8)->where('score', '<=', 10)->count(),
+        ];
+
+        // ==========================
+        // 3. STUDENTS BY MAJOR
+        // ==========================
+        $qMajor = User::where('role', User::ROLE_STUDENT)
+            ->whereNotNull('users.major_id')
+            ->join('majors', 'users.major_id', '=', 'majors.major_id');
+        if ($majorId) {
+            $qMajor->where('users.major_id', $majorId);
+        }
+        if ($subjectId) {
+            $qMajor->whereHas('enrolledClasses', fn($q) => $q->where('subject_id', $subjectId));
+        }
+        $studentsByMajorData = $qMajor->selectRaw('majors.major_name, COUNT(DISTINCT users.user_id) as count')
+            ->groupBy('majors.major_name')
+            ->get();
+        $studentsMajor = [
+            'labels' => $studentsByMajorData->pluck('major_name')->toArray(),
+            'counts' => $studentsByMajorData->pluck('count')->toArray(),
+        ];
+
+        // ==========================
+        // 4. TOP SUBJECTS BY SCORE
+        // ==========================
+        $qTopSub = Submission::whereNotNull('score')
+            ->join('assignments', 'submissions.assignment_id', '=', 'assignments.assignment_id')
+            ->join('classes', 'assignments.class_id', '=', 'classes.class_id')
+            ->join('subjects', 'classes.subject_id', '=', 'subjects.subject_id');
+        if ($majorId) $qTopSub->where('classes.major_id', $majorId);
+        if ($subjectId) $qTopSub->where('classes.subject_id', $subjectId);
+        if ($dateFrom) $qTopSub->where('submissions.graded_at', '>=', Carbon::parse($dateFrom)->startOfDay());
+        if ($dateTo) $qTopSub->where('submissions.graded_at', '<=', Carbon::parse($dateTo)->endOfDay());
         
-        $query->groupBy('period_key')->orderBy('period_key');
+        $topSubjectsData = $qTopSub->selectRaw('subjects.subject_name, ROUND(AVG(submissions.score), 2) as avg_score')
+            ->groupBy('subjects.subject_name')
+            ->orderByDesc('avg_score')
+            ->take(8)
+            ->get();
+        $topSubjects = [
+            'labels' => $topSubjectsData->pluck('subject_name')->toArray(),
+            'scores' => $topSubjectsData->pluck('avg_score')->toArray(),
+        ];
 
-        $results = $query->get();
-
-        $labels = [];
-        $scores = [];
-
-        foreach ($results as $row) {
-            if ($isCustomDate) {
-                $labels[] = Carbon::parse($row->period_start)->format('d/m/Y');
-            } else {
-                $labels[] = 'Tuần ' . Carbon::parse($row->period_start)->format('d/m/Y');
-            }
-            $scores[] = (float) $row->avg_score;
-        }
+        // ==========================
+        // 5. ATTENDANCE STATS
+        // ==========================
+        $qAtt = Attendance::join('class_sessions', 'attendances.session_id', '=', 'class_sessions.session_id')
+            ->join('classes', 'class_sessions.class_id', '=', 'classes.class_id');
+        if ($majorId) $qAtt->where('classes.major_id', $majorId);
+        if ($subjectId) $qAtt->where('classes.subject_id', $subjectId);
+        if ($dateFrom) $qAtt->where('class_sessions.session_date', '>=', Carbon::parse($dateFrom)->startOfDay());
+        if ($dateTo) $qAtt->where('class_sessions.session_date', '<=', Carbon::parse($dateTo)->endOfDay());
+        
+        $attendanceStats = [
+            'P' => (clone $qAtt)->where('attendances.status', 'P')->count(),
+            'A' => (clone $qAtt)->where('attendances.status', 'A')->count(),
+            'L' => (clone $qAtt)->where('attendances.status', 'L')->count(),
+        ];
 
         return [
-            'labels' => $labels,
-            'scores' => $scores
+            'scoreTrend' => [
+                'labels' => $labelsTrend,
+                'scores' => $scoresTrend
+            ],
+            'scoreDist' => $scoreDistribution,
+            'studentsMajor' => $studentsMajor,
+            'topSubjects' => $topSubjects,
+            'attendance' => $attendanceStats,
         ];
     }
 }
