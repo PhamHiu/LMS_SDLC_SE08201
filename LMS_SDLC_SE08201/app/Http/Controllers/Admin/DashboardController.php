@@ -14,6 +14,16 @@ class DashboardController extends Controller
 
     public function index(): View
     {
-        return view('admin.dashboard', $this->dashboardService->getStats());
+        $data = $this->dashboardService->getStats();
+        $data['majors'] = \App\Models\Major::all();
+        $data['subjects'] = \App\Models\Subject::all();
+        return view('admin.dashboard', $data);
+    }
+
+    public function scoreTrendApi(\Illuminate\Http\Request $request)
+    {
+        return response()->json(
+            $this->dashboardService->getScoreTrend($request->all())
+        );
     }
 }

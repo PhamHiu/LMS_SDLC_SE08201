@@ -128,7 +128,7 @@ class DashboardService
             'attendance_rate'       => $attendanceRate,
 
             // Khung trái - Biểu đồ
-            'score_trend'           => $scoreTrend,
+            'score_trend'           => [], // Đã chuyển sang lấy qua AJAX
             'score_distribution'    => $scoreDistribution,
             'students_by_major'     => $studentsByMajor,
             'top_subjects_by_score' => $topSubjectsByScore,
@@ -144,6 +144,66 @@ class DashboardService
             'recent_users'          => User::orderByDesc('created_at')->take(5)->get(),
             'recent_classes'        => ClassRoom::with(['teacher', 'subject'])
                 ->orderByDesc('class_id')->take(5)->get(),
+        ];
+    }
+
+    /**
+     * Lấy dữ liệu xu hướng điểm trung bình qua AJAX, có hỗ trợ bộ lọc.
+     */
+    public function getScoreTrend(array $filters): array
+    {
+        $dateFrom = $filters['date_from'] ?? null;
+        $dateTo = $filters['date_to'] ?? null;
+        $majorId = $filters['major_id'] ?? null;
+        $subjectId = $filters['subject_id'] ?? null;
+
+        // Nếu không có khoảng ngày, lấy 12 tuần (gần 3 tháng)
+        if (!$dateFrom && !$dateTo) {
+            $dateFrom = Carbon::now()->subWeeks(12)->startOfWeek()->format('Y-m-d');
+            $dateTo = Carbon::now()->endOfWeek()->format('Y-m-d');
+        }
+
+        $query = Submission::join('assignments', 'submissions.assignment_id', '=', 'assignments.assignment_id')
+            ->join('classes', 'assignments.class_id', '=', 'classes.class_id')
+            ->whereNotNull('submissions.score')
+            ->whereNotNull('submissions.graded_at');
+
+        if ($dateFrom) {
+            $query->where('submissions.graded_at', '>=', Carbon::parse($dateFrom)->startOfDay());
+        }
+        if ($dateTo) {
+            $query->where('submissions.graded_at', '<=', Carbon::parse($dateTo)->endOfDay());
+        }
+        if ($majorId) {
+            $query->where('classes.major_id', $majorId);
+        }
+        if ($subjectId) {
+            $query->where('classes.subject_id', $subjectId);
+        }
+
+        // Gom nhóm theo tuần ISO: %x-W%v
+        $query->selectRaw("
+            DATE_FORMAT(submissions.graded_at, '%x-W%v') as week_key,
+            MIN(DATE(submissions.graded_at)) as week_start,
+            ROUND(AVG(submissions.score), 2) as avg_score
+        ")
+        ->groupBy('week_key')
+        ->orderBy('week_key');
+
+        $results = $query->get();
+
+        $labels = [];
+        $scores = [];
+
+        foreach ($results as $row) {
+            // Hiển thị tuần có ngày bắt đầu
+            $labels[] = 'Tuần ' . Carbon::parse($row->week_start)->format('d/m/Y');
+            $scores[] = (float) $row->avg_score;
+        }
+
+        return [
+            'labels' => $labels,
+            'scores' => $scores
         ];
     }
 }

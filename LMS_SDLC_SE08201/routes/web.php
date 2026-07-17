@@ -42,7 +42,10 @@ Route::middleware('auth')->group(function () {
 
 // ===== NHÓM 1: ADMIN =====
 Route::middleware(['auth', 'role:ADMIN'])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/', [Admin\DashboardController::class, 'index'])->name('dashboard');
+    Route::prefix('dashboard')->group(function () {
+        Route::get('/', [Admin\DashboardController::class, 'index'])->name('dashboard');
+        Route::get('/score-trend', [Admin\DashboardController::class, 'scoreTrendApi'])->name('dashboard.score-trend');
+    });
 
     // Quản lý người dùng + reset mật khẩu
     Route::resource('users', Admin\UserController::class)->except('show');

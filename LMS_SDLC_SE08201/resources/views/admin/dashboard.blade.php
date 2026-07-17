@@ -59,7 +59,26 @@
 
         {{-- 1. Line Chart: Xu hướng điểm TB --}}
         <div class="rounded-2xl border border-slate-200 bg-white shadow-sm p-5">
-            <h2 class="font-bold text-slate-800 mb-4">📈 Xu hướng điểm trung bình theo kỳ</h2>
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+                <h2 class="font-bold text-slate-800">📈 Xu hướng điểm trung bình</h2>
+                <form id="scoreTrendFilterForm" class="flex flex-wrap items-center gap-2 text-xs">
+                    <input type="date" name="date_from" class="rounded-lg border-slate-200 focus:border-indigo-500 focus:ring-indigo-500 py-1.5 px-2" title="Từ ngày">
+                    <span class="text-slate-400">-</span>
+                    <input type="date" name="date_to" class="rounded-lg border-slate-200 focus:border-indigo-500 focus:ring-indigo-500 py-1.5 px-2" title="Đến ngày">
+                    <select name="major_id" class="rounded-lg border-slate-200 focus:border-indigo-500 focus:ring-indigo-500 py-1.5 px-2 max-w-[140px]">
+                        <option value="">Tất cả ngành</option>
+                        @foreach ($majors as $m)
+                            <option value="{{ $m->major_id }}">{{ $m->major_name }}</option>
+                        @endforeach
+                    </select>
+                    <select name="subject_id" class="rounded-lg border-slate-200 focus:border-indigo-500 focus:ring-indigo-500 py-1.5 px-2 max-w-[140px]">
+                        <option value="">Tất cả môn</option>
+                        @foreach ($subjects as $s)
+                            <option value="{{ $s->subject_id }}">{{ $s->subject_name }}</option>
+                        @endforeach
+                    </select>
+                </form>
+            </div>
             <div class="relative" style="height: 280px;">
                 <canvas id="scoreTrendChart"></canvas>
             </div>
@@ -275,14 +294,14 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     // === 1. Line Chart: Xu hướng điểm TB ===
-    const scoreTrendData = @json($score_trend);
-    new Chart(document.getElementById('scoreTrendChart'), {
+    const scoreTrendCtx = document.getElementById('scoreTrendChart');
+    let scoreTrendChart = new Chart(scoreTrendCtx, {
         type: 'line',
         data: {
-            labels: scoreTrendData.map(d => d.period),
+            labels: [],
             datasets: [{
                 label: 'Điểm TB',
-                data: scoreTrendData.map(d => d.avg_score),
+                data: [],
                 borderColor: '#6366f1',
                 backgroundColor: 'rgba(99, 102, 241, 0.1)',
                 borderWidth: 2,
@@ -304,10 +323,29 @@ document.addEventListener('DOMContentLoaded', function() {
             },
             scales: {
                 x: { grid: { display: false }, ticks: { font: { size: 12 } } },
-                y: { beginAtZero: true, grid: { color: '#f1f5f9' }, ticks: { font: { size: 12 } } }
+                y: { beginAtZero: true, max: 10, grid: { color: '#f1f5f9' }, ticks: { font: { size: 12 } } }
             }
         }
     });
+
+    const scoreTrendForm = document.getElementById('scoreTrendFilterForm');
+    function loadScoreTrend() {
+        const query = new URLSearchParams(new FormData(scoreTrendForm)).toString();
+        fetch(`/admin/dashboard/score-trend?${query}`)
+            .then(res => res.json())
+            .then(data => {
+                scoreTrendChart.data.labels = data.labels;
+                scoreTrendChart.data.datasets[0].data = data.scores;
+                scoreTrendChart.update();
+            })
+            .catch(err => console.error(err));
+    }
+    
+    // Gọi Ajax lấy data lần đầu
+    loadScoreTrend();
+
+    // Auto submit lọc khi form change
+    scoreTrendForm.addEventListener('change', loadScoreTrend);
 
     // === 2. Doughnut: Phân bố điểm số ===
     const scoreDist = @json($score_distribution);
