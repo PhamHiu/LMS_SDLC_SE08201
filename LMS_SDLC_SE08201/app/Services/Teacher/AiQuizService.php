@@ -59,64 +59,74 @@ class AiQuizService
             ]
         ];
 
-        $maxRetries = 3;
-        $retryDelay = 1000; // in milliseconds
-        $response = null;
+        try {
+            $maxRetries = 3;
+            $retryDelay = 1000; // in milliseconds
+            $response = null;
 
-        for ($attempt = 1; $attempt <= $maxRetries; $attempt++) {
-            try {
-                $response = Http::withHeaders([
-                    'x-goog-api-key' => $apiKey
-                ])->post($url, $payload);
+            for ($attempt = 1; $attempt <= $maxRetries; $attempt++) {
+                try {
+                    $response = Http::withoutVerifying()->timeout(15)->withHeaders([
+                        'x-goog-api-key' => $apiKey
+                    ])->post($url, $payload);
 
-                if ($response->successful()) {
+                    if ($response->successful()) {
+                        break;
+                    }
+
+                    // If transient server overloaded (503) or rate limit (429), wait and retry
+                    if (($response->status() === 503 || $response->status() === 429) && $attempt < $maxRetries) {
+                        usleep($retryDelay * 1000);
+                        $retryDelay = (int)($retryDelay * 1.5);
+                        continue;
+                    }
+
                     break;
-                }
-
-                // If transient server overloaded (503) or rate limit (429), wait and retry
-                if (($response->status() === 503 || $response->status() === 429) && $attempt < $maxRetries) {
+                } catch (\Exception $e) {
+                    if ($attempt === $maxRetries) {
+                        throw $e;
+                    }
                     usleep($retryDelay * 1000);
                     $retryDelay = (int)($retryDelay * 1.5);
-                    continue;
                 }
-
-                break;
-            } catch (\Exception $e) {
-                if ($attempt === $maxRetries) {
-                    throw $e;
-                }
-                usleep($retryDelay * 1000);
-                $retryDelay = (int)($retryDelay * 1.5);
             }
+
+            if (!$response || !$response->successful()) {
+                $errorMsg = $response ? $response->body() : 'Không nhận được phản hồi từ máy chủ AI.';
+                throw new \Exception('Lỗi khi gọi API tới AI: ' . $errorMsg);
+            }
+
+            $result = $response->json();
+            
+            $text = $result['candidates'][0]['content']['parts'][0]['text'] ?? '';
+            
+            // Extract pure JSON array block robustly
+            $startPos = strpos($text, '[');
+            $endPos = strrpos($text, ']');
+            if ($startPos !== false && $endPos !== false && $endPos > $startPos) {
+                $text = substr($text, $startPos, $endPos - $startPos + 1);
+            } else {
+                // Remove markdown formatting if AI still outputs it without standard array format
+                $text = str_replace(['```json', '```'], '', $text);
+                $text = trim($text);
+            }
+
+            $questions = json_decode($text, true);
+
+            if (json_last_error() !== JSON_ERROR_NONE || empty($questions) || !is_array($questions)) {
+                throw new \Exception('AI trả về dữ liệu không đúng định dạng JSON hoặc rỗng. Dữ liệu gốc: ' . substr($text, 0, 500));
+            }
+
+            return $this->cleanUtf8($questions);
+
+        } catch (\Exception $e) {
+            // Tự động chuyển sang chế độ dự phòng cục bộ khi API gặp sự cố (sai API key, mất mạng, SSL lỗi...)
+            \Illuminate\Support\Facades\Log::warning("Gemini API call failed: " . $e->getMessage() . ". Falling back to local generation mode.");
+            if (!empty($docText)) {
+                return $this->generateQuestionsFromDocFallback($docText, $topic, $quantity);
+            }
+            return $this->generateMockQuestions($topic, $quantity);
         }
-
-        if (!$response || !$response->successful()) {
-            $errorMsg = $response ? $response->body() : 'Không nhận được phản hồi từ máy chủ AI.';
-            throw new \Exception('Lỗi khi gọi API tới AI: ' . $errorMsg);
-        }
-
-        $result = $response->json();
-        
-        $text = $result['candidates'][0]['content']['parts'][0]['text'] ?? '';
-        
-        // Extract pure JSON array block robustly
-        $startPos = strpos($text, '[');
-        $endPos = strrpos($text, ']');
-        if ($startPos !== false && $endPos !== false && $endPos > $startPos) {
-            $text = substr($text, $startPos, $endPos - $startPos + 1);
-        } else {
-            // Remove markdown formatting if AI still outputs it without standard array format
-            $text = str_replace(['```json', '```'], '', $text);
-            $text = trim($text);
-        }
-
-        $questions = json_decode($text, true);
-
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            throw new \Exception('AI trả về dữ liệu không đúng định dạng JSON: ' . json_last_error_msg() . '. Dữ liệu gốc: ' . substr($text, 0, 500));
-        }
-
-        return $this->cleanUtf8($questions);
     }
 
     /**

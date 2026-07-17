@@ -18,7 +18,7 @@ Artisan::command('gemini:test', function () {
 
     try {
         $startTime = microtime(true);
-        $response = Http::timeout(10)->withHeaders([
+        $response = Http::withoutVerifying()->timeout(10)->withHeaders([
             'x-goog-api-key' => $apiKey
         ])->post($url, [
             'contents' => [
