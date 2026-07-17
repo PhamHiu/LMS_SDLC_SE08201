@@ -70,14 +70,14 @@
             {{-- Doughnut: Phân bố điểm --}}
             <div class="rounded-2xl border border-slate-200 bg-white shadow-sm p-5">
                 <h2 class="font-bold text-slate-800 mb-4">🍩 Phân bố điểm số</h2>
-                <div class="relative mx-auto" style="max-width: 260px;">
+                <div class="relative w-full" style="height: 250px;">
                     <canvas id="scoreDistChart"></canvas>
                 </div>
             </div>
             {{-- Doughnut: SV theo ngành --}}
             <div class="rounded-2xl border border-slate-200 bg-white shadow-sm p-5">
                 <h2 class="font-bold text-slate-800 mb-4">🍩 Sinh viên theo ngành</h2>
-                <div class="relative mx-auto" style="max-width: 260px;">
+                <div class="relative w-full" style="height: 250px;">
                     <canvas id="studentMajorChart"></canvas>
                 </div>
             </div>
@@ -96,7 +96,7 @@
             <div class="grid gap-6 md:grid-cols-2 items-center">
                 <div>
                     <h2 class="font-bold text-slate-800 mb-4">🥧 Tỷ lệ điểm danh</h2>
-                    <div class="relative mx-auto" style="max-width: 240px;">
+                    <div class="relative w-full" style="height: 220px;">
                         <canvas id="attendanceChart"></canvas>
                     </div>
                 </div>
