@@ -114,7 +114,7 @@
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
                 <h2 class="font-bold text-slate-800">📈 Xu hướng điểm trung bình</h2>
             </div>
-            <div class="relative" style="height: 280px;">
+            <div class="relative w-full h-[280px] sm:h-[350px]">
                 <canvas id="scoreTrendChart"></canvas>
             </div>
         </div>
@@ -124,14 +124,14 @@
             {{-- Doughnut: Phân bố điểm --}}
             <div class="rounded-2xl border border-slate-200 bg-white shadow-sm p-5">
                 <h2 class="font-bold text-slate-800 mb-4">🍩 Phân bố điểm số</h2>
-                <div class="relative w-full" style="height: 250px;">
+                <div class="relative w-full aspect-square sm:aspect-[4/3] lg:aspect-video">
                     <canvas id="scoreDistChart"></canvas>
                 </div>
             </div>
             {{-- Doughnut: SV theo ngành --}}
             <div class="rounded-2xl border border-slate-200 bg-white shadow-sm p-5">
                 <h2 class="font-bold text-slate-800 mb-4">🍩 Sinh viên theo ngành</h2>
-                <div class="relative w-full" style="height: 250px;">
+                <div class="relative w-full aspect-square sm:aspect-[4/3] lg:aspect-video">
                     <canvas id="studentMajorChart"></canvas>
                 </div>
             </div>
@@ -140,7 +140,7 @@
         {{-- 4. Horizontal Bar: Top môn điểm cao --}}
         <div class="rounded-2xl border border-slate-200 bg-white shadow-sm p-5">
             <h2 class="font-bold text-slate-800 mb-4">📊 Top môn có điểm trung bình cao nhất</h2>
-            <div class="relative" style="height: 300px;">
+            <div class="relative w-full h-[300px] sm:h-[400px]">
                 <canvas id="topSubjectsChart"></canvas>
             </div>
         </div>
@@ -150,7 +150,7 @@
             <div class="grid gap-6 md:grid-cols-2 items-center">
                 <div>
                     <h2 class="font-bold text-slate-800 mb-4">🥧 Tỷ lệ điểm danh</h2>
-                    <div class="relative w-full" style="height: 220px;">
+                    <div class="relative w-full aspect-square sm:aspect-[4/3] lg:aspect-video">
                         <canvas id="attendanceChart"></canvas>
                     </div>
                 </div>
