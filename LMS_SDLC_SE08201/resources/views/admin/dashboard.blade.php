@@ -364,19 +364,20 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     const dashboardForm = document.getElementById('globalDashboardFilterForm');
+    const legendPos = window.innerWidth < 1024 ? 'bottom' : 'right';
 
     // === Khởi tạo 4 biểu đồ rỗng (trend đã có ở trên) ===
     const scoreDistChart = new Chart(document.getElementById('scoreDistChart'), {
         type: 'doughnut',
         data: { labels: [], datasets: [{ data: [], backgroundColor: ['#ef4444', '#f97316', '#eab308', '#22c55e', '#6366f1'], borderWidth: 2, borderColor: '#fff' }] },
-        options: { responsive: true, maintainAspectRatio: false, layout: { padding: 10 }, plugins: { legend: { position: 'right', labels: { padding: 10, usePointStyle: true, pointStyle: 'circle', font: { size: 10 } } }, tooltip: { backgroundColor: '#1e1b4b', padding: 10, cornerRadius: 8 }, datalabels: pieDatalabelsConfig }, cutout: '50%' }
+        options: { responsive: true, maintainAspectRatio: false, layout: { padding: 10 }, plugins: { legend: { position: legendPos, labels: { padding: 10, usePointStyle: true, pointStyle: 'circle', font: { size: 10 } } }, tooltip: { backgroundColor: '#1e1b4b', padding: 10, cornerRadius: 8 }, datalabels: pieDatalabelsConfig }, cutout: '50%' }
     });
 
     const majorColors = ['#6366f1', '#06b6d4', '#8b5cf6', '#ec4899', '#f97316', '#14b8a6', '#ef4444', '#84cc16'];
     const studentMajorChart = new Chart(document.getElementById('studentMajorChart'), {
         type: 'doughnut',
         data: { labels: [], datasets: [{ data: [], backgroundColor: majorColors, borderWidth: 2, borderColor: '#fff' }] },
-        options: { responsive: true, maintainAspectRatio: false, layout: { padding: 10 }, plugins: { legend: { position: 'right', labels: { padding: 10, usePointStyle: true, pointStyle: 'circle', font: { size: 10 } } }, tooltip: { backgroundColor: '#1e1b4b', padding: 10, cornerRadius: 8 }, datalabels: pieDatalabelsConfig }, cutout: '50%' }
+        options: { responsive: true, maintainAspectRatio: false, layout: { padding: 10 }, plugins: { legend: { position: legendPos, labels: { padding: 10, usePointStyle: true, pointStyle: 'circle', font: { size: 10 } } }, tooltip: { backgroundColor: '#1e1b4b', padding: 10, cornerRadius: 8 }, datalabels: pieDatalabelsConfig }, cutout: '50%' }
     });
 
     const topSubjectsChart = new Chart(document.getElementById('topSubjectsChart'), {
@@ -388,7 +389,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const attendanceChart = new Chart(document.getElementById('attendanceChart'), {
         type: 'pie',
         data: { labels: ['Có mặt (P)', 'Vắng (A)', 'Muộn (L)'], datasets: [{ data: [0, 0, 0], backgroundColor: ['#10b981', '#ef4444', '#f59e0b'], borderWidth: 2, borderColor: '#fff' }] },
-        options: { responsive: true, maintainAspectRatio: false, layout: { padding: 10 }, plugins: { legend: { position: 'right', labels: { padding: 10, usePointStyle: true, pointStyle: 'circle', font: { size: 10 } } }, tooltip: { backgroundColor: '#1e1b4b', padding: 10, cornerRadius: 8 }, datalabels: pieDatalabelsConfig } }
+        options: { responsive: true, maintainAspectRatio: false, layout: { padding: 10 }, plugins: { legend: { position: legendPos, labels: { padding: 10, usePointStyle: true, pointStyle: 'circle', font: { size: 10 } } }, tooltip: { backgroundColor: '#1e1b4b', padding: 10, cornerRadius: 8 }, datalabels: pieDatalabelsConfig } }
     });
 
     function loadDashboardCharts() {
