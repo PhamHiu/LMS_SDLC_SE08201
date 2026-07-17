@@ -132,21 +132,21 @@
                         <span class="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-500 text-white text-sm font-bold">P</span>
                         <div>
                             <p class="text-sm font-semibold text-slate-700">Có mặt</p>
-                            <p class="text-lg font-extrabold text-emerald-600">{{ number_format($attendance_stats['P']) }}</p>
+                            <p class="text-lg font-extrabold text-emerald-600" id="attTextP">0</p>
                         </div>
                     </div>
                     <div class="flex items-center gap-3 p-3 rounded-xl bg-rose-50">
                         <span class="flex h-10 w-10 items-center justify-center rounded-lg bg-rose-500 text-white text-sm font-bold">A</span>
                         <div>
                             <p class="text-sm font-semibold text-slate-700">Vắng mặt</p>
-                            <p class="text-lg font-extrabold text-rose-600">{{ number_format($attendance_stats['A']) }}</p>
+                            <p class="text-lg font-extrabold text-rose-600" id="attTextA">0</p>
                         </div>
                     </div>
                     <div class="flex items-center gap-3 p-3 rounded-xl bg-amber-50">
                         <span class="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-500 text-white text-sm font-bold">L</span>
                         <div>
                             <p class="text-sm font-semibold text-slate-700">Đi muộn</p>
-                            <p class="text-lg font-extrabold text-amber-600">{{ number_format($attendance_stats['L']) }}</p>
+                            <p class="text-lg font-extrabold text-amber-600" id="attTextL">0</p>
                         </div>
                     </div>
                 </div>
@@ -394,6 +394,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 // 5. Attendance
                 attendanceChart.data.datasets[0].data = [data.attendance.P, data.attendance.A, data.attendance.L];
                 attendanceChart.update();
+                document.getElementById('attTextP').innerText = new Intl.NumberFormat().format(data.attendance.P);
+                document.getElementById('attTextA').innerText = new Intl.NumberFormat().format(data.attendance.A);
+                document.getElementById('attTextL').innerText = new Intl.NumberFormat().format(data.attendance.L);
             })
             .catch(err => console.error(err));
     }
