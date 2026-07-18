@@ -58,17 +58,6 @@
                                     @if($index === 0)
                                         <td rowspan="{{ $rowCount }}" class="border-r border-slate-200 px-4 py-5 align-top bg-slate-50/30 text-center">
                                             <p class="font-extrabold text-slate-800 text-sm">{{ $week['week_start']->format('d/m') }} <span class="text-slate-400 font-medium">→</span> {{ $week['week_end']->format('d/m') }}</p>
-                                            <div class="mt-4 inline-flex flex-col gap-2 text-xs text-left font-semibold">
-                                                <span class="rounded-lg border border-emerald-100 bg-emerald-50 px-2.5 py-1.5 text-emerald-700 flex justify-between gap-3 shadow-sm">
-                                                    <span>✅ Có mặt</span> <span>{{ $week['present'] }}</span>
-                                                </span>
-                                                <span class="rounded-lg border border-amber-100 bg-amber-50 px-2.5 py-1.5 text-amber-700 flex justify-between gap-3 shadow-sm">
-                                                    <span>🕐 Muộn</span> <span>{{ $week['late'] }}</span>
-                                                </span>
-                                                <span class="rounded-lg border border-rose-100 bg-rose-50 px-2.5 py-1.5 text-rose-700 flex justify-between gap-3 shadow-sm">
-                                                    <span>❌ Vắng</span> <span>{{ $week['absent'] }}</span>
-                                                </span>
-                                            </div>
                                         </td>
                                     @endif
                                     
