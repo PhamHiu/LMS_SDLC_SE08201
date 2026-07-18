@@ -179,6 +179,36 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         });
+            }
+        });
+
+        // Bảng Preview (Điểm số)
+        const tbody = document.getElementById('t-gr-preview-tbody');
+        if (tbody) {
+            tbody.innerHTML = '';
+            document.getElementById('t-gr-preview-count').innerText = `${data.data.length} bản ghi`;
+            data.data.forEach(s => {
+                const tr = document.createElement('tr');
+                tr.classList.add('hover:bg-slate-50', 'transition');
+                
+                const studentName = s.student ? s.student.full_name : 'N/A';
+                const assignTitle = s.assignment ? s.assignment.title : 'N/A';
+                const subjectName = s.assignment?.class_room?.subject ? s.assignment.class_room.subject.subject_name : 'N/A';
+                const className = s.assignment?.class_room ? s.assignment.class_room.class_name : 'N/A';
+                const score = s.score !== null ? s.score : '--';
+                const date = new Date(s.graded_at).toLocaleDateString('vi-VN');
+
+                tr.innerHTML = `
+                    <td class="px-4 py-3 font-medium text-slate-700">${studentName}</td>
+                    <td class="px-4 py-3">${assignTitle}</td>
+                    <td class="px-4 py-3">${subjectName}</td>
+                    <td class="px-4 py-3">${className}</td>
+                    <td class="px-4 py-3 text-center font-bold ${score >= 5 ? 'text-emerald-600' : 'text-rose-600'}">${score}</td>
+                    <td class="px-4 py-3 text-xs">${date}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
     }
 
     function renderAttendance(data) {
@@ -205,6 +235,40 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         });
+            }
+        });
+
+        // Bảng Preview (Chuyên cần)
+        const tbody = document.getElementById('t-att-preview-tbody');
+        if (tbody) {
+            tbody.innerHTML = '';
+            document.getElementById('t-att-preview-count').innerText = `${data.data.length} bản ghi`;
+            data.data.forEach(a => {
+                const tr = document.createElement('tr');
+                tr.classList.add('hover:bg-slate-50', 'transition');
+                
+                const studentName = a.student ? a.student.full_name : 'N/A';
+                const subjectName = a.session?.class_room?.subject ? a.session.class_room.subject.subject_name : 'N/A';
+                const className = a.session?.class_room ? a.session.class_room.class_name : 'N/A';
+                
+                let statusHtml = '';
+                if (a.status === 'present') statusHtml = '<span class="px-2.5 py-1 bg-emerald-100 text-emerald-700 rounded-lg text-xs font-bold">Có mặt</span>';
+                else if (a.status === 'absent') statusHtml = '<span class="px-2.5 py-1 bg-rose-100 text-rose-700 rounded-lg text-xs font-bold">Vắng</span>';
+                else if (a.status === 'late') statusHtml = '<span class="px-2.5 py-1 bg-amber-100 text-amber-700 rounded-lg text-xs font-bold">Muộn</span>';
+                else statusHtml = '<span class="px-2.5 py-1 bg-slate-100 text-slate-700 rounded-lg text-xs font-bold">--</span>';
+
+                const date = new Date(a.attendance_time).toLocaleDateString('vi-VN');
+
+                tr.innerHTML = `
+                    <td class="px-4 py-3 font-medium text-slate-700">${studentName}</td>
+                    <td class="px-4 py-3">${subjectName}</td>
+                    <td class="px-4 py-3">${className}</td>
+                    <td class="px-4 py-3 text-center">${statusHtml}</td>
+                    <td class="px-4 py-3 text-xs">${date}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
     }
 
     loadData();

@@ -34,7 +34,31 @@
         </div>
     </div>
 
-    <div class="flex justify-end gap-3">
+    {{-- Preview Table --}}
+    <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden mt-6">
+        <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+            <h3 class="font-bold text-slate-800">📋 Dữ liệu xem trước (Preview)</h3>
+            <span class="text-xs text-slate-500 bg-slate-200 px-2 py-1 rounded-md" id="t-att-preview-count">0 bản ghi</span>
+        </div>
+        <div class="overflow-x-auto overflow-y-auto" style="max-height: 400px;">
+            <table class="w-full text-left text-sm text-slate-600 whitespace-nowrap">
+                <thead class="bg-slate-50 text-xs uppercase font-semibold text-slate-500 sticky top-0 z-10">
+                    <tr>
+                        <th class="px-4 py-3">Sinh viên</th>
+                        <th class="px-4 py-3">Môn học</th>
+                        <th class="px-4 py-3">Lớp học</th>
+                        <th class="px-4 py-3 text-center">Trạng thái</th>
+                        <th class="px-4 py-3">Ngày điểm danh</th>
+                    </tr>
+                </thead>
+                <tbody id="t-att-preview-tbody" class="divide-y divide-slate-100">
+                    <!-- Dữ liệu sẽ được chèn qua JS -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="flex justify-end gap-3 mt-4">
         <a href="#" data-base-url="{{ route('teacher.reports.attendance.export') }}" class="export-link bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition inline-flex items-center gap-2 shadow-sm">
             <span>📥 Xuất Excel Chuyên Cần</span>
         </a>
