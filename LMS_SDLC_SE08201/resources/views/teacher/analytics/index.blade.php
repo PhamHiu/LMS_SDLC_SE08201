@@ -38,7 +38,7 @@
 
 {{-- ===== TABS ===== --}}
 <div class="mb-6 border-b border-slate-200">
-    <nav class="-mb-px flex space-x-6" aria-label="Tabs" id="analyticsTabs">
+    <nav class="-mb-px flex space-x-6 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]" aria-label="Tabs" id="analyticsTabs">
         <button data-tab="grades" class="tab-btn whitespace-nowrap border-b-2 border-indigo-500 py-4 px-1 text-sm font-bold text-indigo-600">
             📊 Điểm số
         </button>
