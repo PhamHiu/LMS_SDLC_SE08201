@@ -41,22 +41,22 @@
 </div>
 
 {{-- ===== ROW 2: 2 Biểu đồ ===== --}}
-<div class="mt-6 grid gap-6 lg:grid-cols-2">
+<div class="mt-6 w-full grid grid-cols-1 lg:grid-cols-2 gap-6">
     {{-- Line Chart: Trend điểm số --}}
-    <div class="rounded-2xl border border-slate-200 bg-white shadow-sm p-5">
+    <div class="w-full rounded-2xl border border-slate-200 bg-white shadow-sm p-5">
         <h2 class="font-bold text-slate-800 mb-4">📈 Lịch sử điểm số</h2>
-        <div class="relative" style="height: 260px;">
-            <canvas id="scoreTrendChart"></canvas>
+        <div class="relative w-full" style="height:260px">
+            <canvas id="scoreTrendChart" style="width:100%!important"></canvas>
         </div>
     </div>
     {{-- Doughnut: Chuyên cần cá nhân --}}
-    <div class="rounded-2xl border border-slate-200 bg-white shadow-sm p-5">
+    <div class="w-full rounded-2xl border border-slate-200 bg-white shadow-sm p-5">
         <h2 class="font-bold text-slate-800 mb-4">🥧 Chuyên cần cá nhân</h2>
-        <div class="flex items-center gap-6">
-            <div class="relative" style="width: 200px;">
-                <canvas id="attendanceChart"></canvas>
+        <div class="flex flex-col sm:flex-row items-center gap-6">
+            <div class="relative w-full sm:w-48 shrink-0" style="height:200px">
+                <canvas id="attendanceChart" style="width:100%!important"></canvas>
             </div>
-            <div class="flex-1 space-y-3">
+            <div class="flex-1 w-full space-y-3">
                 <div class="flex items-center gap-3 p-3 rounded-xl bg-emerald-50">
                     <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-500 text-white text-sm font-bold">P</span>
                     <div>
@@ -84,7 +84,7 @@
 </div>
 
 {{-- ===== ROW 3: Bài tập sắp hạn + Lịch học ===== --}}
-<div class="mt-6 grid gap-6 lg:grid-cols-2">
+<div class="mt-6 w-full grid grid-cols-1 lg:grid-cols-2 gap-6">
     {{-- Bài tập sắp đến hạn --}}
     <div class="rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div class="flex items-center justify-between border-b border-slate-100 px-5 py-4">
@@ -143,7 +143,7 @@
 </div>
 
 {{-- ===== ROW 4: Tiến trình bài tập + Kết quả & Thông báo ===== --}}
-<div class="mt-6 grid gap-6 lg:grid-cols-2">
+<div class="mt-6 w-full grid grid-cols-1 lg:grid-cols-2 gap-6">
     {{-- Tiến trình hoàn thành bài tập --}}
     <div class="rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div class="border-b border-slate-100 px-5 py-4">

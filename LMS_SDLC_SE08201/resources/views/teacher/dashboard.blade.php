@@ -41,22 +41,22 @@
 </div>
 
 {{-- ===== ROW 2: 2 Biểu đồ ===== --}}
-<div class="mt-6 grid gap-6 lg:grid-cols-2">
+<div class="mt-6 w-full grid grid-cols-1 lg:grid-cols-2 gap-6">
     {{-- Bar Chart: Phân bố điểm --}}
-    <div class="rounded-2xl border border-slate-200 bg-white shadow-sm p-5">
+    <div class="w-full rounded-2xl border border-slate-200 bg-white shadow-sm p-5">
         <h2 class="font-bold text-slate-800 mb-4">📊 Phân bố điểm số</h2>
-        <div class="relative" style="height: 260px;">
-            <canvas id="scoreDistChart"></canvas>
+        <div class="relative w-full" style="height:260px">
+            <canvas id="scoreDistChart" style="width:100%!important"></canvas>
         </div>
     </div>
     {{-- Doughnut: Tỷ lệ nộp bài --}}
-    <div class="rounded-2xl border border-slate-200 bg-white shadow-sm p-5">
+    <div class="w-full rounded-2xl border border-slate-200 bg-white shadow-sm p-5">
         <h2 class="font-bold text-slate-800 mb-4">🍩 Tỷ lệ nộp bài</h2>
-        <div class="flex items-center gap-6">
-            <div class="relative" style="width: 200px;">
-                <canvas id="submissionChart"></canvas>
+        <div class="flex flex-col sm:flex-row items-center gap-6">
+            <div class="relative w-full sm:w-48 shrink-0" style="height:200px">
+                <canvas id="submissionChart" style="width:100%!important"></canvas>
             </div>
-            <div class="flex-1 space-y-3">
+            <div class="flex-1 w-full space-y-3">
                 <div class="p-3 rounded-xl bg-emerald-50">
                     <p class="text-xs text-slate-500">Tỷ lệ nộp bài</p>
                     <p class="text-2xl font-extrabold text-emerald-600">{{ $submission_rate !== null ? $submission_rate.'%' : '—' }}</p>
@@ -71,7 +71,7 @@
 </div>
 
 {{-- ===== ROW 3: Lịch dạy + Tiến độ lớp ===== --}}
-<div class="mt-6 grid gap-6 lg:grid-cols-2">
+<div class="mt-6 w-full grid grid-cols-1 lg:grid-cols-2 gap-6">
     {{-- Lịch dạy tuần này --}}
     <div class="rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div class="border-b border-slate-100 px-5 py-4">
@@ -129,7 +129,7 @@
 </div>
 
 {{-- ===== ROW 4: Thảo luận + Thông báo ===== --}}
-<div class="mt-6 grid gap-6 lg:grid-cols-2">
+<div class="mt-6 w-full grid grid-cols-1 lg:grid-cols-2 gap-6">
     {{-- Thảo luận gần đây --}}
     <div class="rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div class="border-b border-slate-100 px-5 py-4">
