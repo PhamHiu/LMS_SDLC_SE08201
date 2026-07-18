@@ -11,6 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Cột có thể đã được tạo sẵn trong migration create (do nhánh nhắc-hạn đã merge).
+        if (Schema::hasColumn('notifications', 'assignment_id')) {
+            return;
+        }
+
         Schema::table('notifications', function (Blueprint $table) {
             $table->foreignId('assignment_id')
                 ->nullable()
