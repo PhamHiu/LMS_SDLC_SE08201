@@ -5,9 +5,9 @@
 @section('content')
 
 {{-- Thanh bộ lọc mới --}}
-<div class="mb-6 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-all hover:shadow-md">
-    <form method="GET" action="{{ route('student.grades.index') }}" id="grade-filter-form" class="flex flex-wrap gap-4">
-        <div class="flex-1 min-w-[200px]">
+<div class="mb-6 inline-block max-w-full rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-all hover:shadow-md">
+    <form method="GET" action="{{ route('student.grades.index') }}" id="grade-filter-form" class="flex flex-wrap items-center gap-4">
+        <div class="w-full sm:w-64">
             <label class="sr-only">Chọn lớp học</label>
             <select name="class_id" onchange="document.getElementById('grade-filter-form').submit()" class="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
                 <option value="">Tất cả các lớp</option>
@@ -18,7 +18,7 @@
                 @endforeach
             </select>
         </div>
-        <div class="flex-auto min-w-[300px] relative">
+        <div class="w-full sm:w-80 relative">
             <label class="sr-only">Tìm kiếm</label>
             <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                 <svg class="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -27,6 +27,9 @@
             </div>
             <input type="text" name="search" value="{{ $searchQuery ?? '' }}" placeholder="Tìm theo mã môn, tên môn, bài tập..." oninput="debounceSearch()" class="w-full rounded-xl border border-slate-200 pl-10 pr-4 py-2.5 text-sm text-slate-700 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all">
         </div>
+        <a href="{{ route('student.grades.index') }}" class="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-500 transition-all hover:bg-slate-100 hover:text-indigo-600" title="Làm mới">
+            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+        </a>
     </form>
 </div>
 
@@ -108,7 +111,7 @@
         clearTimeout(timeout);
         timeout = setTimeout(() => {
             document.getElementById('grade-filter-form').submit();
-        }, 400);
+        }, 1000);
     }
 </script>
 @endsection

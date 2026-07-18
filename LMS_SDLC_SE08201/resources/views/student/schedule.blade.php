@@ -123,4 +123,17 @@
         </tbody>
     </table>
 </div>
+
+{{-- Các nút xem nhanh --}}
+@php
+    $currentWeekStart = \Illuminate\Support\Carbon::parse($selectedWeekStart);
+    $prevWeekStr = $currentWeekStart->copy()->subWeek()->format('Y-m-d');
+    $nextWeekStr = $currentWeekStart->copy()->addWeek()->format('Y-m-d');
+    $thisWeekStr = \Illuminate\Support\Carbon::now()->startOfWeek()->format('Y-m-d');
+@endphp
+<div class="mt-6 flex flex-wrap items-center justify-center gap-4">
+    <a href="{{ route('student.schedule.index', ['week_start' => $prevWeekStr, 'year' => $selectedYear]) }}" class="rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition-all hover:border-slate-300 hover:bg-slate-50 hover:shadow">⬅ Tuần trước</a>
+    <a href="{{ route('student.schedule.index', ['week_start' => $thisWeekStr, 'year' => \Illuminate\Support\Carbon::now()->year]) }}" class="rounded-xl bg-indigo-600 px-6 py-2.5 text-sm font-bold text-white shadow-sm shadow-indigo-200 transition-all hover:bg-indigo-700 hover:shadow-md">Hiện tại</a>
+    <a href="{{ route('student.schedule.index', ['week_start' => $nextWeekStr, 'year' => $selectedYear]) }}" class="rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition-all hover:border-slate-300 hover:bg-slate-50 hover:shadow">Tuần sau ➡</a>
+</div>
 @endsection
