@@ -24,11 +24,13 @@ class MaterialController extends Controller
     public function index(Request $request): View
     {
         $subjectIds = $this->access->enrolledSubjectIds($request->user());
+        $searchQuery = $request->query('search');
 
         return view('student.materials.index', [
-            'materials' => $this->materialService->listFor($request->user(), $request->query('subject_id')),
+            'materials' => $this->materialService->listFor($request->user(), $request->query('subject_id'), $searchQuery),
             'subjects' => Subject::whereIn('subject_id', $subjectIds)->orderBy('subject_name')->get(),
             'subjectId' => $request->query('subject_id'),
+            'searchQuery' => $searchQuery,
         ]);
     }
 

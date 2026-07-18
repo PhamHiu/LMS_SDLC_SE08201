@@ -14,14 +14,25 @@ class StudentMaterialService
     /**
      * Học liệu các môn thuộc lớp sinh viên đã ghi danh.
      */
-    public function listFor(User $student, ?int $subjectId = null)
+    public function listFor(User $student, ?int $subjectId = null, ?string $search = null)
     {
         $subjectIds = $this->access->enrolledSubjectIds($student);
 
-        return Material::with(['subject', 'uploader'])
+        $query = Material::with(['subject', 'uploader'])
             ->whereIn('subject_id', $subjectIds)
-            ->when($subjectId, fn ($q) => $q->where('subject_id', $subjectId))
-            ->orderByDesc('material_id')
+            ->when($subjectId, fn ($q) => $q->where('subject_id', $subjectId));
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'LIKE', "%{$search}%")
+                  ->orWhereHas('subject', function ($q2) use ($search) {
+                      $q2->where('subject_code', 'LIKE', "%{$search}%")
+                         ->orWhere('subject_name', 'LIKE', "%{$search}%");
+                  });
+            });
+        }
+
+        return $query->orderByDesc('material_id')
             ->paginate(12)
             ->withQueryString();
     }

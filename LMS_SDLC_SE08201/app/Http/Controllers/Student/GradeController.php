@@ -15,6 +15,17 @@ class GradeController extends Controller
 
     public function index(Request $request): View
     {
-        return view('student.grades', $this->gradeService->transcript($request->user()));
+        $user = $request->user();
+        $selectedClassId = $request->filled('class_id') ? (int) $request->query('class_id') : null;
+        $searchQuery = $request->query('search');
+
+        $enrolledClasses = $this->gradeService->enrolledClassesForFilter($user);
+        $transcriptData = $this->gradeService->transcript($user, $selectedClassId, $searchQuery);
+
+        return view('student.grades', array_merge($transcriptData, [
+            'enrolledClasses' => $enrolledClasses,
+            'selectedClassId' => $selectedClassId,
+            'searchQuery' => $searchQuery,
+        ]));
     }
 }
