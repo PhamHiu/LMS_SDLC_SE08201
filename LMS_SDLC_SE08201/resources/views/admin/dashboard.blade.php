@@ -105,54 +105,54 @@
     </div>
 </div>
 
-{{-- ===== LAYOUT 2 CỘT ===== --}}
-<div class="mt-6 grid gap-6 lg:grid-cols-12">
+{{-- ===== LAYOUT: 1 cột trên mobile / 2 cột trên desktop ===== --}}
+<div class="mt-6 w-full grid grid-cols-1 lg:grid-cols-12 gap-6">
     {{-- ===== KHUNG TRÁI (8/12) ===== --}}
     <div class="lg:col-span-8 space-y-6">
 
         {{-- 1. Line Chart: Xu hướng điểm TB --}}
-        <div class="rounded-2xl border border-slate-200 bg-white shadow-sm p-5">
+        <div class="w-full rounded-2xl border border-slate-200 bg-white shadow-sm p-5">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
                 <h2 class="font-bold text-slate-800">📈 Xu hướng điểm trung bình</h2>
             </div>
             <div class="relative w-full" style="height:260px">
-                <canvas id="scoreTrendChart"></canvas>
+                <canvas id="scoreTrendChart" style="width:100%!important"></canvas>
             </div>
         </div>
 
         {{-- 2+3. Hai Doughnut cạnh nhau --}}
-        <div class="grid gap-6 md:grid-cols-2">
+        <div class="w-full grid grid-cols-1 sm:grid-cols-2 gap-6">
             {{-- Doughnut: Phân bố điểm --}}
-            <div class="rounded-2xl border border-slate-200 bg-white shadow-sm p-5">
+            <div class="w-full rounded-2xl border border-slate-200 bg-white shadow-sm p-5">
                 <h2 class="font-bold text-slate-800 mb-4">🍩 Phân bố điểm số</h2>
                 <div class="relative w-full" style="height:240px">
-                    <canvas id="scoreDistChart"></canvas>
+                    <canvas id="scoreDistChart" style="width:100%!important"></canvas>
                 </div>
             </div>
             {{-- Doughnut: SV theo ngành --}}
-            <div class="rounded-2xl border border-slate-200 bg-white shadow-sm p-5">
+            <div class="w-full rounded-2xl border border-slate-200 bg-white shadow-sm p-5">
                 <h2 class="font-bold text-slate-800 mb-4">🍩 Sinh viên theo ngành</h2>
                 <div class="relative w-full" style="height:240px">
-                    <canvas id="studentMajorChart"></canvas>
+                    <canvas id="studentMajorChart" style="width:100%!important"></canvas>
                 </div>
             </div>
         </div>
 
         {{-- 4. Horizontal Bar: Top môn điểm cao --}}
-        <div class="rounded-2xl border border-slate-200 bg-white shadow-sm p-5">
+        <div class="w-full rounded-2xl border border-slate-200 bg-white shadow-sm p-5">
             <h2 class="font-bold text-slate-800 mb-4">📊 Top môn có điểm trung bình cao nhất</h2>
             <div class="relative w-full" style="height:280px">
-                <canvas id="topSubjectsChart"></canvas>
+                <canvas id="topSubjectsChart" style="width:100%!important"></canvas>
             </div>
         </div>
 
         {{-- 5. Pie: Điểm danh --}}
-        <div class="rounded-2xl border border-slate-200 bg-white shadow-sm p-5">
-            <div class="grid gap-6 md:grid-cols-2 items-center">
-                <div>
+        <div class="w-full rounded-2xl border border-slate-200 bg-white shadow-sm p-5">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 items-center">
+                <div class="w-full">
                     <h2 class="font-bold text-slate-800 mb-4">🥧 Tỷ lệ điểm danh</h2>
                     <div class="relative w-full" style="height:200px">
-                        <canvas id="attendanceChart"></canvas>
+                        <canvas id="attendanceChart" style="width:100%!important"></canvas>
                     </div>
                 </div>
                 <div class="space-y-3">
@@ -182,20 +182,20 @@
         </div>
 
         {{-- 6. Bảng lịch học hôm nay --}}
-        <div class="rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div class="w-full rounded-2xl border border-slate-200 bg-white shadow-sm">
             <div class="border-b border-slate-100 px-5 py-4">
                 <h2 class="font-bold text-slate-800">📅 Lịch học hôm nay</h2>
             </div>
-            <div class="overflow-x-auto">
-                <table class="w-full text-sm">
+            <div class="w-full overflow-x-auto">
+                <table class="w-full min-w-full text-sm">
                     <thead class="bg-slate-50 text-slate-500">
                         <tr>
-                            <th class="px-4 py-3 text-left font-semibold">STT</th>
-                            <th class="px-4 py-3 text-left font-semibold">Slot/Ca</th>
-                            <th class="px-4 py-3 text-left font-semibold">Lớp</th>
-                            <th class="px-4 py-3 text-left font-semibold">Môn học</th>
-                            <th class="px-4 py-3 text-left font-semibold">Phòng</th>
-                            <th class="px-4 py-3 text-left font-semibold">Giảng viên</th>
+                            <th class="px-4 py-3 text-left font-semibold whitespace-nowrap">STT</th>
+                            <th class="px-4 py-3 text-left font-semibold whitespace-nowrap">Slot/Ca</th>
+                            <th class="px-4 py-3 text-left font-semibold whitespace-nowrap">Lớp</th>
+                            <th class="px-4 py-3 text-left font-semibold whitespace-nowrap">Môn học</th>
+                            <th class="px-4 py-3 text-left font-semibold whitespace-nowrap">Phòng</th>
+                            <th class="px-4 py-3 text-left font-semibold whitespace-nowrap">Giảng viên</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">
@@ -204,17 +204,17 @@
                                 <td class="px-4 py-3 text-slate-600">{{ $i + 1 }}</td>
                                 <td class="px-4 py-3">
                                     @if ($s->slot)
-                                        <span class="inline-flex items-center rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700">
+                                        <span class="inline-flex items-center rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700 whitespace-nowrap">
                                             {{ $s->slot->label }} ({{ \Carbon\Carbon::parse($s->slot->start_time)->format('H:i') }}–{{ \Carbon\Carbon::parse($s->slot->end_time)->format('H:i') }})
                                         </span>
                                     @else
                                         <span class="text-slate-400">—</span>
                                     @endif
                                 </td>
-                                <td class="px-4 py-3 font-semibold text-slate-700">{{ $s->classRoom?->class_name }}</td>
+                                <td class="px-4 py-3 font-semibold text-slate-700 whitespace-nowrap">{{ $s->classRoom?->class_name }}</td>
                                 <td class="px-4 py-3 text-slate-600">{{ $s->classRoom?->subject?->subject_name }}</td>
-                                <td class="px-4 py-3 text-slate-600">{{ $s->room?->room_name ?? '—' }}</td>
-                                <td class="px-4 py-3 text-slate-600">{{ $s->classRoom?->teacher?->full_name }}</td>
+                                <td class="px-4 py-3 text-slate-600 whitespace-nowrap">{{ $s->room?->room_name ?? '—' }}</td>
+                                <td class="px-4 py-3 text-slate-600 whitespace-nowrap">{{ $s->classRoom?->teacher?->full_name }}</td>
                             </tr>
                         @empty
                             <tr>
