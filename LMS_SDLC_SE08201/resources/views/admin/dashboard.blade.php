@@ -116,7 +116,7 @@
                 <h2 class="font-bold text-slate-800">📈 Xu hướng điểm trung bình</h2>
             </div>
             <div class="relative w-full" style="height:260px">
-                <canvas id="scoreTrendChart" style="width:100%!important"></canvas>
+                <canvas id="scoreTrendChart"></canvas>
             </div>
         </div>
 
@@ -126,14 +126,14 @@
             <div class="w-full rounded-2xl border border-slate-200 bg-white shadow-sm p-5">
                 <h2 class="font-bold text-slate-800 mb-4">🍩 Phân bố điểm số</h2>
                 <div class="relative w-full" style="height:240px">
-                    <canvas id="scoreDistChart" style="width:100%!important"></canvas>
+                    <canvas id="scoreDistChart"></canvas>
                 </div>
             </div>
             {{-- Doughnut: SV theo ngành --}}
             <div class="w-full rounded-2xl border border-slate-200 bg-white shadow-sm p-5">
                 <h2 class="font-bold text-slate-800 mb-4">🍩 Sinh viên theo ngành</h2>
                 <div class="relative w-full" style="height:240px">
-                    <canvas id="studentMajorChart" style="width:100%!important"></canvas>
+                    <canvas id="studentMajorChart"></canvas>
                 </div>
             </div>
         </div>
@@ -142,7 +142,7 @@
         <div class="w-full rounded-2xl border border-slate-200 bg-white shadow-sm p-5">
             <h2 class="font-bold text-slate-800 mb-4">📊 Top môn có điểm trung bình cao nhất</h2>
             <div class="relative w-full" style="height:280px">
-                <canvas id="topSubjectsChart" style="width:100%!important"></canvas>
+                <canvas id="topSubjectsChart"></canvas>
             </div>
         </div>
 
@@ -152,7 +152,7 @@
                 <div class="w-full">
                     <h2 class="font-bold text-slate-800 mb-4">🥧 Tỷ lệ điểm danh</h2>
                     <div class="relative w-full" style="height:200px">
-                        <canvas id="attendanceChart" style="width:100%!important"></canvas>
+                        <canvas id="attendanceChart"></canvas>
                     </div>
                 </div>
                 <div class="space-y-3">

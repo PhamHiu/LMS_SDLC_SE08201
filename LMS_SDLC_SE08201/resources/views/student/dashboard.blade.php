@@ -46,15 +46,16 @@
     <div class="w-full rounded-2xl border border-slate-200 bg-white shadow-sm p-5">
         <h2 class="font-bold text-slate-800 mb-4">📈 Lịch sử điểm số</h2>
         <div class="relative w-full" style="height:260px">
-            <canvas id="scoreTrendChart" style="width:100%!important"></canvas>
+            <canvas id="scoreTrendChart"></canvas>
         </div>
     </div>
     {{-- Doughnut: Chuyên cần cá nhân --}}
     <div class="w-full rounded-2xl border border-slate-200 bg-white shadow-sm p-5">
         <h2 class="font-bold text-slate-800 mb-4">🥧 Chuyên cần cá nhân</h2>
         <div class="flex flex-col sm:flex-row items-center gap-6">
-            <div class="relative w-full sm:w-48 shrink-0" style="height:200px">
-                <canvas id="attendanceChart" style="width:100%!important"></canvas>
+            {{-- Container vuông: giữ tỷ lệ tròn --}}
+            <div class="w-full max-w-[200px] mx-auto sm:mx-0 sm:w-48 shrink-0 aspect-square relative">
+                <canvas id="attendanceChart"></canvas>
             </div>
             <div class="flex-1 w-full space-y-3">
                 <div class="flex items-center gap-3 p-3 rounded-xl bg-emerald-50">
@@ -286,6 +287,7 @@ document.addEventListener('DOMContentLoaded', function() {
         },
         options: {
             responsive: true,
+            maintainAspectRatio: true,
             plugins: {
                 legend: { display: false },
                 tooltip: { backgroundColor: '#1e1b4b', padding: 10, cornerRadius: 8 }
