@@ -14,7 +14,7 @@ class StudentDashboardService
     }
 
     /**
-     * Dashboard sinh viên: bài sắp đến hạn + kết quả học tập + lịch tuần.
+     * Dashboard sinh viên: bài sắp đến hạn + kết quả học tập + lịch tuần + biểu đồ.
      */
     public function getStats(User $student): array
     {
@@ -39,7 +39,7 @@ class StudentDashboardService
             ->get();
 
         // Lịch học tuần này
-        $weekSessions = ClassSession::with('classRoom.subject')
+        $weekSessions = ClassSession::with(['classRoom.subject', 'slot', 'room'])
             ->whereIn('class_id', $classIds)
             ->whereBetween('session_date', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()])
             ->orderBy('session_date')
@@ -49,15 +49,66 @@ class StudentDashboardService
         $attendances = $student->attendances;
         $totalAtt = $attendances->count();
 
+        // ===== Bổ sung dữ liệu mới =====
+
+        // Tiến trình hoàn thành bài tập per class
+        $enrolledClasses = $student->enrolledClasses()->with('subject')->get();
+        $assignmentProgress = [];
+        foreach ($enrolledClasses as $class) {
+            $totalAssign = $class->assignments()->count();
+            $doneAssign  = $student->submissions()
+                ->whereNotNull('submitted_at')
+                ->whereHas('assignment', fn ($q) => $q->where('class_id', $class->class_id))
+                ->count();
+            $assignmentProgress[] = [
+                'class_name' => $class->class_name,
+                'subject_name' => $class->subject?->subject_name,
+                'total'  => $totalAssign,
+                'done'   => $doneAssign,
+                'percent' => $totalAssign > 0 ? round($doneAssign / $totalAssign * 100) : 0,
+            ];
+        }
+
+        // Lịch sử điểm (trend) — điểm theo thời gian
+        $scoreHistory = $student->submissions()
+            ->with('assignment')
+            ->whereNotNull('score')
+            ->whereNotNull('graded_at')
+            ->orderBy('graded_at')
+            ->get()
+            ->map(fn ($s) => [
+                'title' => $s->assignment?->title,
+                'score' => $s->score,
+                'max_score' => $s->assignment?->max_score,
+                'date'  => $s->graded_at?->format('d/m'),
+            ]);
+
+        // Chuyên cần cá nhân: {present, absent, late}
+        $attendanceBreakdown = [
+            'present' => $attendances->where('status', 'P')->count(),
+            'absent'  => $attendances->where('status', 'A')->count(),
+            'late'    => $attendances->where('status', 'L')->count(),
+        ];
+
+        // Số bài tập chưa nộp (dùng cho KPI card)
+        $pendingCount = Assignment::whereIn('class_id', $classIds)
+            ->where('due_date', '>', now())
+            ->whereNotIn('assignment_id', $submittedIds)
+            ->count();
+
         return [
-            'upcomingAssignments' => $upcomingAssignments,
-            'recentGrades' => $recentGrades,
-            'weekSessions' => $weekSessions,
-            'enrolledCount' => $classIds->count(),
-            'avgScore' => round((float) $student->submissions()->whereNotNull('score')->avg('score'), 2),
-            'attendanceRate' => $totalAtt > 0
+            'upcomingAssignments'   => $upcomingAssignments,
+            'recentGrades'          => $recentGrades,
+            'weekSessions'          => $weekSessions,
+            'enrolledCount'         => $classIds->count(),
+            'avgScore'              => round((float) $student->submissions()->whereNotNull('score')->avg('score'), 2),
+            'attendanceRate'        => $totalAtt > 0
                 ? round($attendances->whereIn('status', ['P', 'L'])->count() / $totalAtt * 100)
                 : null,
+            'assignment_progress'   => $assignmentProgress,
+            'score_history'         => $scoreHistory,
+            'attendance_breakdown'  => $attendanceBreakdown,
+            'pending_count'         => $pendingCount,
         ];
     }
 }

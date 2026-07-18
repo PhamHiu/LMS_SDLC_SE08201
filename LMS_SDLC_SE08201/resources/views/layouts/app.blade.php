@@ -4,7 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'LMS') — LMS.edu</title>
+    <script>
+        const _warn = console.warn;
+        console.warn = function(msg) {
+            if(typeof msg === 'string' && msg.includes('cdn.tailwindcss.com should not be used in production')) return;
+            _warn.apply(console, arguments);
+        };
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -13,8 +22,13 @@
         /* Bảo đảm không bao giờ tràn ngang & mọi phần tử co giãn theo màn hình */
         html, body { max-width: 100%; overflow-x: hidden; }
         *, *::before, *::after { box-sizing: border-box; }
-        img, svg, video, canvas, iframe { max-width: 100%; height: auto; }
-        table { width: 100%; }
+        img, svg, video, iframe { max-width: 100%; height: auto; }
+        /* Chart.js controls its internal width/height properly if container is responsive */
+        canvas { display: block; }
+        /* Tables: cuộn ngang trong wrapper, không tràn ra ngoài */
+        .overflow-x-auto { -webkit-overflow-scrolling: touch; }
+        /* Đảm bảo mọi khung chứa biểu đồ không vượt quá container cha */
+        .chart-wrapper { position: relative; width: 100%; }
         /* Chuyển động mượt cho drawer & tương tác */
         #sidebar { will-change: transform; }
         ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -50,6 +64,7 @@
                 <a href="{{ route('admin.subjects.index') }}" class="{{ $item }} {{ request()->routeIs('admin.subjects.*') ? $active : '' }}">📚 <span>Quản lý môn học</span></a>
                 <a href="{{ route('admin.classes.index') }}" class="{{ $item }} {{ request()->routeIs('admin.classes.*') ? $active : '' }}">🏫 <span>Quản lý lớp học</span></a>
                 <a href="{{ route('admin.notifications.index') }}" class="{{ $item }} {{ request()->routeIs('admin.notifications.*') ? $active : '' }}">📢 <span>Thông báo hệ thống</span></a>
+                <a href="{{ route('admin.analytics.index') }}" class="{{ $item }} {{ request()->routeIs('admin.analytics.*') || request()->routeIs('admin.reports.*') ? $active : '' }}">📈 <span>Thống kê & Báo cáo</span></a>
             @elseif ($u->isTeacher())
                 <p class="px-3 pt-1 pb-2 text-[11px] font-bold uppercase tracking-wider text-indigo-400">Giảng viên</p>
                 <a href="{{ route('teacher.dashboard') }}" class="{{ $item }} {{ request()->routeIs('teacher.dashboard') ? $active : '' }}">📊 <span>Dashboard</span></a>
@@ -57,6 +72,7 @@
                 <a href="{{ route('teacher.materials.index') }}" class="{{ $item }} {{ request()->routeIs('teacher.materials.*') ? $active : '' }}">📚 <span>Học liệu</span></a>
                 <a href="{{ route('teacher.assignments.index') }}" class="{{ $item }} {{ request()->routeIs('teacher.assignments.*') || request()->routeIs('teacher.grading.*') ? $active : '' }}">📝 <span>Bài tập & Chấm bài</span></a>
                 <a href="{{ route('teacher.notifications.index') }}" class="{{ $item }} {{ request()->routeIs('teacher.notifications.*') ? $active : '' }}">📢 <span>Thông báo lớp</span></a>
+                <a href="{{ route('teacher.analytics.index') }}" class="{{ $item }} {{ request()->routeIs('teacher.analytics.*') || request()->routeIs('teacher.reports.*') ? $active : '' }}">📈 <span>Thống kê lớp</span></a>
             @else
                 <p class="px-3 pt-1 pb-2 text-[11px] font-bold uppercase tracking-wider text-indigo-400">Sinh viên</p>
                 <a href="{{ route('student.dashboard') }}" class="{{ $item }} {{ request()->routeIs('student.dashboard') ? $active : '' }}">📊 <span>Dashboard</span></a>
@@ -175,5 +191,6 @@
         });
     })();
 </script>
+@stack('scripts')
 </body>
 </html>
