@@ -30,7 +30,9 @@
                     @elseif ($a->isOverdue())
                         <span class="rounded-full bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-500">Đã hết hạn</span>
                     @else
-                        <span class="rounded-full bg-amber-100 px-3 py-1.5 text-xs font-medium text-amber-700">Chưa nộp — {{ $a->due_date->diffForHumans() }}</span>
+                        <span class="text-xs font-medium text-slate-400">Chưa nộp</span>
+                        <span class="deadline-countdown rounded-full bg-amber-100 px-3 py-1.5 text-xs font-medium text-amber-700"
+                              data-deadline="{{ $a->due_date->toIso8601String() }}">{{ $a->due_date->diffForHumans() }}</span>
                     @endif
                 </div>
             </div>
@@ -41,4 +43,6 @@
 </div>
 
 <div class="mt-4">{{ $assignments->links() }}</div>
+
+@include('shared.deadline-countdown')
 @endsection

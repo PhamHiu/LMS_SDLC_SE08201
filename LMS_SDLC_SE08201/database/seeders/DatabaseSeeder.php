@@ -181,6 +181,7 @@ class DatabaseSeeder extends Seeder
                 'description' => 'Bài trắc nghiệm 5 câu, làm 1 lần duy nhất. Hệ thống tự chấm điểm.',
                 'due_date' => Carbon::now()->addDays(5)->setTime(23, 59),
                 'max_score' => 10,
+                'show_answers' => $ci % 2 === 0, // 1 nửa số lớp cho phép xem đáp án để minh hoạ 2 trạng thái
             ]);
             $questions = collect($quizBank)->map(fn ($q) => Question::create([
                 'assignment_id' => $quiz->assignment_id,

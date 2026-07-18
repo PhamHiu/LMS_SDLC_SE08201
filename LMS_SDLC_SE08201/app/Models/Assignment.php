@@ -14,14 +14,21 @@ class Assignment extends Model
     public const TYPE_ESSAY = 'essay';
     public const TYPE_QUIZ = 'quiz';
 
-    protected $fillable = ['class_id', 'title', 'type', 'description', 'due_date', 'max_score'];
+    protected $fillable = ['class_id', 'title', 'type', 'description', 'due_date', 'max_score', 'show_answers'];
 
     protected function casts(): array
     {
         return [
             'due_date' => 'datetime',
             'created_at' => 'datetime',
+            'show_answers' => 'boolean',
         ];
+    }
+
+    /** Giáo viên có cho phép sinh viên xem đáp án sau khi nộp không? */
+    public function allowsAnswerReview(): bool
+    {
+        return $this->isQuiz() && (bool) $this->show_answers;
     }
 
     public function typeLabel(): string

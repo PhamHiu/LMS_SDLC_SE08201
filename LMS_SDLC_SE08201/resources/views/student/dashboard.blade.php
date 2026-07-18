@@ -99,6 +99,8 @@
                         <a href="{{ route('student.assignments.show', $a) }}" class="block truncate text-sm font-semibold text-indigo-600 hover:underline">{{ $a->title }}</a>
                         <p class="text-xs text-slate-400">{{ $a->classRoom?->class_name }} · {{ $a->typeLabel() }}</p>
                     </div>
+                    <span class="deadline-countdown shrink-0 rounded-full px-2.5 py-1 text-xs font-medium bg-amber-100 text-amber-700"
+                          data-deadline="{{ $a->due_date->toIso8601String() }}">
                     @php($hoursLeft = now()->diffInHours($a->due_date, false))
                     <span class="shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold {{ $hoursLeft < 24 ? 'bg-rose-100 text-rose-700 animate-pulse' : ($hoursLeft < 48 ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-600') }}">
                         {{ $a->due_date->diffForHumans() }}
@@ -220,6 +222,8 @@
         </div>
     </div>
 </div>
+
+@include('shared.deadline-countdown')
 @endsection
 
 @push('scripts')
