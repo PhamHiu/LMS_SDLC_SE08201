@@ -22,9 +22,24 @@ class AssignmentController extends Controller
 
     public function index(Request $request): View
     {
+        $user = $request->user();
+        $classIds = $this->access->enrolledClassIds($user);
+        $enrolledClasses = \App\Models\ClassRoom::with('subject')->whereIn('class_id', $classIds)->get();
+        
+        $selectedClassId = $request->filled('class_id') ? (int) $request->query('class_id') : null;
+        $searchQuery = $request->query('search');
+
         return view('student.assignments.index', [
-            'assignments' => $this->submissionService->assignmentsFor($request->user(), $request->query('type')),
+            'assignments' => $this->submissionService->assignmentsFor(
+                $user, 
+                $request->query('type'),
+                $selectedClassId,
+                $searchQuery
+            ),
             'type' => $request->query('type'),
+            'enrolledClasses' => $enrolledClasses,
+            'selectedClassId' => $selectedClassId,
+            'searchQuery' => $searchQuery,
         ]);
     }
 
