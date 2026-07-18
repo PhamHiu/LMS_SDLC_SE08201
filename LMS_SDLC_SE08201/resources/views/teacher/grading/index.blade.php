@@ -58,9 +58,13 @@
                             <input type="text" name="feedback" value="{{ $sub->feedback }}" placeholder="Nhận xét cho sinh viên..."
                                    class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 outline-none">
                         </div>
-                        <div>
-                            <label class="block text-xs font-medium text-slate-500 mb-1">File feedback (tùy chọn)</label>
-                            <input type="file" name="result_file" class="block w-full text-xs text-slate-500 file:mr-2 file:rounded file:border-0 file:bg-slate-100 file:px-2 file:py-1.5 file:text-xs">
+                        <div class="sm:col-span-2">
+                            <label class="block text-xs font-medium text-slate-500 mb-1">File bài chấm (ghi đè bài nộp gốc)</label>
+                            <input type="file" name="submit_file" class="block w-full text-xs text-slate-500 file:mr-2 file:rounded file:border-0 file:bg-slate-100 file:px-2 file:py-1.5 file:text-xs">
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label class="block text-xs font-medium text-slate-500 mb-1">File tài liệu đính kèm (tùy chọn)</label>
+                            <input type="file" name="other_file" class="block w-full text-xs text-slate-500 file:mr-2 file:rounded file:border-0 file:bg-slate-100 file:px-2 file:py-1.5 file:text-xs">
                         </div>
                         <div class="sm:col-span-4">
                             <button class="rounded-lg bg-emerald-600 px-5 py-2 text-sm font-semibold text-white hover:bg-emerald-700">💾 Lưu điểm</button>

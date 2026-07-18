@@ -33,7 +33,7 @@ class GradingService
     /**
      * Chấm điểm bài tự luận: nhập điểm + nhận xét + file feedback (tùy chọn).
      */
-    public function grade(Submission $submission, array $data, ?UploadedFile $resultFile = null): Submission
+    public function grade(Submission $submission, array $data, ?UploadedFile $submitFile = null, ?UploadedFile $otherFile = null): Submission
     {
         $payload = [
             'score' => $data['score'],
@@ -41,8 +41,12 @@ class GradingService
             'graded_at' => now(),
         ];
 
-        if ($resultFile) {
-            $payload['result_file_path'] = $resultFile->store('results', 'public');
+        if ($submitFile) {
+            $payload['submit_file_path'] = $submitFile->store('results', 'public');
+        }
+        
+        if ($otherFile) {
+            $payload['other_file_path'] = $otherFile->store('results/others', 'public');
         }
 
         $submission->update($payload);

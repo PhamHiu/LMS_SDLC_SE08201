@@ -50,7 +50,7 @@ class GradingController extends Controller
     {
         $this->assignmentService->authorizeAssignment($request->user(), $submission->assignment);
 
-        $this->gradingService->grade($submission, $request->validated(), $request->file('result_file'));
+        $this->gradingService->grade($submission, $request->validated(), $request->file('submit_file'), $request->file('other_file'));
 
         return back()->with('success', 'Đã chấm điểm cho '.$submission->student->full_name.'.');
     }
