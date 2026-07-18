@@ -14,14 +14,30 @@ class SubmissionService
     /**
      * Danh sách bài tập của sinh viên kèm trạng thái nộp.
      */
-    public function assignmentsFor(User $student, ?string $type = null)
+    public function assignmentsFor(User $student, ?string $type = null, ?int $classId = null, ?string $search = null)
     {
         $classIds = $student->enrollments()->pluck('class_id');
 
-        return Assignment::with('classRoom.subject')
+        $query = Assignment::with('classRoom.subject')
             ->whereIn('class_id', $classIds)
-            ->when($type, fn ($q) => $q->where('type', $type))
-            ->orderByDesc('due_date')
+            ->when($type, fn ($q) => $q->where('type', $type));
+
+        if ($classId) {
+            $query->where('class_id', $classId);
+        }
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'LIKE', '%' . $search . '%')
+                  ->orWhereHas('classRoom', function ($q2) use ($search) {
+                      $q2->where('class_name', 'LIKE', '%' . $search . '%');
+                  });
+            });
+        }
+
+        return $query
+            ->orderByRaw("CASE WHEN due_date >= NOW() THEN 0 ELSE 1 END")
+            ->orderBy('due_date', 'asc')
             ->paginate(10)
             ->withQueryString()
             ->through(function ($assignment) use ($student) {
