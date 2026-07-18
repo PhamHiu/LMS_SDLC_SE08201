@@ -100,7 +100,7 @@ class AssignmentController extends Controller
     {
         $request->validate([
             'topic' => 'required|string',
-            'quantity' => 'required|integer|min:1|max:10',
+            'quantity' => 'required|integer|min:1|max:50',
             'reference_document' => 'nullable|file|mimes:txt,pdf,docx,doc|max:5120',
         ]);
 

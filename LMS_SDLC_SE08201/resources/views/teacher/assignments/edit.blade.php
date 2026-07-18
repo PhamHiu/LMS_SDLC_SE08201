@@ -140,11 +140,9 @@
 
             <div>
                 <label class="block text-xs font-semibold text-slate-600 mb-1 font-sans">Số lượng câu hỏi</label>
-                <select id="ai-quantity-select" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm bg-white outline-none focus:border-indigo-500 font-sans">
-                    <option value="3">3 câu</option>
-                    <option value="5" selected>5 câu</option>
-                    <option value="10">10 câu</option>
-                </select>
+                <input type="number" id="ai-quantity-select" min="1" max="50" value="5" 
+                       class="w-full rounded-lg border border-slate-300 px-3.5 py-2 text-sm bg-white outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-slate-700 font-sans"
+                       placeholder="Nhập số lượng câu hỏi cần tạo (tối đa 50)...">
             </div>
 
             <div>
@@ -287,7 +285,13 @@
             return;
         }
 
-        const quantity = document.getElementById('ai-quantity-select').value;
+        const quantityInput = document.getElementById('ai-quantity-select');
+        const quantity = parseInt(quantityInput.value, 10);
+        if (isNaN(quantity) || quantity < 1 || quantity > 50) {
+            showToast('Vui lòng nhập số lượng câu hỏi từ 1 đến 50.', 'error');
+            return;
+        }
+
         const btn = document.getElementById('btn-ai-generate-submit');
         const oldText = btn.innerHTML;
         
