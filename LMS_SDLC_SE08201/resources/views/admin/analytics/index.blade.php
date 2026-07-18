@@ -67,17 +67,17 @@
 
 {{-- ===== TABS ===== --}}
 <div class="mb-6 border-b border-slate-200">
-    <nav class="-mb-px flex space-x-6 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]" aria-label="Tabs" id="analyticsTabs">
-        <button data-tab="grades" class="tab-btn whitespace-nowrap border-b-2 border-indigo-500 py-4 px-1 text-sm font-bold text-indigo-600">
+    <nav class="-mb-px flex space-x-2 md:space-x-6 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]" aria-label="Tabs" id="analyticsTabs">
+        <button data-tab="grades" class="tab-btn whitespace-nowrap border-b-2 border-indigo-500 py-3 md:py-4 px-2 text-xs md:text-sm font-bold text-indigo-600 mb-2 md:mb-0">
             📊 Điểm số
         </button>
-        <button data-tab="attendance" class="tab-btn whitespace-nowrap border-b-2 border-transparent py-4 px-1 text-sm font-medium text-slate-500 hover:border-slate-300 hover:text-slate-700">
+        <button data-tab="attendance" class="tab-btn whitespace-nowrap border-b-2 border-transparent py-3 md:py-4 px-2 text-xs md:text-sm font-medium text-slate-500 hover:border-slate-300 hover:text-slate-700 mb-2 md:mb-0">
             📅 Chuyên cần
         </button>
-        <button data-tab="courses" class="tab-btn whitespace-nowrap border-b-2 border-transparent py-4 px-1 text-sm font-medium text-slate-500 hover:border-slate-300 hover:text-slate-700">
+        <button data-tab="courses" class="tab-btn whitespace-nowrap border-b-2 border-transparent py-3 md:py-4 px-2 text-xs md:text-sm font-medium text-slate-500 hover:border-slate-300 hover:text-slate-700 mb-2 md:mb-0">
             🏫 Khóa học
         </button>
-        <button data-tab="users" class="tab-btn whitespace-nowrap border-b-2 border-transparent py-4 px-1 text-sm font-medium text-slate-500 hover:border-slate-300 hover:text-slate-700">
+        <button data-tab="users" class="tab-btn whitespace-nowrap border-b-2 border-transparent py-3 md:py-4 px-2 text-xs md:text-sm font-medium text-slate-500 hover:border-slate-300 hover:text-slate-700 mb-2 md:mb-0">
             👥 Người dùng
         </button>
     </nav>

@@ -1,18 +1,18 @@
 <div class="space-y-6">
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div class="bg-indigo-50 border border-indigo-100 p-4 rounded-2xl">
+    <div class="flex flex-nowrap overflow-x-auto gap-4 pb-3 mb-3 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+        <div class="flex-none w-[220px] md:w-auto md:flex-1 bg-indigo-50 border border-indigo-100  p-4 rounded-2xl">
             <p class="text-sm text-indigo-600 font-medium">Chuyên cần trung bình</p>
             <p class="text-2xl font-bold text-indigo-900 mt-1" id="t-att-rate">--</p>
         </div>
-        <div class="bg-emerald-50 border border-emerald-100 p-4 rounded-2xl">
+        <div class="flex-none w-[220px] md:w-auto md:flex-1 bg-emerald-50 border border-emerald-100  p-4 rounded-2xl">
             <p class="text-sm text-emerald-600 font-medium">Lượt Có mặt</p>
             <p class="text-2xl font-bold text-emerald-900 mt-1" id="t-att-p">--</p>
         </div>
-        <div class="bg-rose-50 border border-rose-100 p-4 rounded-2xl">
+        <div class="flex-none w-[220px] md:w-auto md:flex-1 bg-rose-50 border border-rose-100  p-4 rounded-2xl">
             <p class="text-sm text-rose-600 font-medium">Lượt Vắng</p>
             <p class="text-2xl font-bold text-rose-900 mt-1" id="t-att-a">--</p>
         </div>
-        <div class="bg-amber-50 border border-amber-100 p-4 rounded-2xl">
+        <div class="flex-none w-[220px] md:w-auto md:flex-1 bg-amber-50 border border-amber-100  p-4 rounded-2xl">
             <p class="text-sm text-amber-600 font-medium">Lượt Muộn</p>
             <p class="text-2xl font-bold text-amber-900 mt-1" id="t-att-l">--</p>
         </div>
@@ -64,3 +64,4 @@
         </a>
     </div>
 </div>
+
