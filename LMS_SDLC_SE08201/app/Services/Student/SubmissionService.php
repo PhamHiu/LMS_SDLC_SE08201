@@ -75,13 +75,13 @@ class SubmissionService
         abort_if($assignment->isOverdue(), 422, 'Đã quá hạn nộp bài.');
 
         $existing = $this->submissionOf($student, $assignment);
-        abort_if($existing && $existing->isGraded(), 422, 'Bài đã được chấm, không thể nộp lại.');
+        abort_if($existing && $existing->student_submit, 422, 'Bạn đã nộp bài rồi, không thể nộp lại.');
 
         $path = $file->store('submissions', 'public');
 
         return Submission::updateOrCreate(
             ['user_id' => $student->user_id, 'assignment_id' => $assignment->assignment_id],
-            ['submit_file_path' => $path, 'submitted_at' => now()],
+            ['student_submit' => $path, 'submitted_at' => now()],
         );
     }
 

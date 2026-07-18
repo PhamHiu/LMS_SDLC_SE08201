@@ -14,7 +14,7 @@ class EssaySubmissionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'file' => ['required', 'file', 'mimes:pdf,doc,docx,zip,rar', 'max:20480'], // 20MB
+            'file' => ['required', 'file', 'mimes:pdf', 'max:5120'], // 5MB
         ];
     }
 
@@ -22,8 +22,8 @@ class EssaySubmissionRequest extends FormRequest
     {
         return [
             'file.required' => 'Vui lòng chọn file bài làm.',
-            'file.mimes' => 'Định dạng cho phép: PDF, Word, ZIP, RAR.',
-            'file.max' => 'Dung lượng file tối đa 20MB.',
+            'file.mimes' => 'Định dạng cho phép: PDF.',
+            'file.max' => 'Dung lượng file tối đa 5MB.',
         ];
     }
 }
