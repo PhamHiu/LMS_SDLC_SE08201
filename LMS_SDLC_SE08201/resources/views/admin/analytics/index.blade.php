@@ -291,6 +291,36 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         });
+            }
+        });
+
+        // Bảng Preview (Điểm số)
+        const tbody = document.getElementById('gr-preview-tbody');
+        if (tbody) {
+            tbody.innerHTML = '';
+            document.getElementById('gr-preview-count').innerText = `${data.data.length} bản ghi`;
+            data.data.forEach(s => {
+                const tr = document.createElement('tr');
+                tr.classList.add('hover:bg-slate-50', 'transition');
+                
+                const studentName = s.student ? s.student.full_name : 'N/A';
+                const assignTitle = s.assignment ? s.assignment.title : 'N/A';
+                const subjectName = s.assignment?.class_room?.subject ? s.assignment.class_room.subject.subject_name : 'N/A';
+                const className = s.assignment?.class_room ? s.assignment.class_room.class_name : 'N/A';
+                const score = s.score !== null ? s.score : '--';
+                const date = new Date(s.graded_at).toLocaleDateString('vi-VN');
+
+                tr.innerHTML = `
+                    <td class="px-4 py-3 font-medium text-slate-700">${studentName}</td>
+                    <td class="px-4 py-3">${assignTitle}</td>
+                    <td class="px-4 py-3">${subjectName}</td>
+                    <td class="px-4 py-3">${className}</td>
+                    <td class="px-4 py-3 text-center font-bold ${score >= 5 ? 'text-emerald-600' : 'text-rose-600'}">${score}</td>
+                    <td class="px-4 py-3 text-xs">${date}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
     }
 
     function renderAttendance(data) {
@@ -338,6 +368,40 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         });
+            }
+        });
+
+        // Bảng Preview (Chuyên cần)
+        const tbody = document.getElementById('att-preview-tbody');
+        if (tbody) {
+            tbody.innerHTML = '';
+            document.getElementById('att-preview-count').innerText = `${data.data.length} bản ghi`;
+            data.data.forEach(a => {
+                const tr = document.createElement('tr');
+                tr.classList.add('hover:bg-slate-50', 'transition');
+                
+                const studentName = a.student ? a.student.full_name : 'N/A';
+                const subjectName = a.session?.class_room?.subject ? a.session.class_room.subject.subject_name : 'N/A';
+                const className = a.session?.class_room ? a.session.class_room.class_name : 'N/A';
+                
+                let statusHtml = '';
+                if (a.status === 'present') statusHtml = '<span class="px-2.5 py-1 bg-emerald-100 text-emerald-700 rounded-lg text-xs font-bold">Có mặt</span>';
+                else if (a.status === 'absent') statusHtml = '<span class="px-2.5 py-1 bg-rose-100 text-rose-700 rounded-lg text-xs font-bold">Vắng</span>';
+                else if (a.status === 'late') statusHtml = '<span class="px-2.5 py-1 bg-amber-100 text-amber-700 rounded-lg text-xs font-bold">Muộn</span>';
+                else statusHtml = '<span class="px-2.5 py-1 bg-slate-100 text-slate-700 rounded-lg text-xs font-bold">--</span>';
+
+                const date = new Date(a.attendance_time).toLocaleDateString('vi-VN');
+
+                tr.innerHTML = `
+                    <td class="px-4 py-3 font-medium text-slate-700">${studentName}</td>
+                    <td class="px-4 py-3">${subjectName}</td>
+                    <td class="px-4 py-3">${className}</td>
+                    <td class="px-4 py-3 text-center">${statusHtml}</td>
+                    <td class="px-4 py-3 text-xs">${date}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
     }
 
     function renderCourses(data) {
@@ -364,6 +428,40 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         });
+            }
+        });
+
+        // Bảng Preview (Khóa học)
+        const tbody = document.getElementById('crs-preview-tbody');
+        if (tbody) {
+            tbody.innerHTML = '';
+            document.getElementById('crs-preview-count').innerText = `${data.data.length} bản ghi`;
+            data.data.forEach(c => {
+                const tr = document.createElement('tr');
+                tr.classList.add('hover:bg-slate-50', 'transition');
+                
+                const subjectName = c.subject ? c.subject.subject_name : 'N/A';
+                const majorName = c.major ? c.major.major_name : 'N/A';
+                
+                let statusHtml = '';
+                if (c.status === 'active') statusHtml = '<span class="px-2.5 py-1 bg-emerald-100 text-emerald-700 rounded-lg text-xs font-bold">Đang học</span>';
+                else if (c.status === 'pending') statusHtml = '<span class="px-2.5 py-1 bg-amber-100 text-amber-700 rounded-lg text-xs font-bold">Chờ mở</span>';
+                else if (c.status === 'closed') statusHtml = '<span class="px-2.5 py-1 bg-rose-100 text-rose-700 rounded-lg text-xs font-bold">Đã đóng</span>';
+                else statusHtml = '<span class="px-2.5 py-1 bg-slate-100 text-slate-700 rounded-lg text-xs font-bold">--</span>';
+
+                const date = new Date(c.created_at).toLocaleDateString('vi-VN');
+
+                tr.innerHTML = `
+                    <td class="px-4 py-3 font-medium text-indigo-600">#${c.class_id}</td>
+                    <td class="px-4 py-3 font-medium text-slate-700">${c.class_name}</td>
+                    <td class="px-4 py-3">${subjectName}</td>
+                    <td class="px-4 py-3">${majorName}</td>
+                    <td class="px-4 py-3 text-center">${statusHtml}</td>
+                    <td class="px-4 py-3 text-xs">${date}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
     }
 
     function renderUsers(data) {
@@ -409,6 +507,38 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         });
+            }
+        });
+
+        // Bảng Preview (Người dùng)
+        const tbody = document.getElementById('usr-preview-tbody');
+        if (tbody) {
+            tbody.innerHTML = '';
+            document.getElementById('usr-preview-count').innerText = `${data.data.length} bản ghi`;
+            data.data.forEach(u => {
+                const tr = document.createElement('tr');
+                tr.classList.add('hover:bg-slate-50', 'transition');
+                
+                const majorName = u.major ? u.major.major_name : 'N/A';
+                
+                let roleHtml = '';
+                if (u.role === 'student') roleHtml = '<span class="px-2.5 py-1 bg-indigo-100 text-indigo-700 rounded-lg text-xs font-bold">Sinh viên</span>';
+                else if (u.role === 'teacher') roleHtml = '<span class="px-2.5 py-1 bg-emerald-100 text-emerald-700 rounded-lg text-xs font-bold">Giảng viên</span>';
+                else if (u.role === 'admin') roleHtml = '<span class="px-2.5 py-1 bg-rose-100 text-rose-700 rounded-lg text-xs font-bold">Admin</span>';
+                else roleHtml = '<span class="px-2.5 py-1 bg-slate-100 text-slate-700 rounded-lg text-xs font-bold">--</span>';
+
+                const date = new Date(u.created_at).toLocaleDateString('vi-VN');
+
+                tr.innerHTML = `
+                    <td class="px-4 py-3 font-medium text-slate-700">${u.full_name}</td>
+                    <td class="px-4 py-3 text-slate-500">${u.email}</td>
+                    <td class="px-4 py-3 text-center">${roleHtml}</td>
+                    <td class="px-4 py-3">${majorName}</td>
+                    <td class="px-4 py-3 text-xs">${date}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
     }
 
     // Load data lần đầu

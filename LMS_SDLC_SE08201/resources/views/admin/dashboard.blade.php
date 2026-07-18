@@ -131,7 +131,7 @@
             </div>
             {{-- Doughnut: SV theo ngành --}}
             <div class="w-full rounded-2xl border border-slate-200 bg-white shadow-sm p-5">
-                <h2 class="font-bold text-slate-800 mb-4">🍩 Sinh viên theo ngành</h2>
+                <h2 class="font-bold text-slate-800 mb-4">🍩 Sô lượng Sinh viên </h2>
                 <div class="relative w-full" style="height:240px">
                     <canvas id="studentMajorChart"></canvas>
                 </div>
