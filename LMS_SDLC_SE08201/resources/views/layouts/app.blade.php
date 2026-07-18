@@ -22,8 +22,9 @@
         /* Bảo đảm không bao giờ tràn ngang & mọi phần tử co giãn theo màn hình */
         html, body { max-width: 100%; overflow-x: hidden; }
         *, *::before, *::after { box-sizing: border-box; }
-        img, svg, video, canvas, iframe { max-width: 100%; height: auto; }
-        table { width: 100%; }
+        img, svg, video, iframe { max-width: 100%; height: auto; }
+        canvas { display: block; }
+        .overflow-x-auto table { width: max-content; min-width: 100%; }
         /* Chuyển động mượt cho drawer & tương tác */
         #sidebar { will-change: transform; }
         ::-webkit-scrollbar { width: 6px; height: 6px; }

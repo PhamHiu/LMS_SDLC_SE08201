@@ -3,29 +3,57 @@
 @section('title', 'Dashboard quản trị')
 
 @section('content')
-<div class="mb-6 flex flex-col xl:flex-row xl:items-center justify-between gap-4">
-    <div>
-        <h1 class="text-2xl font-bold text-slate-800">Dashboard</h1>
-        <p class="text-sm text-slate-500 mt-1">Tổng quan hoạt động hệ thống</p>
+{{-- Global Filter: desktop ngang, mobile dọc --}}
+<div id="filterBarWrapper" class="mb-6">
+    <div class="flex items-center justify-between mb-3">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-800">Dashboard</h1>
+            <p class="text-sm text-slate-500 mt-1">Tổng quan hoạt động hệ thống</p>
+        </div>
+        {{-- Nút toggle bộ lọc: chỉ hiện trên mobile --}}
+        <button id="mobileFilterToggleBtn" type="button"
+            class="flex xl:hidden items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-600 shadow-sm hover:bg-slate-50 transition">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+            </svg>
+            Bộ lọc
+        </button>
     </div>
-    {{-- Global Filter Form --}}
-    <form id="globalDashboardFilterForm" class="flex flex-wrap items-center gap-2 text-sm bg-white p-2 rounded-xl shadow-sm border border-slate-200">
-        <input type="date" name="date_from" class="rounded-lg border-slate-200 focus:border-indigo-500 focus:ring-indigo-500 py-1.5 px-2" title="Từ ngày">
-        <span class="text-slate-400">-</span>
-        <input type="date" name="date_to" class="rounded-lg border-slate-200 focus:border-indigo-500 focus:ring-indigo-500 py-1.5 px-2" title="Đến ngày">
-        <select name="major_id" class="rounded-lg border-slate-200 focus:border-indigo-500 focus:ring-indigo-500 py-1.5 px-2 max-w-[150px]">
-            <option value="">Tất cả ngành</option>
-            @foreach ($majors as $m)
-                <option value="{{ $m->major_id }}">{{ $m->major_name }}</option>
-            @endforeach
-        </select>
-        <select name="subject_id" class="rounded-lg border-slate-200 focus:border-indigo-500 focus:ring-indigo-500 py-1.5 px-2 max-w-[150px]">
-            <option value="">Tất cả môn</option>
-            @foreach ($subjects as $s)
-                <option value="{{ $s->subject_id }}">{{ $s->subject_name }}</option>
-            @endforeach
-        </select>
-    </form>
+
+    <div id="filterContainer" class="hidden xl:block">
+        <form id="globalDashboardFilterForm"
+            class="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2 bg-white p-3 rounded-2xl shadow-sm border border-slate-200 w-full text-sm">
+            <input type="date" name="date_from"
+                class="w-full sm:w-auto min-w-0 rounded-xl border-slate-200 focus:border-indigo-500 focus:ring-indigo-500 py-2 px-3 text-slate-600"
+                title="Từ ngày">
+            <span class="hidden sm:inline text-slate-400">-</span>
+            <input type="date" name="date_to"
+                class="w-full sm:w-auto min-w-0 rounded-xl border-slate-200 focus:border-indigo-500 focus:ring-indigo-500 py-2 px-3 text-slate-600"
+                title="Đến ngày">
+            <select name="major_id"
+                class="w-full sm:w-auto min-w-0 rounded-xl border-slate-200 focus:border-indigo-500 focus:ring-indigo-500 py-2 px-3 text-slate-600">
+                <option value="">Tất cả ngành</option>
+                @foreach ($majors as $m)
+                    <option value="{{ $m->major_id }}">{{ $m->major_name }}</option>
+                @endforeach
+            </select>
+            <select name="subject_id"
+                class="w-full sm:w-auto min-w-0 rounded-xl border-slate-200 focus:border-indigo-500 focus:ring-indigo-500 py-2 px-3 text-slate-600">
+                <option value="">Tất cả môn</option>
+                @foreach ($subjects as $s)
+                    <option value="{{ $s->subject_id }}">{{ $s->subject_name }}</option>
+                @endforeach
+            </select>
+            <div class="flex-1 hidden sm:block"></div>
+            <button type="reset" id="resetDashboardFilterBtn"
+                class="flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 px-4 py-2 text-slate-600 font-medium transition w-full sm:w-auto">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                Làm mới
+            </button>
+        </form>
+    </div>
 </div>
 
 {{-- ===== KPI CARDS (5 cards hàng ngang) ===== --}}
@@ -87,7 +115,7 @@
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
                 <h2 class="font-bold text-slate-800">📈 Xu hướng điểm trung bình</h2>
             </div>
-            <div class="relative" style="height: 280px;">
+            <div class="relative w-full" style="height:260px">
                 <canvas id="scoreTrendChart"></canvas>
             </div>
         </div>
@@ -97,14 +125,14 @@
             {{-- Doughnut: Phân bố điểm --}}
             <div class="rounded-2xl border border-slate-200 bg-white shadow-sm p-5">
                 <h2 class="font-bold text-slate-800 mb-4">🍩 Phân bố điểm số</h2>
-                <div class="relative w-full" style="height: 250px;">
+                <div class="relative w-full" style="height:240px">
                     <canvas id="scoreDistChart"></canvas>
                 </div>
             </div>
             {{-- Doughnut: SV theo ngành --}}
             <div class="rounded-2xl border border-slate-200 bg-white shadow-sm p-5">
                 <h2 class="font-bold text-slate-800 mb-4">🍩 Sinh viên theo ngành</h2>
-                <div class="relative w-full" style="height: 250px;">
+                <div class="relative w-full" style="height:240px">
                     <canvas id="studentMajorChart"></canvas>
                 </div>
             </div>
@@ -113,7 +141,7 @@
         {{-- 4. Horizontal Bar: Top môn điểm cao --}}
         <div class="rounded-2xl border border-slate-200 bg-white shadow-sm p-5">
             <h2 class="font-bold text-slate-800 mb-4">📊 Top môn có điểm trung bình cao nhất</h2>
-            <div class="relative" style="height: 300px;">
+            <div class="relative w-full" style="height:280px">
                 <canvas id="topSubjectsChart"></canvas>
             </div>
         </div>
@@ -123,7 +151,7 @@
             <div class="grid gap-6 md:grid-cols-2 items-center">
                 <div>
                     <h2 class="font-bold text-slate-800 mb-4">🥧 Tỷ lệ điểm danh</h2>
-                    <div class="relative w-full" style="height: 220px;">
+                    <div class="relative w-full" style="height:200px">
                         <canvas id="attendanceChart"></canvas>
                     </div>
                 </div>
@@ -339,17 +367,18 @@ document.addEventListener('DOMContentLoaded', function() {
     const dashboardForm = document.getElementById('globalDashboardFilterForm');
 
     // === Khởi tạo 4 biểu đồ rỗng (trend đã có ở trên) ===
+    const legendPos = window.innerWidth < 1024 ? 'bottom' : 'right';
     const scoreDistChart = new Chart(document.getElementById('scoreDistChart'), {
         type: 'doughnut',
         data: { labels: [], datasets: [{ data: [], backgroundColor: ['#ef4444', '#f97316', '#eab308', '#22c55e', '#6366f1'], borderWidth: 2, borderColor: '#fff' }] },
-        options: { responsive: true, maintainAspectRatio: false, layout: { padding: 10 }, plugins: { legend: { position: 'right', labels: { padding: 10, usePointStyle: true, pointStyle: 'circle', font: { size: 10 } } }, tooltip: { backgroundColor: '#1e1b4b', padding: 10, cornerRadius: 8 }, datalabels: pieDatalabelsConfig }, cutout: '50%' }
+        options: { responsive: true, maintainAspectRatio: false, layout: { padding: 10 }, plugins: { legend: { position: legendPos, labels: { padding: 10, usePointStyle: true, pointStyle: 'circle', font: { size: 10 } } }, tooltip: { backgroundColor: '#1e1b4b', padding: 10, cornerRadius: 8 }, datalabels: pieDatalabelsConfig }, cutout: '50%' }
     });
 
     const majorColors = ['#6366f1', '#06b6d4', '#8b5cf6', '#ec4899', '#f97316', '#14b8a6', '#ef4444', '#84cc16'];
     const studentMajorChart = new Chart(document.getElementById('studentMajorChart'), {
         type: 'doughnut',
         data: { labels: [], datasets: [{ data: [], backgroundColor: majorColors, borderWidth: 2, borderColor: '#fff' }] },
-        options: { responsive: true, maintainAspectRatio: false, layout: { padding: 10 }, plugins: { legend: { position: 'right', labels: { padding: 10, usePointStyle: true, pointStyle: 'circle', font: { size: 10 } } }, tooltip: { backgroundColor: '#1e1b4b', padding: 10, cornerRadius: 8 }, datalabels: pieDatalabelsConfig }, cutout: '50%' }
+        options: { responsive: true, maintainAspectRatio: false, layout: { padding: 10 }, plugins: { legend: { position: legendPos, labels: { padding: 10, usePointStyle: true, pointStyle: 'circle', font: { size: 10 } } }, tooltip: { backgroundColor: '#1e1b4b', padding: 10, cornerRadius: 8 }, datalabels: pieDatalabelsConfig }, cutout: '50%' }
     });
 
     const topSubjectsChart = new Chart(document.getElementById('topSubjectsChart'), {
@@ -361,7 +390,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const attendanceChart = new Chart(document.getElementById('attendanceChart'), {
         type: 'pie',
         data: { labels: ['Có mặt (P)', 'Vắng (A)', 'Muộn (L)'], datasets: [{ data: [0, 0, 0], backgroundColor: ['#10b981', '#ef4444', '#f59e0b'], borderWidth: 2, borderColor: '#fff' }] },
-        options: { responsive: true, maintainAspectRatio: false, layout: { padding: 10 }, plugins: { legend: { position: 'right', labels: { padding: 10, usePointStyle: true, pointStyle: 'circle', font: { size: 10 } } }, tooltip: { backgroundColor: '#1e1b4b', padding: 10, cornerRadius: 8 }, datalabels: pieDatalabelsConfig } }
+        options: { responsive: true, maintainAspectRatio: false, layout: { padding: 10 }, plugins: { legend: { position: legendPos, labels: { padding: 10, usePointStyle: true, pointStyle: 'circle', font: { size: 10 } } }, tooltip: { backgroundColor: '#1e1b4b', padding: 10, cornerRadius: 8 }, datalabels: pieDatalabelsConfig } }
     });
 
     function loadDashboardCharts() {
@@ -428,6 +457,26 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if(dashboardMajorSelect) {
         dashboardMajorSelect.addEventListener('change', fetchDashboardFilterOptions);
+    }
+
+    // Mobile filter toggle
+    const mobileFilterToggleBtn = document.getElementById('mobileFilterToggleBtn');
+    const filterContainer = document.getElementById('filterContainer');
+    if(mobileFilterToggleBtn && filterContainer) {
+        mobileFilterToggleBtn.addEventListener('click', () => {
+            filterContainer.classList.toggle('hidden');
+        });
+    }
+
+    // Reset bộ lọc
+    const resetDashboardFilterBtn = document.getElementById('resetDashboardFilterBtn');
+    if(resetDashboardFilterBtn && dashboardSubjectSelect) {
+        resetDashboardFilterBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            dashboardForm.reset();
+            dashboardSubjectSelect.innerHTML = '<option value="">Tất cả môn</option>';
+            loadDashboardCharts();
+        });
     }
 });
 </script>
