@@ -16,6 +16,14 @@
     @if ($assignment->description)
         <div class="mt-4 whitespace-pre-line rounded-xl bg-slate-50 p-4 text-sm text-slate-600">{{ $assignment->description }}</div>
     @endif
+    @if ($assignment->attachment_path)
+        <div class="mt-4">
+            <a href="{{ asset('storage/'.$assignment->attachment_path) }}" target="_blank" class="inline-flex items-center gap-2 rounded-lg bg-indigo-50 px-4 py-2 text-sm font-semibold text-indigo-700 hover:bg-indigo-100 transition-colors">
+                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                Tải tài liệu đính kèm
+            </a>
+        </div>
+    @endif
 </div>
 
 <div class="mt-6 grid gap-6 lg:grid-cols-2">
@@ -74,62 +82,78 @@
             @endif
         @else
             {{-- TỰ LUẬN --}}
-            @if ($submission && $submission->isGraded())
-                <div class="rounded-2xl border border-emerald-200 bg-emerald-50/50 p-6 shadow-sm">
-                    <h3 class="font-bold text-emerald-800">✅ Đã chấm điểm</h3>
-                    <p class="mt-2 text-3xl font-extrabold text-emerald-700">{{ $submission->score }}<span class="text-lg font-semibold text-emerald-500">/{{ $assignment->max_score }}</span></p>
-
-                    {{-- File bài làm đã nộp --}}
-                    @if ($submission->submit_file_path)
-                        <a href="{{ asset('storage/'.$submission->submit_file_path) }}" target="_blank"
-                           class="mt-3 inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-600 hover:border-indigo-300 hover:text-indigo-700">
-                            📄 Xem file bài làm đã nộp
-                        </a>
-                    @endif
-
-                    {{-- File nhận xét/kết quả do giảng viên đính kèm --}}
-                    @if ($submission->result_file_path)
-                        <a href="{{ asset('storage/'.$submission->result_file_path) }}" target="_blank"
-                           class="mt-2 inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-medium text-emerald-700 hover:border-emerald-400">
-                            📎 File nhận xét của giảng viên
-                        </a>
-                    @endif
-
-                    @if ($submission->feedback)
-                        <div class="mt-3 rounded-lg bg-white p-3 text-sm text-slate-600">
-                            <p class="text-xs font-bold uppercase text-slate-400">Nhận xét của giảng viên</p>
-                            <p class="mt-1 whitespace-pre-line">{{ $submission->feedback }}</p>
+            {{-- 1. Khu vực nộp bài --}}
+            <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                <h3 class="font-bold text-slate-800">⬆️ Nộp bài làm</h3>
+                @if (! $submission || ! $submission->student_submit)
+                    @if (! $assignment->isOverdue())
+                        <form method="POST" action="{{ route('student.assignments.essay.submit', $assignment) }}" enctype="multipart/form-data" class="mt-4 space-y-4">
+                            @csrf
+                            <input type="file" name="file" accept=".pdf" required
+                                   class="block w-full text-sm text-slate-500 file:mr-3 file:rounded-lg file:border-0 file:bg-indigo-50 file:px-4 file:py-2.5 file:text-sm file:font-semibold file:text-indigo-700">
+                            <p class="text-xs text-slate-400">Định dạng: PDF · Tối đa 5MB</p>
+                            <button class="w-full rounded-lg bg-indigo-600 py-3 text-sm font-bold text-white hover:bg-indigo-700 transition-colors">Nộp bài</button>
+                        </form>
+                    @else
+                        <div class="mt-4 rounded-xl border border-rose-100 bg-rose-50 p-4 text-center">
+                            <p class="text-sm font-medium text-rose-600">⌛ Đã quá hạn nộp bài.</p>
                         </div>
                     @endif
-                    <p class="mt-2 text-xs text-emerald-600">Chấm lúc {{ $submission->graded_at?->format('H:i d/m/Y') }}</p>
-                </div>
-            @elseif ($submission && $submission->submitted_at)
-                <div class="rounded-2xl border border-sky-200 bg-sky-50/50 p-6 shadow-sm">
-                    <h3 class="font-bold text-sky-800">📥 Đã nộp bài — chờ giảng viên chấm</h3>
-                    <p class="mt-1 text-sm text-sky-600">Nộp lúc {{ $submission->submitted_at->format('H:i d/m/Y') }}</p>
-                    @if ($submission->submit_file_path)
-                        <a href="{{ asset('storage/'.$submission->submit_file_path) }}" target="_blank"
-                           class="mt-3 inline-flex items-center gap-2 rounded-lg border border-sky-200 bg-white px-3 py-2 text-sm font-medium text-sky-700 hover:border-sky-400">
-                            📄 Xem file bài làm đã nộp
+                @else
+                    <div class="mt-4 rounded-xl border border-emerald-200 bg-emerald-50/50 p-5">
+                        <div class="flex items-center gap-3">
+                            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600">
+                                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            </div>
+                            <div>
+                                <p class="text-sm font-bold text-emerald-800">Đã nộp bài thành công</p>
+                                <p class="text-xs text-emerald-600 mt-0.5">Nộp lúc {{ $submission->submitted_at?->format('H:i d/m/Y') }}</p>
+                            </div>
+                        </div>
+                        <a href="{{ asset('storage/'.$submission->student_submit) }}" target="_blank" class="mt-3 flex items-center justify-center gap-2 rounded-lg border border-emerald-200 bg-white px-4 py-2 text-sm font-semibold text-emerald-700 hover:bg-emerald-50 transition-colors">
+                            📄 Xem lại file đã nộp
                         </a>
-                    @endif
-                </div>
-            @endif
+                    </div>
+                @endif
+            </div>
 
-            @if (! $assignment->isOverdue() && (! $submission || ! $submission->isGraded()))
-                <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                    <h3 class="font-bold text-slate-800">{{ $submission ? '🔄 Nộp lại bài (ghi đè bài cũ)' : '⬆️ Nộp bài làm' }}</h3>
-                    <form method="POST" action="{{ route('student.assignments.essay.submit', $assignment) }}" enctype="multipart/form-data" class="mt-4 space-y-4">
-                        @csrf
-                        <input type="file" name="file" required
-                               class="block w-full text-sm text-slate-500 file:mr-3 file:rounded-lg file:border-0 file:bg-indigo-50 file:px-4 file:py-2.5 file:text-sm file:font-semibold file:text-indigo-700">
-                        <p class="text-xs text-slate-400">Định dạng: PDF, Word, ZIP, RAR · Tối đa 20MB</p>
-                        <button class="w-full rounded-lg bg-indigo-600 py-3 text-sm font-bold text-white hover:bg-indigo-700">Nộp bài</button>
-                    </form>
-                </div>
-            @elseif ($assignment->isOverdue() && ! $submission)
-                <div class="rounded-2xl border border-slate-200 bg-white p-6 text-center shadow-sm">
-                    <p class="text-slate-500">⌛ Đã quá hạn nộp bài.</p>
+            {{-- 2. Khung Feedback --}}
+            @if ($submission && $submission->student_submit)
+                <div class="feedback-box rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                    <h3 class="font-bold text-slate-800 mb-4">📋 Kết quả chấm điểm</h3>
+                    
+                    @if (! $submission->isGraded())
+                        <div class="rounded-xl bg-amber-50 p-4 text-center border border-amber-100">
+                            <p class="text-sm font-medium text-amber-700">⏳ Vui lòng chờ kết quả</p>
+                        </div>
+                    @else
+                        <div class="space-y-4">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="rounded-xl bg-slate-50 p-4 border border-slate-100">
+                                    <p class="text-xs text-slate-500 font-medium">Điểm số</p>
+                                    <p class="mt-1 text-2xl font-extrabold text-indigo-600">{{ $submission->score }}<span class="text-sm text-slate-400 font-semibold">/{{ $assignment->max_score }}</span></p>
+                                </div>
+                                <div class="rounded-xl bg-slate-50 p-4 border border-slate-100">
+                                    <p class="text-xs text-slate-500 font-medium">Giáo viên chấm</p>
+                                    <p class="mt-1 text-sm font-bold text-slate-700">{{ $assignment->classRoom?->teacher?->full_name ?? '—' }}</p>
+                                    <p class="mt-0.5 text-xs text-slate-400">{{ $submission->graded_at?->format('H:i d/m/Y') }}</p>
+                                </div>
+                            </div>
+                            
+                            @if ($submission->submit_file_path)
+                                <a href="{{ asset('storage/'.$submission->submit_file_path) }}" target="_blank" class="flex w-full items-center justify-center gap-2 rounded-lg bg-indigo-50 px-4 py-2.5 text-sm font-bold text-indigo-700 hover:bg-indigo-100 transition-colors">
+                                    📎 Xem file bài chấm của giáo viên
+                                </a>
+                            @endif
+
+                            @if ($submission->feedback)
+                                <div class="rounded-xl bg-slate-50 p-4 border border-slate-100">
+                                    <p class="text-xs font-bold uppercase text-slate-400 mb-2">Nhận xét chi tiết</p>
+                                    <p class="text-sm text-slate-700 whitespace-pre-line">{{ $submission->feedback }}</p>
+                                </div>
+                            @endif
+                        </div>
+                    @endif
                 </div>
             @endif
         @endif

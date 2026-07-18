@@ -11,7 +11,7 @@ class Submission extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'user_id', 'assignment_id', 'submit_file_path', 'other_file_path',
+        'user_id', 'assignment_id', 'submit_file_path', 'student_submit', 'other_file_path',
         'feedback', 'submitted_at', 'graded_at', 'score',
     ];
 
