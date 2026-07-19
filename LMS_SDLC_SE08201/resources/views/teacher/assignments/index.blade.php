@@ -5,10 +5,20 @@
 @section('content')
 <div class="mb-5 flex flex-wrap items-center justify-between gap-3">
     <p class="text-sm text-slate-500">Toàn bộ bài tập các lớp bạn phụ trách.</p>
-    <div class="flex flex-wrap gap-2">
-        @foreach ($classes as $c)
-            <a href="{{ route('teacher.assignments.create', $c) }}" class="rounded-lg bg-indigo-50 px-3 py-2 text-xs font-semibold text-indigo-700 hover:bg-indigo-100">+ Giao bài cho {{ $c->class_name }}</a>
-        @endforeach
+    <div class="relative inline-block text-left" id="assignDropdownContainer">
+        <button onclick="document.getElementById('assignDropdownMenu').classList.toggle('hidden')" class="inline-flex items-center justify-center gap-2 rounded-xl bg-violet-500 px-5 py-2.5 text-sm font-bold text-white shadow-md hover:bg-violet-600 focus:outline-none transition-all">
+            ✨ Giao bài tập mới
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div id="assignDropdownMenu" class="absolute right-0 mt-2 w-56 origin-top-right rounded-xl border border-slate-100 bg-white shadow-xl focus:outline-none hidden z-10 overflow-hidden">
+            <div class="flex flex-col divide-y divide-slate-100">
+                @foreach ($classes as $c)
+                    <a href="{{ route('teacher.assignments.create', $c) }}" class="block px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-violet-600 transition-colors">
+                        🏫 Lớp {{ $c->class_name }}
+                    </a>
+                @endforeach
+            </div>
+        </div>
     </div>
 </div>
 
@@ -57,4 +67,18 @@
 </div>
 
 <div class="mt-4">{{ $assignments->links() }}</div>
+
+@push('scripts')
+<script>
+    // Đóng dropdown khi click ra ngoài
+    document.addEventListener('click', function(event) {
+        var container = document.getElementById('assignDropdownContainer');
+        var menu = document.getElementById('assignDropdownMenu');
+        if (container && menu && !container.contains(event.target)) {
+            menu.classList.add('hidden');
+        }
+    });
+</script>
+@endpush
+@include('components.toast')
 @endsection

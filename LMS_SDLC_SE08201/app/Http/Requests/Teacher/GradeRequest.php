@@ -18,8 +18,8 @@ class GradeRequest extends FormRequest
         return [
             'score' => ['required', 'numeric', 'min:0', "max:{$maxScore}"],
             'feedback' => ['nullable', 'string'],
-            'submit_file' => ['nullable', 'file', 'mimes:pdf,doc,docx,zip', 'max:10240'],
             'other_file' => ['nullable', 'file', 'max:10240'],
+            'canvas_image_data' => ['nullable', 'string'],
         ];
     }
 

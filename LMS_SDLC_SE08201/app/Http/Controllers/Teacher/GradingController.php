@@ -33,16 +33,29 @@ class GradingController extends Controller
         ));
     }
 
+    /** Hiển thị giao diện chấm điểm chi tiết (PDF + Canvas) */
+    public function show(Request $request, Submission $submission): View
+    {
+        $this->assignmentService->authorizeAssignment($request->user(), $submission->assignment);
+
+        return view('teacher.grading.show', [
+            'submission' => $submission->load(['student', 'assignment.classRoom']),
+            'assignment' => $submission->assignment,
+        ]);
+    }
+
     /** Tải file bài làm của sinh viên */
     public function download(Request $request, Submission $submission): StreamedResponse|RedirectResponse
     {
         $this->assignmentService->authorizeAssignment($request->user(), $submission->assignment);
 
-        if (! $submission->submit_file_path || ! Storage::disk('public')->exists($submission->submit_file_path)) {
+        $studentFile = $submission->student_submit ?? $submission->submit_file_path;
+
+        if (! $studentFile || ! Storage::disk('public')->exists($studentFile)) {
             return back()->with('error', 'File bài làm không tồn tại (dữ liệu demo).');
         }
 
-        return Storage::disk('public')->download($submission->submit_file_path);
+        return Storage::disk('public')->download($studentFile);
     }
 
     /** Chấm điểm + nhận xét */
@@ -50,7 +63,7 @@ class GradingController extends Controller
     {
         $this->assignmentService->authorizeAssignment($request->user(), $submission->assignment);
 
-        $this->gradingService->grade($submission, $request->validated(), $request->file('submit_file'), $request->file('other_file'));
+        $this->gradingService->grade($submission, $request->validated(), $request->file('other_file'));
 
         return back()->with('success', 'Đã chấm điểm cho '.$submission->student->full_name.'.');
     }

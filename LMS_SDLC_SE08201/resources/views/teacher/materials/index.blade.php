@@ -76,4 +76,5 @@
         <div class="mt-4">{{ $materials->links() }}</div>
     </div>
 </div>
+@include('components.toast')
 @endsection

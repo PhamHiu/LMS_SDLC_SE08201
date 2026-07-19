@@ -96,4 +96,5 @@
         @endforelse
     </ul>
 </div>
+@include('components.toast')
 @endsection

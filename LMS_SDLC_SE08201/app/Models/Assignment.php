@@ -14,7 +14,8 @@ class Assignment extends Model
     public const TYPE_ESSAY = 'essay';
     public const TYPE_QUIZ = 'quiz';
 
-    protected $fillable = ['class_id', 'title', 'type', 'description', 'due_date', 'max_score', 'show_answers'];
+    // ( Đăng sửa ) Thêm cột attachment_path vào mảng fillable để cho phép gán dữ liệu
+    protected $fillable = ['class_id', 'title', 'type', 'description', 'due_date', 'max_score', 'show_answers', 'attachment_path'];
 
     protected function casts(): array
     {
