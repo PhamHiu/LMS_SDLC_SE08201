@@ -12,6 +12,8 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+        // Cấu hình tin cậy mọi proxy (Railway) để tự động nhận dạng HTTPS thay vì HTTP
+        $middleware->trustProxies(at: '*');
 
         // Alias middleware phân quyền theo role (ADMIN / TEACHER / STUDENT)
         $middleware->alias([
