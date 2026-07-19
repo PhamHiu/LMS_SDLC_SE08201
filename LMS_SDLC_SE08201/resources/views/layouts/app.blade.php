@@ -34,6 +34,7 @@
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-thumb { background: #c7d2fe; border-radius: 3px; }
     </style>
+    @stack('styles')
 </head>
 <body class="bg-slate-100 min-h-screen">
 @php($u = auth()->user())

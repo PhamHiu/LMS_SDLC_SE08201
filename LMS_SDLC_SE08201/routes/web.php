@@ -115,10 +115,19 @@ Route::middleware(['auth', 'role:TEACHER'])->prefix('teacher')->name('teacher.')
     Route::get('classes/{class}/assignments/create', [Teacher\AssignmentController::class, 'create'])->name('assignments.create');
     Route::post('classes/{class}/assignments', [Teacher\AssignmentController::class, 'store'])->name('assignments.store');
     Route::get('assignments/{assignment}', [Teacher\AssignmentController::class, 'show'])->name('assignments.show');
+    // ( Đăng thêm ) Route để gọi API sinh câu hỏi
+    Route::post('assignments/ai-generate', [Teacher\AiController::class, 'generate'])->name('assignments.ai-generate');
+    // ( Đăng thêm ) Thêm route để lấy giao diện cập nhật bài tập
+    Route::get('assignments/{assignment}/edit', [Teacher\AssignmentController::class, 'edit'])->name('assignments.edit');
+    // ( Đăng thêm ) Thêm route để thực thi cập nhật bài tập
+    Route::put('assignments/{assignment}', [Teacher\AssignmentController::class, 'update'])->name('assignments.update');
+    // ( Đăng thêm ) Thêm route để tải xuống file đính kèm của bài tập
+    Route::get('assignments/{assignment}/download-attachment', [Teacher\AssignmentController::class, 'downloadAttachment'])->name('assignments.download-attachment');
     Route::delete('assignments/{assignment}', [Teacher\AssignmentController::class, 'destroy'])->name('assignments.destroy');
 
     // Chấm bài
     Route::get('assignments/{assignment}/submissions', [Teacher\GradingController::class, 'index'])->name('grading.index');
+    Route::get('submissions/{submission}/grade', [Teacher\GradingController::class, 'show'])->name('grading.show');
     Route::get('submissions/{submission}/download', [Teacher\GradingController::class, 'download'])->name('grading.download');
     Route::post('submissions/{submission}/grade', [Teacher\GradingController::class, 'grade'])->name('grading.grade');
 

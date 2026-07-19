@@ -31,7 +31,7 @@
                             @foreach ($q->options() as $key => $option)
                                 <label class="flex cursor-pointer items-center gap-3 rounded-lg border border-slate-200 px-4 py-2.5 text-sm transition hover:bg-purple-50 has-[:checked]:border-purple-500 has-[:checked]:bg-purple-50 has-[:checked]:font-semibold">
                                     <input type="radio" name="answers[{{ $q->question_id }}]" value="{{ $key }}"
-                                           class="quiz-radio text-purple-600 focus:ring-purple-500" onchange="updateProgress()">
+                                           class="quiz-radio text-purple-600 focus:ring-purple-500" onchange="updateProgress()" required>
                                     <span><b>{{ $key }}.</b> {{ $option }}</span>
                                 </label>
                             @endforeach

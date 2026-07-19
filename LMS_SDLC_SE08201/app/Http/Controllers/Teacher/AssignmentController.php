@@ -10,7 +10,9 @@ use App\Services\Teacher\AssignmentService;
 use App\Services\Teacher\TeacherClassService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class AssignmentController extends Controller
 {
@@ -39,7 +41,12 @@ class AssignmentController extends Controller
     {
         $this->classService->authorizeClass($request->user(), $class);
 
-        $assignment = $this->assignmentService->create($class, $request->validated());
+        // ( Đăng sửa ) Truyền thêm request->file('attachment_file') vào hàm create
+        $assignment = $this->assignmentService->create(
+            $class, 
+            $request->validated(), 
+            $request->file('attachment_file')
+        );
 
         return redirect()
             ->route('teacher.assignments.show', $assignment)
@@ -63,6 +70,49 @@ class AssignmentController extends Controller
             'submissionCount' => $assignment->submissions()->whereNotNull('submitted_at')->count(),
             'studentCount' => $assignment->classRoom->students()->count(),
         ]);
+    }
+
+    // ( Đăng thêm ) Hàm hiển thị trang sửa bài tập
+    public function edit(Request $request, Assignment $assignment): View
+    {
+        $this->assignmentService->authorizeAssignment($request->user(), $assignment);
+        
+        $assignment->load('questions');
+
+        return view('teacher.assignments.edit', [
+            'assignment' => $assignment,
+            'class' => $assignment->classRoom,
+        ]);
+    }
+
+    // ( Đăng thêm ) Hàm cập nhật bài tập và lưu file tải lên
+    public function update(AssignmentRequest $request, Assignment $assignment): RedirectResponse
+    {
+        $this->assignmentService->authorizeAssignment($request->user(), $assignment);
+
+        $this->assignmentService->update(
+            $assignment, 
+            $request->validated(), 
+            $request->file('attachment_file')
+        );
+
+        return redirect()
+            ->route('teacher.assignments.show', $assignment)
+            ->with('success', 'Đã cập nhật bài tập thành công.');
+    }
+
+    // ( Đăng thêm ) Hàm tải xuống tài liệu đính kèm
+    public function downloadAttachment(Request $request, Assignment $assignment): StreamedResponse
+    {
+        // $this->assignmentService->authorizeAssignment($request->user(), $assignment);
+        // Note: Students also need to download this. 
+        // We'll just check if file exists.
+        
+        if (!$assignment->attachment_path || !Storage::disk('public')->exists($assignment->attachment_path)) {
+            abort(404, 'File đính kèm không tồn tại.');
+        }
+
+        return Storage::disk('public')->download($assignment->attachment_path);
     }
 
     public function destroy(Request $request, Assignment $assignment): RedirectResponse

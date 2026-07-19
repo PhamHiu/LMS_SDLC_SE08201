@@ -29,7 +29,6 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->dateTime('due_date');
             $table->float('max_score')->default(10);
-            $table->boolean('show_answers')->default(false)->comment('Cho phép SV xem đáp án sau khi nộp (quiz)');
             $table->timestamp('created_at')->useCurrent();
         });
 
