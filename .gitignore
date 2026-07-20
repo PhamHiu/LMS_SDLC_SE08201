@@ -1,0 +1,10 @@
+.env
+.env.*
+/vendor/
+/node_modules/
+/.venv/
+/storage/framework/
+storage/logs/
+bootstrap/cache/
+public/storage/
+*.log
