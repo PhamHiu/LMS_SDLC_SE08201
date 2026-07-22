@@ -77,6 +77,7 @@
             @else
                 <p class="px-3 pt-1 pb-2 text-[11px] font-bold uppercase tracking-wider text-indigo-400">Sinh viên</p>
                 <a href="{{ route('student.dashboard') }}" class="{{ $item }} {{ request()->routeIs('student.dashboard') ? $active : '' }}">📊 <span>Dashboard</span></a>
+                <a href="{{ route('student.classes.index') }}" class="{{ $item }} {{ request()->routeIs('student.classes.*') ? $active : '' }}">🏫 <span>Lớp của tôi</span></a>
                 <a href="{{ route('student.schedule.index') }}" class="{{ $item }} {{ request()->routeIs('student.schedule.*') ? $active : '' }}">🗓️ <span>Thời khóa biểu</span></a>
                 <a href="{{ route('student.attendance.index') }}" class="{{ $item }} {{ request()->routeIs('student.attendance.*') ? $active : '' }}">✅ <span>Lịch sử điểm danh</span></a>
                 <a href="{{ route('student.materials.index') }}" class="{{ $item }} {{ request()->routeIs('student.materials.*') ? $active : '' }}">📚 <span>Học liệu</span></a>
