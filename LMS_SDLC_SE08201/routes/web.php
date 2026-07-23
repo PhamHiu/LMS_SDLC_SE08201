@@ -155,6 +155,9 @@ Route::middleware(['auth', 'role:TEACHER'])->prefix('teacher')->name('teacher.')
 Route::middleware(['auth', 'role:STUDENT'])->prefix('student')->name('student.')->group(function () {
     Route::get('/', [Student\DashboardController::class, 'index'])->name('dashboard');
 
+    // Lớp của tôi
+    Route::get('classes', [Student\ClassController::class, 'index'])->name('classes.index');
+
     // Lịch học & điểm danh
     Route::get('schedule', [Student\ScheduleController::class, 'index'])->name('schedule.index');
     Route::get('attendance', [Student\ScheduleController::class, 'attendance'])->name('attendance.index');
