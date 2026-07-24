@@ -157,6 +157,7 @@ Route::middleware(['auth', 'role:STUDENT'])->prefix('student')->name('student.')
 
     // Lớp của tôi
     Route::get('classes', [Student\ClassController::class, 'index'])->name('classes.index');
+    Route::get('classes/{class}', [Student\ClassController::class, 'show'])->name('classes.show');
 
     // Lịch học & điểm danh
     Route::get('schedule', [Student\ScheduleController::class, 'index'])->name('schedule.index');
