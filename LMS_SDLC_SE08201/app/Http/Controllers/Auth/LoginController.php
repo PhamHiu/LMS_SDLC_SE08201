@@ -7,8 +7,8 @@ use App\Http\Requests\Auth\LoginRequest;
 use App\Services\AuthService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\View\View;
 
 class LoginController extends Controller
 {
@@ -16,10 +16,14 @@ class LoginController extends Controller
     {
     }
 
-    /** Hiển thị form đăng nhập */
-    public function showLoginForm(): View
+    /** Hiển thị form đăng nhập (chống cache token CSRF cũ gây lỗi 419) */
+    public function showLoginForm(): Response
     {
-        return view('auth.login');
+        return response()
+            ->view('auth.login')
+            ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+            ->header('Pragma', 'no-cache')
+            ->header('Expires', 'Sat, 01 Jan 2000 00:00:00 GMT');
     }
 
     /** Xử lý đăng nhập: Route → Middleware(guest) → FormRequest → Controller → Service */
@@ -37,14 +41,36 @@ class LoginController extends Controller
                 ->withErrors(['email' => 'Email hoặc mật khẩu không đúng.']);
         }
 
-        $request->session()->regenerate();
+        $user = $request->user();
+        $homeUrl = $this->authService->homeRouteFor($user);
 
-        return redirect()->intended($this->authService->homeRouteFor($request->user()));
+        // Lấy và xóa intended URL cũ để không bị chuyển nhầm sang trang của Role khác
+        // Lưu ý: Auth::attempt() đã tự động migrate session mới, chỉ làm mới thêm CSRF token
+        $intended = $request->session()->pull('url.intended');
+        $request->session()->regenerateToken();
+
+        if ($intended) {
+            $path = parse_url($intended, PHP_URL_PATH) ?? '';
+
+            if ($user->isAdmin() && str_starts_with($path, '/admin')) {
+                return redirect($intended);
+            }
+            if ($user->isTeacher() && str_starts_with($path, '/teacher')) {
+                return redirect($intended);
+            }
+            if ($user->isStudent() && str_starts_with($path, '/student')) {
+                return redirect($intended);
+            }
+        }
+
+        return redirect($homeUrl);
     }
 
     /** Đăng xuất an toàn, hủy session */
     public function logout(Request $request): RedirectResponse
     {
+        // Xóa hoàn toàn intended URL khi đăng xuất để tài khoản sau không bị dính URL cũ
+        $request->session()->forget('url.intended');
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();

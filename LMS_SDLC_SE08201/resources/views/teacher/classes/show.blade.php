@@ -8,7 +8,7 @@
     <div class="flex flex-wrap items-start justify-between gap-4">
         <div>
             <h2 class="text-xl font-extrabold text-slate-800">{{ $class->class_name }}</h2>
-            <p class="mt-1 text-sm text-slate-500">{{ $class->subject?->subject_code }} — {{ $class->subject?->subject_name }} · {{ $class->students->count() }} sinh viên · Đã học {{ $doneSessions }}/{{ $class->total_sessions }} buổi</p>
+            <p class="mt-1 text-sm text-slate-500">{{ $class->subject?->subject_code }} — {{ $class->subject?->subject_name }} · {{ $class->students->count() }} sinh viên · Đã học {{ $doneSessions ?? $doneSessionIds->count() }}/{{ $class->total_sessions }} buổi</p>
         </div>
         <a href="{{ route('teacher.assignments.create', $class) }}" class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700">+ Giao bài tập</a>
     </div>
@@ -19,12 +19,12 @@
     <div class="xl:col-span-2 rounded-2xl border border-slate-200 bg-white shadow-sm h-fit">
         <div class="border-b border-slate-100 px-5 py-4"><h3 class="font-bold text-slate-800">🗓️ Buổi học & Điểm danh</h3></div>
         <ul class="max-h-[480px] divide-y divide-slate-100 overflow-y-auto">
-            @foreach ($class->sessions as $i => $session)
+            @foreach ($sessions ?? $class->sessions as $i => $session)
                 @php($marked = $session->attendances->isNotEmpty())
                 <li class="flex items-center justify-between gap-3 px-5 py-3">
                     <div>
                         <p class="text-sm font-semibold text-slate-700">Buổi {{ $i + 1 }} — {{ $session->session_date->format('d/m/Y') }}</p>
-                        <p class="text-xs text-slate-400">{{ $session->room }} · {{ $session->shift }}</p>
+                        <p class="text-xs text-slate-400">{{ $session->room?->room_name ?? 'Chưa xếp phòng' }} · {{ $session->slot?->label ?? 'Chưa xếp ca' }}</p>
                     </div>
                     <div class="flex items-center gap-2">
                         @if ($marked)

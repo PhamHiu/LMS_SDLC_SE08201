@@ -121,4 +121,24 @@ class User extends Authenticatable
     {
         return $this->hasMany(Notification::class, 'user_id', 'user_id');
     }
+
+    public function riskPredictions()
+    {
+        return $this->hasMany(RiskPrediction::class, 'user_id', 'user_id')->orderByDesc('analyzed_at');
+    }
+
+    public function latestRiskPrediction()
+    {
+        return $this->hasOne(RiskPrediction::class, 'user_id', 'user_id')->latestOfMany('analyzed_at');
+    }
+
+    public function riskInterventions()
+    {
+        return $this->hasMany(RiskIntervention::class, 'user_id', 'user_id');
+    }
+
+    public function aiConversations()
+    {
+        return $this->hasMany(AiConversation::class, 'user_id', 'user_id')->orderByDesc('updated_at');
+    }
 }

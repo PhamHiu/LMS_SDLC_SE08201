@@ -54,18 +54,46 @@
         }
         /* Custom scrollbar cho khu vực xem bài */
         #viewer-container::-webkit-scrollbar { width: 8px; height: 8px; }
-        #viewer-container::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
-        #viewer-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        #viewer-container::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        #viewer-container::-webkit-scrollbar-track { background: #030407; border-radius: 4px; }
+        #viewer-container::-webkit-scrollbar-thumb { background: #1558C9; border-radius: 4px; }
+        #viewer-container::-webkit-scrollbar-thumb:hover { background: #D4FF24; }
         
+        .tool-btn {
+            background-color: rgba(255, 255, 255, 0.08) !important;
+            color: #f1f5f9 !important;
+            border: 1px solid rgba(255, 255, 255, 0.16) !important;
+            border-radius: 0.5rem !important;
+            padding: 0.35rem 0.65rem !important;
+            font-size: 0.75rem !important;
+            font-weight: 600 !important;
+            transition: all 0.2s ease !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 0.35rem !important;
+            cursor: pointer !important;
+            user-select: none !important;
+        }
+        .tool-btn:hover {
+            background-color: rgba(21, 88, 201, 0.35) !important;
+            color: #ffffff !important;
+            border-color: #D4FF24 !important;
+            transform: translateY(-1px) !important;
+        }
         .tool-btn.active {
-            background-color: #e0e7ff;
-            color: #4f46e5;
-            border-color: #c7d2fe;
+            background-color: #1558C9 !important;
+            color: #D4FF24 !important;
+            border-color: #D4FF24 !important;
+            box-shadow: 0 0 14px rgba(212, 255, 36, 0.45), 0 0 6px rgba(21, 88, 201, 0.8) !important;
+            font-weight: 800 !important;
+            transform: scale(1.05) !important;
+        }
+        .tool-btn.active svg, .tool-btn.active span {
+            color: #D4FF24 !important;
+            filter: drop-shadow(0 0 6px rgba(212, 255, 36, 0.6));
         }
         .color-btn.active {
-            transform: scale(1.2);
-            box-shadow: 0 0 0 2px white, 0 0 0 4px currentColor;
+            transform: scale(1.25);
+            box-shadow: 0 0 0 2px #030407, 0 0 0 4px #D4FF24;
         }
     </style>
 @endpush
@@ -93,63 +121,78 @@
                     File bài nộp
                 </div>
                 <div class="flex items-center gap-2">
-                    <button type="button" id="btn-view-original" onclick="switchView('original')" class="flex items-center gap-1 rounded bg-slate-200 px-3 py-1 text-slate-700 hover:bg-slate-300 font-medium text-xs">
-                        Bản gốc học sinh nộp
+                    <button type="button" id="btn-view-original" onclick="switchView('original')" class="tool-btn !bg-white/5 hover:!bg-white/10 !text-slate-300">
+                        <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        <span>Bản gốc học sinh</span>
                     </button>
-                    <button type="button" id="btn-view-graded" onclick="switchView('graded')" class="flex items-center gap-1 rounded bg-orange-500 px-3 py-1 text-white hover:bg-orange-600 font-medium text-xs">
-                        🖍 Chấm bài và nhận xét
+                    <button type="button" id="btn-view-graded" onclick="switchView('graded')" class="tool-btn !bg-[#1558C9] !text-[#D4FF24] !border-[#D4FF24]/60 shadow-[0_0_12px_rgba(21,88,201,0.5)]">
+                        <svg class="w-3.5 h-3.5 text-[#D4FF24]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                        <span>Chấm bài & nhận xét</span>
                     </button>
                     @if($submission->submit_file_path)
-                    <button type="button" id="btn-view-graded-result" onclick="switchView('graded-result')" class="flex items-center gap-1 rounded bg-slate-200 px-3 py-1 text-emerald-700 hover:bg-emerald-100 font-medium text-xs border border-transparent">
-                        ✅ Bài đã chấm
+                    <button type="button" id="btn-view-graded-result" onclick="switchView('graded-result')" class="tool-btn !bg-emerald-500/20 !text-emerald-300 !border-emerald-500/40">
+                        <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <span>Bài đã chấm</span>
                     </button>
                     @endif
-                    <a href="{{ route('teacher.grading.download', $submission) }}" class="flex items-center gap-1 rounded bg-slate-200 px-3 py-1 text-slate-700 hover:bg-slate-300 font-medium text-xs">
-                        ⬇ Tải xuống gốc
+                    <a href="{{ route('teacher.grading.download', $submission) }}" class="tool-btn !bg-white/5 hover:!bg-white/10 !text-slate-300">
+                        <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                        <span>Tải xuống gốc</span>
                     </a>
                     @if($submission->submit_file_path)
-                    <a href="{{ asset('storage/' . $submission->submit_file_path) }}" download class="flex items-center gap-1 rounded bg-slate-200 px-3 py-1 text-slate-700 hover:bg-slate-300 font-medium text-xs">
-                        ⬇ Tải bài đã chấm
+                    <a href="{{ asset('storage/' . $submission->submit_file_path) }}" download class="tool-btn !bg-white/5 hover:!bg-white/10 !text-slate-300">
+                        <svg class="w-3.5 h-3.5 text-[#D4FF24]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                        <span>Tải bài đã chấm</span>
                     </a>
                     @endif
                     @if($submission->other_file_path)
-                    <button type="button" id="btn-view-other" onclick="switchView('other')" class="flex items-center gap-1 rounded bg-slate-200 px-3 py-1 text-slate-700 hover:bg-slate-300 font-medium text-xs border border-transparent">
-                        📎 File tải thêm
+                    <button type="button" id="btn-view-other" onclick="switchView('other')" class="tool-btn !bg-white/5 hover:!bg-white/10 !text-slate-300">
+                        <svg class="w-3.5 h-3.5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
+                        <span>File tải thêm</span>
                     </button>
                     @endif
                 </div>
             </div>
             
             <!-- Row 2 -->
-            <div id="drawing-toolbar" class="flex flex-wrap items-center justify-between px-2 py-2 gap-2">
-                <div class="flex items-center gap-1 flex-wrap">
-                    <button type="button" class="tool-btn active flex items-center gap-1 rounded border border-transparent px-2 py-1 text-slate-600 hover:bg-slate-200 text-xs" data-tool="select">
-                        🔍 Chọn chữ
+            <div id="drawing-toolbar" class="flex flex-wrap items-center justify-between px-3 py-2.5 gap-2 border-t border-white/10 bg-[#030407]/60">
+                <div class="flex items-center gap-1.5 flex-wrap">
+                    <button type="button" class="tool-btn active" data-tool="select">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"/></svg>
+                        <span>Chọn chữ</span>
                     </button>
-                    <button type="button" class="tool-btn flex items-center gap-1 rounded border border-transparent px-2 py-1 text-slate-600 hover:bg-slate-200 text-xs" data-tool="draw">
-                        🖍 Vẽ
+                    <button type="button" class="tool-btn" data-tool="draw">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                        <span>Vẽ</span>
                     </button>
-                    <button type="button" class="tool-btn flex items-center gap-1 rounded border border-transparent px-2 py-1 text-slate-600 hover:bg-slate-200 text-xs" data-tool="line">
-                        — Thẳng
+                    <button type="button" class="tool-btn" data-tool="line">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 19L20 5"/></svg>
+                        <span>Thẳng</span>
                     </button>
-                    <button type="button" class="tool-btn flex items-center gap-1 rounded border border-transparent px-2 py-1 text-slate-600 hover:bg-slate-200 text-xs" data-tool="rect">
-                        ⬜ Ô vuông
+                    <button type="button" class="tool-btn" data-tool="rect">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h12a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V6z"/></svg>
+                        <span>Ô vuông</span>
                     </button>
-                    <button type="button" class="tool-btn flex items-center gap-1 rounded border border-transparent px-2 py-1 text-slate-600 hover:bg-slate-200 text-xs" data-tool="arrow">
-                        ↗ Mũi tên
+                    <button type="button" class="tool-btn" data-tool="arrow">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M7 17L17 7m0 0H8m9 0v9"/></svg>
+                        <span>Mũi tên</span>
                     </button>
-                    <button type="button" class="tool-btn flex items-center gap-1 rounded border border-transparent px-2 py-1 text-slate-600 hover:bg-slate-200 text-xs" data-tool="highlight">
-                        🖍 Đánh dấu
+                    <button type="button" class="tool-btn" data-tool="highlight">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                        <span>Đánh dấu</span>
                     </button>
-                    <button type="button" class="tool-btn flex items-center gap-1 rounded border border-transparent px-2 py-1 text-slate-600 hover:bg-slate-200 text-xs" data-tool="text">
-                        T Viết chữ
+                    <button type="button" class="tool-btn" data-tool="text" title="Click vào bài để viết nhận xét">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6h16M12 6v14"/></svg>
+                        <span>T Viết chữ</span>
                     </button>
-                    <div class="h-4 w-px bg-slate-300 mx-1"></div>
-                    <button type="button" onclick="canvasObj.undo()" class="flex items-center gap-1 rounded px-2 py-1 text-slate-600 hover:bg-slate-200 text-xs">
-                        ↩ Hoàn tác
+                    <div class="h-5 w-px bg-white/20 mx-1"></div>
+                    <button type="button" onclick="canvasObj.undo()" class="tool-btn hover:text-white" title="Hoàn tác nét vẽ cuối (Ctrl+Z)">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>
+                        <span>Hoàn tác</span>
                     </button>
-                    <button type="button" onclick="canvasObj.clearDrawings()" class="flex items-center gap-1 rounded px-2 py-1 text-rose-600 hover:bg-rose-50 text-xs">
-                        🗑 Xóa hết
+                    <button type="button" onclick="canvasObj.clearDrawings()" class="tool-btn !text-rose-400 !border-rose-500/30 hover:!bg-rose-500/20 hover:!text-white" title="Xóa toàn bộ nhận xét">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                        <span>Xóa hết</span>
                     </button>
                 </div>
                 <div class="flex items-center gap-3">
@@ -178,7 +221,7 @@
             @php
                 // DB mới: bài gốc học sinh nộp nằm ở cột student_submit
                 $studentFile = $submission->student_submit ?? $submission->submit_file_path;
-                $ext = strtolower(pathinfo($studentFile, PATHINFO_EXTENSION));
+                $ext = strtolower(pathinfo($studentFile ?? '', PATHINFO_EXTENSION));
                 $supported = in_array($ext, ['pdf', 'jpg', 'jpeg', 'png']);
             @endphp
 
@@ -399,6 +442,43 @@
             const activeBtn = document.querySelector('.tool-btn.active');
             if (!activeBtn) return;
             const tool = activeBtn.dataset.tool;
+
+            // Xử lý viết chữ / note trực tiếp tại vị trí click trên bài nộp
+            if (tool === 'text') {
+                if (o.target && (o.target.type === 'i-text' || o.target.type === 'textbox')) {
+                    o.target.enterEditing();
+                    setTimeout(() => o.target.hiddenTextarea && o.target.hiddenTextarea.focus(), 50);
+                    fabricCanvas.renderAll();
+                    return;
+                }
+                const pointer = fabricCanvas.getPointer(o.e);
+                const color = document.querySelector('.color-btn.active')?.dataset.color || '#ef4444';
+                const strokeSize = parseInt(document.getElementById('brush-size').value);
+                const fontSize = Math.max(16, strokeSize * 3 + 10);
+
+                const text = new fabric.IText('Ghi chú nhận xét...', {
+                    left: pointer.x,
+                    top: pointer.y,
+                    fontFamily: 'Be Vietnam Pro, Arial, sans-serif',
+                    fill: color,
+                    fontSize: fontSize,
+                    editingBorderColor: '#1558C9',
+                    cursorColor: color,
+                    selectable: true,
+                    evented: true,
+                    hasControls: true
+                });
+
+                fabricCanvas.add(text);
+                fabricCanvas.setActiveObject(text);
+                text.enterEditing();
+                text.selectAll();
+                setTimeout(() => text.hiddenTextarea && text.hiddenTextarea.focus(), 50);
+                fabricCanvas.renderAll();
+                drawingHistory.push(text);
+                return;
+            }
+
             if (!['line', 'rect', 'arrow', 'highlight'].includes(tool)) return;
             
             isDrawingShape = true;
@@ -664,19 +744,28 @@
                 if (fabricCanvas.isDrawingMode) updateBrush();
                 
                 if (tool === 'text') {
-                    const text = new fabric.IText('Nhập chữ...', {
-                        left: 50,
-                        top: 50,
-                        fontFamily: 'Arial',
-                        fill: document.querySelector('.color-btn.active').dataset.color,
-                        fontSize: parseInt(brushSizeSelect.value) * 4 + 10
+                    fabricCanvas.defaultCursor = 'text';
+                    fabricCanvas.selection = true;
+                    fabricCanvas.forEachObject(o => {
+                        if (o.type === 'i-text' || o.type === 'textbox') {
+                            o.selectable = true;
+                            o.evented = true;
+                        }
                     });
-                    fabricCanvas.add(text);
-                    fabricCanvas.setActiveObject(text);
-                    text.enterEditing();
-                    text.selectAll();
+                } else {
+                    fabricCanvas.defaultCursor = 'default';
                 }
             });
+        });
+
+        // Double click để sửa bất kỳ đoạn chữ nào
+        fabricCanvas.on('mouse:dblclick', function(o) {
+            if (o.target && (o.target.type === 'i-text' || o.target.type === 'textbox')) {
+                o.target.enterEditing();
+                o.target.selectAll();
+                setTimeout(() => o.target.hiddenTextarea && o.target.hiddenTextarea.focus(), 50);
+                fabricCanvas.renderAll();
+            }
         });
 
         // Bắt sự kiện bàn phím (Delete/Backspace để xóa text/chữ)

@@ -144,9 +144,26 @@ class ScheduleService
             'present' => $group->where('status', 'P')->count(),
             'late' => $group->where('status', 'L')->count(),
             'absent' => $group->where('status', 'A')->count(),
-            'records' => $group->sortBy(fn ($a) => $a->session->session_date),
+            'records' => $group->sortBy(fn ($a) => $a->session->session_date)->values(),
         ]);
 
-        return ['weeks' => $weeks];
+        $totalSessions = $records->count();
+        $totalPresent  = $records->where('status', 'P')->count();
+        $totalAbsent   = $records->where('status', 'A')->count();
+        $totalLate     = $records->where('status', 'L')->count();
+        $attendanceRate = $totalSessions > 0 ? round(($totalPresent / $totalSessions) * 100, 1) : 100.0;
+
+        return [
+            'weeks' => $weeks,
+            'summary' => [
+                'total' => $totalSessions,
+                'present' => $totalPresent,
+                'absent' => $totalAbsent,
+                'late' => $totalLate,
+                'rate' => $attendanceRate,
+            ]
+        ];
+
+        
     }
 }

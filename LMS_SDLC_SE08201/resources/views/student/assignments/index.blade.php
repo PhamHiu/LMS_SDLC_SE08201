@@ -46,39 +46,49 @@
 <div class="space-y-3">
     @forelse ($assignments as $a)
         @php($sub = $a->my_submission)
-        <a href="{{ route('student.assignments.show', $a) }}" class="block rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:shadow-md">
+        <a href="{{ route('student.assignments.show', $a) }}" class="block glass-card-3d p-5 rounded-2xl relative overflow-hidden transition-all duration-300 hover:scale-[1.008] border border-white/10 hover:border-[#D4FF24]/50">
             <div class="flex flex-wrap items-center justify-between gap-3">
-                <div class="min-w-0">
-                    <div class="flex items-center gap-2">
-                        <span class="text-lg">{{ $a->isQuiz() ? '🧩' : '📝' }}</span>
-                        <p class="font-bold text-slate-800">{{ $a->title }}</p>
-                        <span class="rounded-full px-2 py-0.5 text-[11px] font-bold {{ $a->isQuiz() ? 'bg-purple-100 text-purple-700' : 'bg-sky-100 text-sky-700' }}">{{ $a->typeLabel() }}</span>
+                <div class="flex items-center gap-3.5 min-w-0">
+                    <div class="w-11 h-11 rounded-2xl p-0.5 shrink-0 shadow-lg {{ $a->isQuiz() ? 'bg-gradient-to-tr from-purple-600 to-[#1558C9] shadow-purple-500/20' : 'bg-gradient-to-tr from-[#1558C9] to-[#D4FF24] shadow-[#1558C9]/30' }}">
+                        <div class="w-full h-full rounded-[14px] bg-[#030407]/90 flex items-center justify-center">
+                            @if ($a->isQuiz())
+                                <svg class="w-5 h-5 text-purple-300 filter drop-shadow-[0_0_6px_rgba(168,85,247,0.8)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5"/></svg>
+                            @else
+                                <svg class="w-5 h-5 text-[#D4FF24] filter drop-shadow-[0_0_6px_rgba(212,255,36,0.8)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                            @endif
+                        </div>
                     </div>
-                    <p class="mt-1.5 text-xs font-medium text-slate-500">{{ $a->classRoom?->class_name }} — {{ $a->classRoom?->subject?->subject_name }} · Hạn: <span class="font-bold">{{ $a->due_date->format('H:i d/m/Y') }}</span></p>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <p class="font-extrabold text-white text-base">{{ $a->title }}</p>
+                            <span class="rounded-full px-2.5 py-0.5 text-[10px] font-black uppercase {{ $a->isQuiz() ? 'bg-purple-500/20 text-purple-300 border border-purple-400/30' : 'bg-[#1558C9]/25 text-[#D4FF24] border border-[#D4FF24]/40' }}">{{ $a->typeLabel() }}</span>
+                        </div>
+                        <p class="mt-1 text-xs text-slate-400">{{ $a->classRoom?->class_name }} — {{ $a->classRoom?->subject?->subject_name }} · Hạn nộp: <span class="font-bold text-slate-200">{{ $a->due_date->format('H:i d/m/Y') }}</span></p>
+                    </div>
                 </div>
                 <div class="flex items-center gap-2">
                     @if ($sub && $sub->score !== null)
-                        <span class="rounded-full border border-emerald-200 bg-emerald-100 px-3 py-1.5 text-sm font-extrabold text-emerald-800 shadow-sm">{{ $sub->score }}/{{ $a->max_score }}</span>
+                        <span class="rounded-full border border-emerald-400/40 bg-emerald-500/20 px-3.5 py-1.5 text-sm font-black text-emerald-300 shadow-[0_0_10px_rgba(52,211,153,0.3)]">{{ $sub->score }}/{{ $a->max_score }}</span>
                     @elseif ($sub && $sub->submitted_at)
-                        <span class="rounded-full border border-sky-200 bg-sky-100 px-3 py-1.5 text-xs font-bold text-sky-800 shadow-sm">Đã nộp — chờ chấm</span>
+                        <span class="rounded-full border border-[#1558C9]/50 bg-[#1558C9]/25 px-3 py-1.5 text-xs font-bold text-sky-300">Đã nộp — chờ chấm</span>
                     @elseif ($a->isOverdue())
-                        <span class="rounded-full border border-slate-200 bg-slate-100 px-3 py-1.5 text-xs font-bold text-slate-500 shadow-sm">Đã hết hạn</span>
+                        <span class="rounded-full border border-rose-500/30 bg-rose-500/15 px-3 py-1.5 text-xs font-bold text-rose-300">Đã hết hạn</span>
                     @else
                         <span class="text-xs font-semibold text-slate-400">Chưa nộp</span>
-                        <span class="deadline-countdown rounded-full border border-amber-200 bg-amber-100 px-3 py-1.5 text-xs font-bold text-amber-800 shadow-sm"
+                        <span class="deadline-countdown rounded-full border border-amber-400/40 bg-amber-500/20 px-3 py-1.5 text-xs font-bold text-amber-300"
                               data-deadline="{{ $a->due_date->toIso8601String() }}">{{ $a->due_date->diffForHumans() }}</span>
                     @endif
                 </div>
             </div>
         </a>
     @empty
-        <div class="rounded-2xl border border-dashed border-slate-300 p-16 text-center">
-            <div class="inline-flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 mb-3">
-                <svg class="h-8 w-8 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div class="glass-card-3d p-16 text-center">
+            <div class="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-white/5 border border-white/10 mb-3">
+                <svg class="h-8 w-8 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                 </svg>
             </div>
-            <p class="text-base font-semibold text-slate-600">Không có bài tập nào phù hợp.</p>
+            <p class="text-base font-semibold text-slate-400">Không có bài tập nào phù hợp.</p>
         </div>
     @endforelse
 </div>

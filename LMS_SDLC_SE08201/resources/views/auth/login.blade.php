@@ -3,40 +3,55 @@
 @section('title', 'Đăng nhập')
 
 @section('content')
-<h2 class="text-xl font-bold text-slate-800 mb-1">Đăng nhập</h2>
-<p class="text-sm text-slate-500 mb-6">Chào mừng quay trở lại! Vui lòng nhập thông tin.</p>
+<div class="mb-6">
+    <h2 class="text-2xl font-black text-white tracking-tight">Đăng Nhập</h2>
+    <p class="text-xs text-slate-400 mt-1">Chào mừng bạn trở lại với không gian học tập thông minh!</p>
+</div>
 
 <form method="POST" action="{{ route('login.post') }}" class="space-y-4">
     @csrf
     <div>
-        <label class="block text-sm font-medium text-slate-700 mb-1">Email</label>
+        <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">Tài khoản Email</label>
         <input type="email" name="email" value="{{ old('email') }}" required autofocus
-               placeholder="ban@lms.vn"
-               class="w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none">
-        @error('email') <p class="mt-1 text-xs text-rose-600">{{ $message }}</p> @enderror
+               placeholder="name@lms.vn"
+               class="w-full rounded-xl bg-[#030407]/80 border border-white/10 px-4 py-3 text-sm text-white placeholder-slate-500 focus:border-[#D4FF24] focus:ring-2 focus:ring-[#D4FF24]/20 focus:bg-[#030407] outline-none transition duration-200">
+        @error('email') <p class="mt-1 text-xs text-rose-400">{{ $message }}</p> @enderror
     </div>
+
     <div>
-        <label class="block text-sm font-medium text-slate-700 mb-1">Mật khẩu</label>
+        <div class="flex items-center justify-between mb-1.5">
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-300">Mật khẩu</label>
+        </div>
         <input type="password" name="password" required placeholder="••••••••"
-               class="w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none">
-        @error('password') <p class="mt-1 text-xs text-rose-600">{{ $message }}</p> @enderror
+               class="w-full rounded-xl bg-[#030407]/80 border border-white/10 px-4 py-3 text-sm text-white placeholder-slate-500 focus:border-[#D4FF24] focus:ring-2 focus:ring-[#D4FF24]/20 focus:bg-[#030407] outline-none transition duration-200">
+        @error('password') <p class="mt-1 text-xs text-rose-400">{{ $message }}</p> @enderror
     </div>
-    <label class="flex items-center gap-2 text-sm text-slate-600">
-        <input type="checkbox" name="remember" value="1" class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
-        Ghi nhớ đăng nhập
-    </label>
-    <button class="w-full rounded-lg bg-indigo-600 py-2.5 font-semibold text-white transition hover:bg-indigo-700">
-        Đăng nhập
+
+    <div class="flex items-center justify-between text-xs text-slate-400 py-1">
+        <label class="flex items-center gap-2 cursor-pointer hover:text-slate-200 transition">
+            <input type="checkbox" name="remember" value="1" class="rounded bg-slate-800 border-white/20 text-[#1558C9] focus:ring-[#D4FF24]">
+            <span>Duy trì đăng nhập</span>
+        </label>
+    </div>
+
+    <button type="submit" class="w-full rounded-xl bg-[#D4FF24] hover:bg-[#c3ee15] text-[#030407] py-3.5 font-black text-sm tracking-wide transition-all duration-300 shadow-lg shadow-[#D4FF24]/25 transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer">
+        TRUY CẬP HỆ THỐNG →
     </button>
 </form>
 
-<p class="mt-6 text-center text-sm text-slate-500">
-    Chưa có tài khoản?
-    <a href="{{ route('register') }}" class="font-semibold text-indigo-600 hover:underline">Đăng ký ngay</a>
-</p>
+<div class="mt-6 pt-5 border-t border-white/10 text-center text-xs text-slate-400">
+    Chưa có tài khoản? 
+    <a href="{{ route('register') }}" class="font-bold text-[#D4FF24] hover:underline transition">Đăng ký thành viên</a>
+</div>
 
-<div class="mt-6 rounded-lg bg-slate-50 border border-slate-200 p-3 text-xs text-slate-500">
-    <p class="font-semibold text-slate-600 mb-1">Tài khoản demo (mật khẩu: <code>password</code>)</p>
-    <p>Admin: admin@lms.vn · GV: teacher1@lms.vn · SV: student1@lms.vn</p>
+<div class="mt-6 rounded-2xl bg-[#030407]/70 border border-white/10 p-3.5 text-[11px] text-slate-400 space-y-1 backdrop-blur-sm">
+    <div class="font-bold text-[#D4FF24] flex items-center gap-1">
+        <span>⚡</span> Tài khoản Demo kiểm thử (pass: <code>password</code>)
+    </div>
+    <div class="flex flex-col gap-0.5 text-slate-300 pt-1">
+        <div>• <strong>Admin:</strong> admin@lms.vn</div>
+        <div>• <strong>Giảng viên:</strong> teacher1@lms.vn</div>
+        <div>• <strong>Sinh viên:</strong> student1@lms.vn</div>
+    </div>
 </div>
 @endsection

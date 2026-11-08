@@ -90,6 +90,10 @@ Route::middleware(['auth', 'role:ADMIN'])->prefix('admin')->name('admin.')->grou
         Route::get('/courses/export', [Admin\ReportController::class, 'exportCourses'])->name('courses.export');
         Route::get('/users/export', [Admin\ReportController::class, 'exportUsers'])->name('users.export');
     });
+
+    // AI Early Warning System: Quản lý nguy cơ bỏ học
+    Route::get('risk', [Admin\RiskManagementController::class, 'index'])->name('risk.index');
+    Route::get('risk/{student}', [Admin\RiskManagementController::class, 'show'])->name('risk.show');
 });
 
 // ===== NHÓM 2: TEACHER =====
@@ -106,7 +110,8 @@ Route::middleware(['auth', 'role:TEACHER'])->prefix('teacher')->name('teacher.')
     Route::delete('materials/{material}', [Teacher\MaterialController::class, 'destroy'])->name('materials.destroy');
     Route::get('materials/{material}/download', [Teacher\MaterialController::class, 'download'])->name('materials.download');
 
-    // Điểm danh theo buổi
+    // Điểm danh theo buổi và quản lý điểm danh
+    Route::get('attendance', [Teacher\AttendanceController::class, 'index'])->name('attendance.index');
     Route::get('classes/{class}/sessions/{session}/attendance', [Teacher\AttendanceController::class, 'edit'])->name('attendance.edit');
     Route::post('classes/{class}/sessions/{session}/attendance', [Teacher\AttendanceController::class, 'update'])->name('attendance.update');
 
@@ -149,6 +154,11 @@ Route::middleware(['auth', 'role:TEACHER'])->prefix('teacher')->name('teacher.')
         Route::get('/grades/export', [Teacher\ReportController::class, 'exportGrades'])->name('grades.export');
         Route::get('/attendance/export', [Teacher\ReportController::class, 'exportAttendance'])->name('attendance.export');
     });
+
+    // AI Early Warning System: Cảnh báo rủi ro sinh viên
+    Route::get('risk', [Teacher\RiskDashboardController::class, 'index'])->name('risk.index');
+    Route::get('risk/{student}', [Teacher\RiskDashboardController::class, 'show'])->name('risk.show');
+    Route::post('risk/{student}/intervene', [Teacher\RiskDashboardController::class, 'recordIntervention'])->name('risk.intervene');
 });
 
 // ===== NHÓM 3: STUDENT =====
@@ -176,4 +186,23 @@ Route::middleware(['auth', 'role:STUDENT'])->prefix('student')->name('student.')
     // Thông báo + thảo luận
     Route::get('notifications', [Student\NotificationController::class, 'index'])->name('notifications.index');
     Route::post('assignments/{assignment}/discussions', [Student\DiscussionController::class, 'store'])->name('discussions.store');
+
+    // AI Learning Tutor (Mr. Biết Tuốt): Chỉ dành riêng cho Sinh viên (STUDENT)
+    Route::prefix('ai-tutor')->name('ai-tutor.')->group(function () {
+        Route::get('/', [Student\AiTutorController::class, 'index'])->name('index');
+        Route::post('/', [Student\AiTutorController::class, 'store'])->name('store');
+        Route::get('/{conversation}', [Student\AiTutorController::class, 'show'])->name('show');
+        Route::post('/{conversation}/message', [Student\AiTutorController::class, 'sendMessage'])->name('message');
+        Route::post('/{conversation}/stream', [Student\AiTutorController::class, 'stream'])->name('stream');
+        Route::delete('/{conversation}', [Student\AiTutorController::class, 'destroy'])->name('destroy');
+    });
+
+    // BTEC FPT AI Student Support Assistant (Floating Bubble Widget & API): Chỉ dành riêng cho Sinh viên (STUDENT)
+    Route::prefix('btec-ai')->name('btec-ai.')->group(function () {
+        Route::match(['get', 'post'], '/init', [Student\BtecSupportController::class, 'init'])->name('init');
+        Route::post('/chat', [Student\BtecSupportController::class, 'chat'])->name('chat');
+        Route::post('/stream', [Student\BtecSupportController::class, 'stream'])->name('stream');
+        Route::post('/ticket', [Student\BtecSupportController::class, 'submitTicket'])->name('ticket');
+        Route::post('/feedback', [Student\BtecSupportController::class, 'feedback'])->name('feedback');
+    });
 });

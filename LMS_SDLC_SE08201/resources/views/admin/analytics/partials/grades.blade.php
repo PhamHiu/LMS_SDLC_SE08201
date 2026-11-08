@@ -38,7 +38,10 @@
     {{-- Preview Table --}}
     <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden mt-6">
         <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-            <h3 class="font-bold text-slate-800">📋 Dữ liệu xem trước (Preview)</h3>
+            <h3 class="font-bold text-slate-800 flex items-center gap-2">
+                <svg class="w-4 h-4 text-[#D4FF24]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                <span>Dữ liệu xem trước (Preview)</span>
+            </h3>
             <span class="text-xs text-slate-500 bg-slate-200 px-2 py-1 rounded-md" id="gr-preview-count">0 bản ghi</span>
         </div>
         <div class="overflow-x-auto overflow-y-auto" style="max-height: 400px;">
@@ -63,10 +66,12 @@
     {{-- Export --}}
     <div class="flex justify-end gap-3 mt-4">
         <a href="#" data-base-url="{{ route('admin.reports.grades.export') }}" class="export-link bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition inline-flex items-center gap-2 shadow-sm">
-            <span>📥 Excel</span>
+            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+            <span>Excel</span>
         </a>
         <a href="#" data-base-url="{{ route('admin.reports.grades.export') }}?format=pdf" class="export-link bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition inline-flex items-center gap-2 shadow-sm">
-            <span>📄 PDF</span>
+            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+            <span>PDF</span>
         </a>
     </div>
 </div>

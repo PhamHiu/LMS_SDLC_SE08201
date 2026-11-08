@@ -57,9 +57,6 @@ class ScheduleController extends Controller
         $enrolledClasses = $this->scheduleService->enrolledClassesForFilter($user);
         
         $selectedClassId = $request->filled('class_id') ? (int) $request->query('class_id') : null;
-        if (!$selectedClassId && $enrolledClasses->isNotEmpty()) {
-            $selectedClassId = $enrolledClasses->first()->class_id;
-        }
 
         $searchQuery = $request->query('search');
 

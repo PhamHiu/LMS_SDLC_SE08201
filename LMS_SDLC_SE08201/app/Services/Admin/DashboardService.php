@@ -65,7 +65,7 @@ class DashboardService
         $attendanceStats = [];
 
         // 6. Lịch học hôm nay
-        $todaySessions = ClassSession::with(['classRoom.subject', 'classRoom.teacher', 'slot', 'room'])
+        $todaySessions = ClassSession::with(['classRoom.subject', 'classRoom.teacher', 'slot', 'room', 'attendances'])
             ->where('session_date', Carbon::today())
             ->orderBy('slot_id')
             ->get();
