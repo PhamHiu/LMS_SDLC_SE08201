@@ -37,13 +37,15 @@
 </div>
 
 {{-- ===== TABS ===== --}}
-<div class="mb-6 border-b border-slate-200">
+<div class="mb-6 border-b border-white/10">
     <nav class="-mb-px flex space-x-2 md:space-x-6 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]" aria-label="Tabs" id="analyticsTabs">
-        <button data-tab="grades" class="tab-btn whitespace-nowrap border-b-2 border-indigo-500 py-3 md:py-4 px-2 text-xs md:text-sm font-bold text-indigo-600 mb-2 md:mb-0">
-            📊 Điểm số
+        <button data-tab="grades" class="tab-btn whitespace-nowrap border-b-2 border-[#D4FF24] py-3 md:py-4 px-3 text-xs md:text-sm font-bold text-[#D4FF24] mb-2 md:mb-0 flex items-center gap-2">
+            <svg class="w-4 h-4 text-[#D4FF24] filter drop-shadow-[0_0_6px_rgba(212,255,36,0.8)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+            <span>Điểm số</span>
         </button>
-        <button data-tab="attendance" class="tab-btn whitespace-nowrap border-b-2 border-transparent py-3 md:py-4 px-2 text-xs md:text-sm font-medium text-slate-500 hover:border-slate-300 hover:text-slate-700 mb-2 md:mb-0">
-            📅 Chuyên cần
+        <button data-tab="attendance" class="tab-btn whitespace-nowrap border-b-2 border-transparent py-3 md:py-4 px-3 text-xs md:text-sm font-medium text-slate-400 hover:border-slate-300 hover:text-white mb-2 md:mb-0 flex items-center gap-2">
+            <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            <span>Chuyên cần</span>
         </button>
     </nav>
 </div>
@@ -99,11 +101,11 @@ document.addEventListener('DOMContentLoaded', function() {
     tabs.forEach(tab => {
         tab.addEventListener('click', () => {
             tabs.forEach(t => {
-                t.classList.remove('border-indigo-500', 'text-indigo-600', 'font-bold');
-                t.classList.add('border-transparent', 'text-slate-500', 'font-medium');
+                t.classList.remove('border-[#D4FF24]', 'text-[#D4FF24]', 'font-bold');
+                t.classList.add('border-transparent', 'text-slate-400', 'font-medium');
             });
-            tab.classList.remove('border-transparent', 'text-slate-500', 'font-medium');
-            tab.classList.add('border-indigo-500', 'text-indigo-600', 'font-bold');
+            tab.classList.remove('border-transparent', 'text-slate-400', 'font-medium');
+            tab.classList.add('border-[#D4FF24]', 'text-[#D4FF24]', 'font-bold');
 
             document.querySelectorAll('.tab-pane').forEach(p => p.classList.add('hidden'));
             currentTab = tab.dataset.tab;

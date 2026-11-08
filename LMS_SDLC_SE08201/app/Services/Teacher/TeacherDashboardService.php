@@ -20,7 +20,7 @@ class TeacherDashboardService
         $classIds = $teacher->teachingClasses()->pluck('class_id');
 
         // Lịch dạy trong tuần hiện tại
-        $weekSessions = ClassSession::with(['classRoom.subject', 'slot', 'room'])
+        $weekSessions = ClassSession::with(['classRoom.subject', 'slot', 'room', 'attendances'])
             ->whereIn('class_id', $classIds)
             ->whereBetween('session_date', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()])
             ->orderBy('session_date')

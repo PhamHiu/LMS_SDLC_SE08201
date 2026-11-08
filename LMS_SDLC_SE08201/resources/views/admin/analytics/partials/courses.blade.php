@@ -28,8 +28,8 @@
             </div>
         </div>
         <div class="bg-slate-50 border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col justify-center items-center text-center">
-            <div class="p-4 rounded-full bg-white shadow-sm mb-3">
-                <span class="text-3xl">🏫</span>
+            <div class="p-4 rounded-2xl bg-[#1558C9]/20 border border-[#1558C9]/40 shadow-[0_0_15px_rgba(21,88,201,0.4)] mb-3">
+                <svg class="w-8 h-8 text-[#D4FF24] filter drop-shadow-[0_0_8px_rgba(212,255,36,0.8)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
             </div>
             <h3 class="font-bold text-slate-800 mb-1">Quản lý lớp học hiệu quả</h3>
             <p class="text-sm text-slate-500 max-w-sm">Dữ liệu trạng thái lớp học giúp phân bổ tài nguyên và giảng viên hợp lý hơn.</p>
@@ -39,7 +39,10 @@
     {{-- Preview Table --}}
     <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden mt-6">
         <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-            <h3 class="font-bold text-slate-800">📋 Dữ liệu xem trước (Preview)</h3>
+            <h3 class="font-bold text-slate-800 flex items-center gap-2">
+                <svg class="w-4 h-4 text-[#D4FF24]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                <span>Dữ liệu xem trước (Preview)</span>
+            </h3>
             <span class="text-xs text-slate-500 bg-slate-200 px-2 py-1 rounded-md" id="crs-preview-count">0 bản ghi</span>
         </div>
         <div class="overflow-x-auto overflow-y-auto" style="max-height: 400px;">
@@ -64,10 +67,12 @@
     {{-- Export --}}
     <div class="flex justify-end gap-3 mt-4">
         <a href="#" data-base-url="{{ route('admin.reports.courses.export') }}" class="export-link bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition inline-flex items-center gap-2 shadow-sm">
-            <span>📥 Excel</span>
+            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+            <span>Excel</span>
         </a>
         <a href="#" data-base-url="{{ route('admin.reports.courses.export') }}?format=pdf" class="export-link bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition inline-flex items-center gap-2 shadow-sm">
-            <span>📄 PDF</span>
+            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+            <span>PDF</span>
         </a>
     </div>
 </div>

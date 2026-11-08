@@ -7,8 +7,8 @@ use App\Http\Requests\Auth\RegisterRequest;
 use App\Models\Major;
 use App\Services\AuthService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\View\View;
 
 class RegisterController extends Controller
 {
@@ -16,11 +16,14 @@ class RegisterController extends Controller
     {
     }
 
-    public function showRegisterForm(): View
+    public function showRegisterForm(): Response
     {
-        return view('auth.register', [
-            'majors' => Major::orderBy('major_name')->get(),
-        ]);
+        return response()
+            ->view('auth.register', [
+                'majors' => Major::orderBy('major_name')->get(),
+            ])
+            ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+            ->header('Pragma', 'no-cache');
     }
 
     public function register(RegisterRequest $request): RedirectResponse
@@ -28,7 +31,7 @@ class RegisterController extends Controller
         $user = $this->authService->register($request->validated());
 
         Auth::login($user);
-        $request->session()->regenerate();
+        $request->session()->regenerateToken();
 
         return redirect()
             ->route('student.dashboard')

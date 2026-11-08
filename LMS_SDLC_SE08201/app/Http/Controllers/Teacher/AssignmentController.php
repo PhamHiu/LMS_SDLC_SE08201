@@ -102,14 +102,12 @@ class AssignmentController extends Controller
     }
 
     // ( Đăng thêm ) Hàm tải xuống tài liệu đính kèm
-    public function downloadAttachment(Request $request, Assignment $assignment): StreamedResponse
+    public function downloadAttachment(Request $request, Assignment $assignment): StreamedResponse|RedirectResponse
     {
-        // $this->assignmentService->authorizeAssignment($request->user(), $assignment);
-        // Note: Students also need to download this. 
-        // We'll just check if file exists.
-        
-        if (!$assignment->attachment_path || !Storage::disk('public')->exists($assignment->attachment_path)) {
-            abort(404, 'File đính kèm không tồn tại.');
+        $this->assignmentService->authorizeAssignment($request->user(), $assignment);
+
+        if (! $assignment->attachment_path || ! Storage::disk('public')->exists($assignment->attachment_path)) {
+            return back()->with('error', 'File đính kèm không tồn tại.');
         }
 
         return Storage::disk('public')->download($assignment->attachment_path);
