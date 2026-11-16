@@ -54,54 +54,39 @@
         }
         /* Custom scrollbar cho khu vực xem bài */
         #viewer-container::-webkit-scrollbar { width: 8px; height: 8px; }
-        #viewer-container::-webkit-scrollbar-track { background: #030407; border-radius: 4px; }
-        #viewer-container::-webkit-scrollbar-thumb { background: #1558C9; border-radius: 4px; }
-        #viewer-container::-webkit-scrollbar-thumb:hover { background: #D4FF24; }
-        
+        #viewer-container::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
+        #viewer-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        #viewer-container::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
         .tool-btn {
-            background-color: rgba(255, 255, 255, 0.08) !important;
-            color: #f1f5f9 !important;
-            border: 1px solid rgba(255, 255, 255, 0.16) !important;
-            border-radius: 0.5rem !important;
+            background-color: #fff !important;
+            color: #334155 !important;
+            border: 1px solid #d1d5db !important;
+            border-radius: 6px !important;
             padding: 0.35rem 0.65rem !important;
             font-size: 0.75rem !important;
-            font-weight: 600 !important;
-            transition: all 0.2s ease !important;
+            font-weight: 500 !important;
             display: inline-flex !important;
             align-items: center !important;
             gap: 0.35rem !important;
             cursor: pointer !important;
             user-select: none !important;
         }
-        .tool-btn:hover {
-            background-color: rgba(21, 88, 201, 0.35) !important;
-            color: #ffffff !important;
-            border-color: #D4FF24 !important;
-            transform: translateY(-1px) !important;
-        }
+        .tool-btn:hover { background-color: #f3f4f6 !important; }
         .tool-btn.active {
-            background-color: #1558C9 !important;
-            color: #D4FF24 !important;
-            border-color: #D4FF24 !important;
-            box-shadow: 0 0 14px rgba(212, 255, 36, 0.45), 0 0 6px rgba(21, 88, 201, 0.8) !important;
-            font-weight: 800 !important;
-            transform: scale(1.05) !important;
+            background-color: #1e4f8f !important;
+            color: #fff !important;
+            border-color: #1e4f8f !important;
         }
-        .tool-btn.active svg, .tool-btn.active span {
-            color: #D4FF24 !important;
-            filter: drop-shadow(0 0 6px rgba(212, 255, 36, 0.6));
-        }
-        .color-btn.active {
-            transform: scale(1.25);
-            box-shadow: 0 0 0 2px #030407, 0 0 0 4px #D4FF24;
-        }
+        .tool-btn.active svg, .tool-btn.active span { color: #fff !important; }
+        .color-btn.active { box-shadow: 0 0 0 2px #fff, 0 0 0 4px #1e4f8f; }
     </style>
 @endpush
 
 @section('content')
 <div class="mb-4 flex items-center justify-between">
     <div>
-        <h2 class="text-xl font-extrabold text-slate-800">Bài làm của {{ $submission->student->full_name }}</h2>
+        <h2 class="text-xl font-semibold text-slate-800">Bài làm của {{ $submission->student->full_name }}</h2>
         <p class="mt-1 text-sm text-slate-500">{{ $assignment->title }} · Lớp {{ $assignment->classRoom?->class_name }}</p>
     </div>
     <a href="{{ route('teacher.grading.index', $assignment) }}" class="inline-flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-slate-800">
@@ -111,7 +96,7 @@
 
 <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 h-[calc(100vh-140px)] min-h-[600px]">
     <!-- CỘT TRÁI: Khu vực xem và vẽ -->
-    <div class="lg:col-span-3 flex flex-col rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+    <div class="lg:col-span-3 flex flex-col rounded-md border border-slate-200 bg-white shadow-sm overflow-hidden">
         <!-- Toolbar Vẽ Mới (Giống thiết kế) -->
         <div class="flex flex-col border-b border-slate-200 bg-slate-50 text-sm">
             <!-- Row 1 -->
@@ -121,33 +106,33 @@
                     File bài nộp
                 </div>
                 <div class="flex items-center gap-2">
-                    <button type="button" id="btn-view-original" onclick="switchView('original')" class="tool-btn !bg-white/5 hover:!bg-white/10 !text-slate-300">
-                        <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    <button type="button" id="btn-view-original" onclick="switchView('original')" class="tool-btn !bg-slate-50 hover:!bg-slate-100 !text-slate-600">
+                        <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                         <span>Bản gốc học sinh</span>
                     </button>
-                    <button type="button" id="btn-view-graded" onclick="switchView('graded')" class="tool-btn !bg-[#1558C9] !text-[#D4FF24] !border-[#D4FF24]/60 shadow-[0_0_12px_rgba(21,88,201,0.5)]">
-                        <svg class="w-3.5 h-3.5 text-[#D4FF24]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                    <button type="button" id="btn-view-graded" onclick="switchView('graded')" class="tool-btn !bg-[#1e4f8f] !text-white !border-[#1e4f8f]/30">
+                        <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
                         <span>Chấm bài & nhận xét</span>
                     </button>
                     @if($submission->submit_file_path)
-                    <button type="button" id="btn-view-graded-result" onclick="switchView('graded-result')" class="tool-btn !bg-emerald-500/20 !text-emerald-300 !border-emerald-500/40">
-                        <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <button type="button" id="btn-view-graded-result" onclick="switchView('graded-result')" class="tool-btn !bg-emerald-50 !text-emerald-700 !border-emerald-200">
+                        <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                         <span>Bài đã chấm</span>
                     </button>
                     @endif
-                    <a href="{{ route('teacher.grading.download', $submission) }}" class="tool-btn !bg-white/5 hover:!bg-white/10 !text-slate-300">
-                        <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                    <a href="{{ route('teacher.grading.download', $submission) }}" class="tool-btn !bg-slate-50 hover:!bg-slate-100 !text-slate-600">
+                        <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                         <span>Tải xuống gốc</span>
                     </a>
                     @if($submission->submit_file_path)
-                    <a href="{{ asset('storage/' . $submission->submit_file_path) }}" download class="tool-btn !bg-white/5 hover:!bg-white/10 !text-slate-300">
-                        <svg class="w-3.5 h-3.5 text-[#D4FF24]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                    <a href="{{ asset('storage/' . $submission->submit_file_path) }}" download class="tool-btn !bg-slate-50 hover:!bg-slate-100 !text-slate-600">
+                        <svg class="w-3.5 h-3.5 text-[#1e4f8f]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                         <span>Tải bài đã chấm</span>
                     </a>
                     @endif
                     @if($submission->other_file_path)
-                    <button type="button" id="btn-view-other" onclick="switchView('other')" class="tool-btn !bg-white/5 hover:!bg-white/10 !text-slate-300">
-                        <svg class="w-3.5 h-3.5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
+                    <button type="button" id="btn-view-other" onclick="switchView('other')" class="tool-btn !bg-slate-50 hover:!bg-slate-100 !text-slate-600">
+                        <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
                         <span>File tải thêm</span>
                     </button>
                     @endif
@@ -155,7 +140,7 @@
             </div>
             
             <!-- Row 2 -->
-            <div id="drawing-toolbar" class="flex flex-wrap items-center justify-between px-3 py-2.5 gap-2 border-t border-white/10 bg-[#030407]/60">
+            <div id="drawing-toolbar" class="flex flex-wrap items-center justify-between px-3 py-2.5 gap-2 border-t border-slate-200 bg-white">
                 <div class="flex items-center gap-1.5 flex-wrap">
                     <button type="button" class="tool-btn active" data-tool="select">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"/></svg>
@@ -185,12 +170,12 @@
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6h16M12 6v14"/></svg>
                         <span>T Viết chữ</span>
                     </button>
-                    <div class="h-5 w-px bg-white/20 mx-1"></div>
-                    <button type="button" onclick="canvasObj.undo()" class="tool-btn hover:text-white" title="Hoàn tác nét vẽ cuối (Ctrl+Z)">
+                    <div class="h-5 w-px bg-slate-50 mx-1"></div>
+                    <button type="button" onclick="canvasObj.undo()" class="tool-btn hover:text-[#163c6d]" title="Hoàn tác nét vẽ cuối (Ctrl+Z)">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>
                         <span>Hoàn tác</span>
                     </button>
-                    <button type="button" onclick="canvasObj.clearDrawings()" class="tool-btn !text-rose-400 !border-rose-500/30 hover:!bg-rose-500/20 hover:!text-white" title="Xóa toàn bộ nhận xét">
+                    <button type="button" onclick="canvasObj.clearDrawings()" class="tool-btn !text-rose-600 !border-rose-200 hover:!bg-rose-100 hover:!text-[#163c6d]" title="Xóa toàn bộ nhận xét">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                         <span>Xóa hết</span>
                     </button>
@@ -226,23 +211,23 @@
             @endphp
 
             @if(!$studentFile)
-                <div class="flex h-full flex-col items-center justify-center text-slate-400">
+                <div class="flex h-full flex-col items-center justify-center text-slate-500">
                     <svg class="mb-3 h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                     <p>Học sinh chưa nộp file đính kèm.</p>
                 </div>
             @elseif(!$supported)
                 <div class="flex h-full flex-col items-center justify-center text-slate-500 text-center">
-                    <div class="mb-4 h-16 w-16 rounded-2xl bg-amber-100 flex items-center justify-center text-amber-500">
+                    <div class="mb-4 h-16 w-16 rounded-lg bg-amber-100 flex items-center justify-center text-amber-500">
                         <svg class="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                     </div>
                     <h3 class="font-bold text-lg text-slate-700">Định dạng file .{{ $ext }}</h3>
                     <p class="mt-2 text-sm text-slate-500 max-w-sm">Hệ thống chỉ hỗ trợ xem trước và chấm trực tiếp trên file PDF hoặc Ảnh. Vui lòng tải file này về máy để chấm.</p>
-                    <a href="{{ route('teacher.grading.download', $submission) }}" class="mt-4 rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700">
+                    <a href="{{ route('teacher.grading.download', $submission) }}" class="mt-4 rounded-lg bg-[#1e4f8f] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#163c6d]">
                         ⬇ Tải bài về máy
                     </a>
                 </div>
             @else
-                <div id="canvas-wrapper" class="relative shadow-md bg-white transition-all mx-auto" style="width: fit-content;">
+                <div id="canvas-wrapper" class="relative shadow-sm bg-white transition-all mx-auto" style="width: fit-content;">
                     <!-- File URL để JS nạp -->
                     <input type="hidden" id="file-url" value="{{ asset('storage/' . $studentFile) }}">
                     <input type="hidden" id="file-ext" value="{{ $ext }}">
@@ -251,12 +236,12 @@
                 
                 <!-- Viewer cho file tải thêm (other_file) -->
                 @if($submission->other_file_path)
-                <iframe id="other-file-iframe" class="hidden w-full h-full border-0 bg-white shadow-md rounded-lg" data-src="{{ asset('storage/' . $submission->other_file_path) }}"></iframe>
+                <iframe id="other-file-iframe" class="hidden w-full h-full border-0 bg-white shadow-sm rounded-lg" data-src="{{ asset('storage/' . $submission->other_file_path) }}"></iframe>
                 @endif
 
-                <div id="loading-indicator" class="absolute inset-0 flex items-center justify-center bg-white/80 backdrop-blur-sm z-50">
+                <div id="loading-indicator" class="absolute inset-0 flex items-center justify-center bg-slate-50 z-50">
                     <div class="flex flex-col items-center">
-                        <div class="h-8 w-8 animate-spin rounded-full border-4 border-indigo-200 border-t-indigo-600"></div>
+                        <div class="h-8 w-8 animate-spin rounded-full border-4 border-blue-200 border-t-indigo-600"></div>
                         <p class="mt-3 font-medium text-slate-600">Đang tải tài liệu...</p>
                     </div>
                 </div>
@@ -265,10 +250,10 @@
     </div>
 
     <!-- CỘT PHẢI: Form chấm điểm -->
-    <div class="flex flex-col rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+    <div class="flex flex-col rounded-md border border-slate-200 bg-white shadow-sm overflow-hidden">
         <div class="border-b border-slate-100 bg-slate-50 px-5 py-4">
             <h3 class="font-bold text-slate-800 uppercase tracking-wider text-sm flex items-center gap-2">
-                <span class="text-[#ef4444]">🖍</span> NHẬP ĐIỂM & ĐÁNH GIÁ
+                <span class="text-[#ef4444]"></span> NHẬP ĐIỂM & ĐÁNH GIÁ
             </h3>
         </div>
         <div class="flex-1 overflow-auto p-5">
@@ -280,7 +265,7 @@
                 <div>
                     <label class="mb-1 block text-sm font-semibold text-slate-700">Điểm số (tối đa {{ $assignment->max_score }})</label>
                     <input type="number" name="score" value="{{ $submission->score }}" min="0" max="{{ $assignment->max_score }}" step="0.25" required
-                           class="w-full rounded-lg border border-slate-300 px-4 py-2.5 text-lg font-bold text-indigo-700 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500">
+                           class="w-full rounded-lg border border-slate-300 px-4 py-2.5 text-lg font-bold text-[#1e4f8f] outline-none focus:border-[#1e4f8f] focus:ring-1 focus:ring-[#1e4f8f]">
                 </div>
 
                 <div>
@@ -292,7 +277,7 @@
 
                 <div>
                     <label class="mb-1 block text-sm font-semibold text-slate-700">Tải file sửa khác (nếu có)</label>
-                    <input type="file" name="other_file" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-600 outline-none file:mr-4 file:rounded file:border-0 file:bg-indigo-50 file:px-3 file:py-1 file:text-xs file:font-semibold file:text-indigo-600">
+                    <input type="file" name="other_file" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-600 outline-none file:mr-4 file:rounded file:border-0 file:bg-blue-50 file:px-3 file:py-1 file:text-xs file:font-semibold file:text-[#1e4f8f]">
                     @if($submission->other_file_path)
                     <div class="mt-2 text-sm text-slate-600">
                         File hiện tại: <a href="{{ asset('storage/' . $submission->other_file_path) }}" target="_blank" class="text-blue-600 hover:underline break-all">{{ basename($submission->other_file_path) }}</a>
@@ -302,8 +287,8 @@
             </form>
         </div>
         <div class="border-t border-slate-100 bg-slate-50 p-5">
-            <button type="button" onclick="submitGrading()" class="w-full flex items-center justify-center gap-2 rounded-xl bg-[#059669] px-5 py-3 text-sm font-bold text-white shadow-md hover:bg-emerald-700 transition-colors">
-                💾 Lưu điểm & Ghi chú
+            <button type="button" onclick="submitGrading()" class="w-full flex items-center justify-center gap-2 rounded-md bg-[#059669] px-5 py-3 text-sm font-bold text-slate-900 shadow-sm hover:bg-emerald-700 transition-colors">
+                Lưu điểm & Ghi chú
             </button>
         </div>
     </div>
@@ -462,7 +447,7 @@
                     fontFamily: 'Be Vietnam Pro, Arial, sans-serif',
                     fill: color,
                     fontSize: fontSize,
-                    editingBorderColor: '#1558C9',
+                    editingBorderColor: '#1e4f8f',
                     cursorColor: color,
                     selectable: true,
                     evented: true,

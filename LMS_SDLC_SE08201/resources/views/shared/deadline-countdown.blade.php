@@ -39,10 +39,10 @@
             }
             var hours = left / 3600000;
             if (hours < 2) {
-                el.textContent = '🔴 Còn ' + fmt(left);
-                el.classList.add('bg-rose-100', 'text-rose-700', 'animate-pulse');
+                el.textContent = 'Còn ' + fmt(left);
+                el.classList.add('bg-rose-100', 'text-rose-700', '');
             } else if (hours < 24) {
-                el.textContent = '🟠 Còn ' + fmt(left);
+                el.textContent = 'Còn ' + fmt(left);
                 el.classList.add('bg-orange-100', 'text-orange-700');
             } else {
                 el.textContent = '⏰ Còn ' + fmt(left);

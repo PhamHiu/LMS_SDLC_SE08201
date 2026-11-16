@@ -11,19 +11,19 @@
 </div>
 
 {{-- ===== FILTER BAR ===== --}}
-<div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 mb-6 sticky top-0 z-10">
+<div class="bg-white rounded-lg shadow-sm border border-slate-200 p-5 mb-6 sticky top-0 z-10">
     <form id="filterForm" class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
         <div>
             <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Từ ngày</label>
-            <input type="date" name="date_from" class="w-full rounded-xl border-slate-200 focus:border-indigo-500 focus:ring-indigo-500 text-sm">
+            <input type="date" name="date_from" class="w-full rounded-md border-slate-200 focus:border-[#1e4f8f] focus:ring-[#1e4f8f] text-sm">
         </div>
         <div>
             <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Đến ngày</label>
-            <input type="date" name="date_to" class="w-full rounded-xl border-slate-200 focus:border-indigo-500 focus:ring-indigo-500 text-sm">
+            <input type="date" name="date_to" class="w-full rounded-md border-slate-200 focus:border-[#1e4f8f] focus:ring-[#1e4f8f] text-sm">
         </div>
         <div>
             <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Chuyên ngành</label>
-            <select name="major_id" class="w-full rounded-xl border-slate-200 focus:border-indigo-500 focus:ring-indigo-500 text-sm">
+            <select name="major_id" class="w-full rounded-md border-slate-200 focus:border-[#1e4f8f] focus:ring-[#1e4f8f] text-sm">
                 <option value="">-- Tất cả --</option>
                 @foreach ($majors as $m)
                     <option value="{{ $m->major_id }}">{{ $m->major_name }}</option>
@@ -32,7 +32,7 @@
         </div>
         <div>
             <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Môn học</label>
-            <select name="subject_id" class="w-full rounded-xl border-slate-200 focus:border-indigo-500 focus:ring-indigo-500 text-sm">
+            <select name="subject_id" class="w-full rounded-md border-slate-200 focus:border-[#1e4f8f] focus:ring-[#1e4f8f] text-sm">
                 <option value="">-- Tất cả --</option>
                 @foreach ($subjects as $s)
                     <option value="{{ $s->subject_id }}">{{ $s->subject_name }}</option>
@@ -41,7 +41,7 @@
         </div>
         <div>
             <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Lớp học</label>
-            <select name="class_id" class="w-full rounded-xl border-slate-200 focus:border-indigo-500 focus:ring-indigo-500 text-sm">
+            <select name="class_id" class="w-full rounded-md border-slate-200 focus:border-[#1e4f8f] focus:ring-[#1e4f8f] text-sm">
                 <option value="">-- Tất cả --</option>
                 @foreach ($classes as $c)
                     <option value="{{ $c->class_id }}">{{ $c->class_name }}</option>
@@ -50,7 +50,7 @@
         </div>
         <div>
             <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Giảng viên</label>
-            <select name="teacher_id" class="w-full rounded-xl border-slate-200 focus:border-indigo-500 focus:ring-indigo-500 text-sm">
+            <select name="teacher_id" class="w-full rounded-md border-slate-200 focus:border-[#1e4f8f] focus:ring-[#1e4f8f] text-sm">
                 <option value="">-- Tất cả --</option>
                 @foreach ($teachers as $t)
                     <option value="{{ $t->user_id }}">{{ $t->full_name }}</option>
@@ -58,7 +58,7 @@
             </select>
         </div>
         <div class="lg:col-span-2 flex items-end gap-3">
-            <button type="button" onclick="window.location.reload()" class="bg-slate-100 hover:bg-slate-200 text-slate-600 px-5 py-2.5 rounded-xl font-medium transition">
+            <button type="button" onclick="window.location.reload()" class="bg-slate-100 hover:bg-slate-200 text-slate-600 px-5 py-2.5 rounded-md font-medium transition">
                 ↻ Reset
             </button>
         </div>
@@ -66,22 +66,22 @@
 </div>
 
 {{-- ===== TABS ===== --}}
-<div class="mb-6 border-b border-white/10">
+<div class="mb-6 border-b border-slate-200">
     <nav class="-mb-px flex space-x-2 md:space-x-6 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]" aria-label="Tabs" id="analyticsTabs">
-        <button data-tab="grades" class="tab-btn whitespace-nowrap border-b-2 border-[#D4FF24] py-3 md:py-4 px-3 text-xs md:text-sm font-bold text-[#D4FF24] mb-2 md:mb-0 flex items-center gap-2">
-            <svg class="w-4 h-4 text-[#D4FF24] filter drop-shadow-[0_0_6px_rgba(212,255,36,0.8)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+        <button data-tab="grades" class="tab-btn whitespace-nowrap border-b-2 border-[#1e4f8f] py-3 md:py-4 px-3 text-xs md:text-sm font-bold text-[#1e4f8f] mb-2 md:mb-0 flex items-center gap-2">
+            <svg class="w-4 h-4 text-[#1e4f8f] filter" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
             <span>Điểm số</span>
         </button>
-        <button data-tab="attendance" class="tab-btn whitespace-nowrap border-b-2 border-transparent py-3 md:py-4 px-3 text-xs md:text-sm font-medium text-slate-400 hover:border-slate-300 hover:text-white mb-2 md:mb-0 flex items-center gap-2">
-            <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+        <button data-tab="attendance" class="tab-btn whitespace-nowrap border-b-2 border-transparent py-3 md:py-4 px-3 text-xs md:text-sm font-medium text-slate-500 hover:border-slate-300 hover:text-[#163c6d] mb-2 md:mb-0 flex items-center gap-2">
+            <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
             <span>Chuyên cần</span>
         </button>
-        <button data-tab="courses" class="tab-btn whitespace-nowrap border-b-2 border-transparent py-3 md:py-4 px-3 text-xs md:text-sm font-medium text-slate-400 hover:border-slate-300 hover:text-white mb-2 md:mb-0 flex items-center gap-2">
-            <svg class="w-4 h-4 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+        <button data-tab="courses" class="tab-btn whitespace-nowrap border-b-2 border-transparent py-3 md:py-4 px-3 text-xs md:text-sm font-medium text-slate-500 hover:border-slate-300 hover:text-[#163c6d] mb-2 md:mb-0 flex items-center gap-2">
+            <svg class="w-4 h-4 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
             <span>Khóa học</span>
         </button>
-        <button data-tab="users" class="tab-btn whitespace-nowrap border-b-2 border-transparent py-3 md:py-4 px-3 text-xs md:text-sm font-medium text-slate-400 hover:border-slate-300 hover:text-white mb-2 md:mb-0 flex items-center gap-2">
-            <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+        <button data-tab="users" class="tab-btn whitespace-nowrap border-b-2 border-transparent py-3 md:py-4 px-3 text-xs md:text-sm font-medium text-slate-500 hover:border-slate-300 hover:text-[#163c6d] mb-2 md:mb-0 flex items-center gap-2">
+            <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
             <span>Người dùng</span>
         </button>
     </nav>
@@ -90,8 +90,8 @@
 {{-- ===== TAB CONTENT ===== --}}
 <div id="tabContent" class="min-h-[500px] relative">
     {{-- Loader --}}
-    <div id="loader" class="absolute inset-0 bg-white/50 z-10 flex items-center justify-center hidden">
-        <div class="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-indigo-600 border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"></div>
+    <div id="loader" class="absolute inset-0 bg-slate-50 z-10 flex items-center justify-center hidden">
+        <div class="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-[#1e4f8f] border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"></div>
     </div>
     
     {{-- Các partials sẽ được import sẵn và ẩn đi, cập nhật qua JS --}}
@@ -146,11 +146,11 @@ document.addEventListener('DOMContentLoaded', function() {
     tabs.forEach(tab => {
         tab.addEventListener('click', () => {
             tabs.forEach(t => {
-                t.classList.remove('border-[#D4FF24]', 'text-[#D4FF24]', 'font-bold');
-                t.classList.add('border-transparent', 'text-slate-400', 'font-medium');
+                t.classList.remove('border-[#1e4f8f]', 'text-[#1e4f8f]', 'font-bold');
+                t.classList.add('border-transparent', 'text-slate-500', 'font-medium');
             });
-            tab.classList.remove('border-transparent', 'text-slate-400', 'font-medium');
-            tab.classList.add('border-[#D4FF24]', 'text-[#D4FF24]', 'font-bold');
+            tab.classList.remove('border-transparent', 'text-slate-500', 'font-medium');
+            tab.classList.add('border-[#1e4f8f]', 'text-[#1e4f8f]', 'font-bold');
 
             document.querySelectorAll('.tab-pane').forEach(p => p.classList.add('hidden'));
             currentTab = tab.dataset.tab;
@@ -264,7 +264,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 datasets: [{
                     label: 'Số bài',
                     data: Object.values(data.distribution),
-                    backgroundColor: '#6366f1'
+                    backgroundColor: '#1e4f8f'
                 }]
             },
             options: {
@@ -358,7 +358,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 datasets: [{
                     label: 'Tỷ lệ đi học (%)',
                     data: Object.values(data.trend),
-                    borderColor: '#6366f1',
+                    borderColor: '#1e4f8f',
                     tension: 0.3
                 }]
             },
@@ -451,7 +451,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const date = new Date(c.created_at).toLocaleDateString('vi-VN');
 
                 tr.innerHTML = `
-                    <td class="px-4 py-3 font-medium text-indigo-600">#${c.class_id}</td>
+                    <td class="px-4 py-3 font-medium text-[#1e4f8f]">#${c.class_id}</td>
                     <td class="px-4 py-3 font-medium text-slate-700">${c.class_name}</td>
                     <td class="px-4 py-3">${subjectName}</td>
                     <td class="px-4 py-3">${majorName}</td>
@@ -476,7 +476,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 labels: ['Sinh viên', 'Giảng viên', 'Admin'],
                 datasets: [{
                     data: [data.summary.total_students, data.summary.total_teachers, data.summary.total_admins],
-                    backgroundColor: ['#6366f1', '#10b981', '#f43f5e']
+                    backgroundColor: ['#1e4f8f', '#10b981', '#f43f5e']
                 }]
             },
             options: {
@@ -496,7 +496,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 datasets: [{
                     label: 'Số SV',
                     data: Object.values(data.major_chart),
-                    backgroundColor: '#8b5cf6'
+                    backgroundColor: '#1e4f8f'
                 }]
             },
             options: {
@@ -520,7 +520,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const majorName = u.major ? u.major.major_name : 'N/A';
                 
                 let roleHtml = '';
-                if (u.role === 'student') roleHtml = '<span class="px-2.5 py-1 bg-indigo-100 text-indigo-700 rounded-lg text-xs font-bold">Sinh viên</span>';
+                if (u.role === 'student') roleHtml = '<span class="px-2.5 py-1 bg-blue-100 text-[#1e4f8f] rounded-lg text-xs font-bold">Sinh viên</span>';
                 else if (u.role === 'teacher') roleHtml = '<span class="px-2.5 py-1 bg-emerald-100 text-emerald-700 rounded-lg text-xs font-bold">Giảng viên</span>';
                 else if (u.role === 'admin') roleHtml = '<span class="px-2.5 py-1 bg-rose-100 text-rose-700 rounded-lg text-xs font-bold">Admin</span>';
                 else roleHtml = '<span class="px-2.5 py-1 bg-slate-100 text-slate-700 rounded-lg text-xs font-bold">--</span>';

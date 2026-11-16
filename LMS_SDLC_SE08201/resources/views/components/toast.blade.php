@@ -9,11 +9,11 @@
         }
 
         const toast = document.createElement('div');
-        toast.className = 'transform transition-all duration-300 translate-x-full opacity-0 max-w-sm w-auto min-w-[250px] bg-white shadow-xl rounded-xl border-l-4 p-4 pointer-events-auto flex items-center gap-3';
+        toast.className = 'transform transition-all duration-300 translate-x-full opacity-0 max-w-sm w-auto min-w-[250px] bg-white shadow-sm rounded-md border-l-4 p-4 pointer-events-auto flex items-center gap-3';
         
         if (type === 'success') {
             toast.classList.add('border-emerald-500');
-            toast.innerHTML = `<div class="text-xl">✅</div><div class="text-sm font-semibold text-slate-800">${message}</div>`;
+            toast.innerHTML = `<div class="text-xl">✓</div><div class="text-sm font-semibold text-slate-800">${message}</div>`;
         } else {
             toast.classList.add('border-rose-500');
             toast.innerHTML = `<div class="text-xl">⚠️</div><div class="text-sm font-semibold text-slate-800">${message}</div>`;
@@ -39,7 +39,7 @@
         // Xóa thông báo lỗi tĩnh của Laravel nếu có để tránh trùng lặp
         const staticAlerts = document.querySelectorAll('.bg-emerald-50, .bg-rose-50');
         staticAlerts.forEach(alert => {
-            if (alert.textContent.includes('✅') || alert.textContent.includes('⚠️')) {
+            if (alert.textContent.includes('✓') || alert.textContent.includes('⚠️')) {
                 alert.style.display = 'none';
             }
         });

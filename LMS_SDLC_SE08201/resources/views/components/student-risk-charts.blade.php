@@ -1,13 +1,13 @@
 @if(!empty($studentCharts['has_data']))
 <div class="mb-6 grid grid-cols-1 lg:grid-cols-3 gap-5">
     {{-- 1. PIE CHART CÁ NHÂN: CƠ CẤU ĐIỂM DANH & NGUYÊN NHÂN VẮNG --}}
-    <div class="rounded-2xl border border-white/10 bg-[#0a0d17]/85 backdrop-blur-xl p-5 shadow-xl glass-card">
+    <div class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm glass-card">
         <div class="flex items-start justify-between gap-2 mb-3">
             <div>
-                <h3 class="text-sm font-bold !text-white">Cơ cấu Điểm danh & Lý do Vắng</h3>
-                <p class="text-[11px] !text-slate-400 mt-0.5">Đã điểm danh {{ $studentCharts['pie']['total_sessions_marked'] ?? 0 }} buổi (Vắng {{ $studentCharts['pie']['total_absent'] ?? 0 }} buổi)</p>
+                <h3 class="text-sm font-bold !text-slate-900">Cơ cấu Điểm danh & Lý do Vắng</h3>
+                <p class="text-[11px] !text-slate-500 mt-0.5">Đã điểm danh {{ $studentCharts['pie']['total_sessions_marked'] ?? 0 }} buổi (Vắng {{ $studentCharts['pie']['total_absent'] ?? 0 }} buổi)</p>
             </div>
-            <span class="rounded-md bg-rose-500/15 border border-rose-400/30 px-2 py-0.5 text-[10px] font-extrabold text-rose-300">PIE CHART</span>
+            <span class="rounded-md bg-rose-50 border border-rose-200 px-2 py-0.5 text-[10px] font-semibold text-rose-700">PIE CHART</span>
         </div>
         <div class="relative w-full" style="height: 230px;">
             <canvas id="studentDetailPieChart"></canvas>
@@ -15,13 +15,13 @@
     </div>
 
     {{-- 2. LINE CHART CÁ NHÂN: XU HƯỚNG TỶ LỆ VẮNG TÍCH LŨY --}}
-    <div class="rounded-2xl border border-white/10 bg-[#0a0d17]/85 backdrop-blur-xl p-5 shadow-xl glass-card">
+    <div class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm glass-card">
         <div class="flex items-start justify-between gap-2 mb-3">
             <div>
-                <h3 class="text-sm font-bold !text-white">Diễn biến Tỷ lệ Vắng Tích lũy</h3>
-                <p class="text-[11px] !text-slate-400 mt-0.5">Theo dõi đà tăng chuyên cần qua các buổi học gần nhất</p>
+                <h3 class="text-sm font-bold !text-slate-900">Diễn biến Tỷ lệ Vắng Tích lũy</h3>
+                <p class="text-[11px] !text-slate-500 mt-0.5">Theo dõi đà tăng chuyên cần qua các buổi học gần nhất</p>
             </div>
-            <span class="rounded-md bg-[#D4FF24]/15 border border-[#D4FF24]/40 px-2 py-0.5 text-[10px] font-extrabold text-[#D4FF24]">LINE CHART</span>
+            <span class="rounded-md bg-[#1e4f8f]/5 border border-[#1e4f8f]/30 px-2 py-0.5 text-[10px] font-semibold text-[#1e4f8f]">LINE CHART</span>
         </div>
         <div class="relative w-full" style="height: 230px;">
             <canvas id="studentDetailLineChart"></canvas>
@@ -29,13 +29,13 @@
     </div>
 
     {{-- 3. COLUMN CHART CÁ NHÂN: ĐỐI CHIẾU TỪNG MÔN HỌC --}}
-    <div class="rounded-2xl border border-white/10 bg-[#0a0d17]/85 backdrop-blur-xl p-5 shadow-xl glass-card">
+    <div class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm glass-card">
         <div class="flex items-start justify-between gap-2 mb-3">
             <div>
-                <h3 class="text-sm font-bold !text-white">So sánh Vắng (%) & Điểm theo Môn</h3>
-                <p class="text-[11px] !text-slate-400 mt-0.5">Phát hiện môn học sinh viên hay bỏ tiết hoặc nợ bài nhất</p>
+                <h3 class="text-sm font-bold !text-slate-900">So sánh Vắng (%) & Điểm theo Môn</h3>
+                <p class="text-[11px] !text-slate-500 mt-0.5">Phát hiện môn học sinh viên hay bỏ tiết hoặc nợ bài nhất</p>
             </div>
-            <span class="rounded-md bg-sky-500/15 border border-sky-400/30 px-2 py-0.5 text-[10px] font-extrabold text-sky-300">COLUMN CHART</span>
+            <span class="rounded-md bg-sky-50 border border-sky-200 px-2 py-0.5 text-[10px] font-semibold text-sky-700">COLUMN CHART</span>
         </div>
         <div class="relative w-full" style="height: 230px;">
             <canvas id="studentDetailColumnChart"></canvas>
@@ -49,7 +49,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const stData = @json($studentCharts);
     const tipCfg = {
         backgroundColor: '#0f172a',
-        borderColor: 'rgba(212, 255, 36, 0.35)',
+        borderColor: 'rgba(15, 23, 42, 0.15)',
         borderWidth: 1,
         titleColor: '#f8fafc',
         bodyColor: '#e2e8f0',
@@ -66,7 +66,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 datasets: [{
                     data: stData.pie.data,
                     backgroundColor: stData.pie.colors,
-                    borderColor: '#0a0d17',
+                    borderColor: '#ffffff',
                     borderWidth: 2
                 }]
             },
@@ -77,7 +77,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     datalabels: { display: false },
                     legend: {
                         position: 'bottom',
-                        labels: { color: '#cbd5e1', boxWidth: 10, padding: 8, font: { size: 10, weight: '600' } }
+                        labels: { color: '#475569', boxWidth: 10, padding: 8, font: { size: 10, weight: '600' } }
                     },
                     tooltip: tipCfg
                 }
@@ -105,7 +105,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     {
                         label: 'Ngưỡng cấm thi (20%)',
                         data: stData.line.threshold_line,
-                        borderColor: '#D4FF24',
+                        borderColor: '#d97706',
                         borderDash: [5, 5],
                         borderWidth: 1.8,
                         pointRadius: 0,
@@ -121,13 +121,13 @@ document.addEventListener('DOMContentLoaded', function () {
                     datalabels: { display: false },
                     legend: {
                         position: 'top',
-                        labels: { color: '#cbd5e1', boxWidth: 8, font: { size: 10, weight: '600' } }
+                        labels: { color: '#475569', boxWidth: 8, font: { size: 10, weight: '600' } }
                     },
                     tooltip: tipCfg
                 },
                 scales: {
-                    x: { grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 9 }, maxRotation: 35 } },
-                    y: { beginAtZero: true, suggestedMax: 35, grid: { color: 'rgba(255,255,255,0.07)' }, ticks: { color: '#fda4af', callback: v => v + '%' } }
+                    x: { grid: { display: false }, ticks: { color: '#6b7280', font: { size: 9 }, maxRotation: 35 } },
+                    y: { beginAtZero: true, suggestedMax: 35, grid: { color: 'rgba(15, 23, 42, 0.08)' }, ticks: { color: '#fda4af', callback: v => v + '%' } }
                 }
             }
         });
@@ -171,7 +171,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     datalabels: { display: false },
                     legend: {
                         position: 'top',
-                        labels: { color: '#cbd5e1', boxWidth: 8, font: { size: 10, weight: '600' } }
+                        labels: { color: '#475569', boxWidth: 8, font: { size: 10, weight: '600' } }
                     },
                     tooltip: {
                         ...tipCfg,
@@ -186,8 +186,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                 },
                 scales: {
-                    x: { grid: { display: false }, ticks: { color: '#cbd5e1', font: { size: 9 }, maxRotation: 30 } },
-                    y: { beginAtZero: true, max: 100, grid: { color: 'rgba(255,255,255,0.07)' }, ticks: { color: '#cbd5e1', callback: v => v + '%' } }
+                    x: { grid: { display: false }, ticks: { color: '#475569', font: { size: 9 }, maxRotation: 30 } },
+                    y: { beginAtZero: true, max: 100, grid: { color: 'rgba(15, 23, 42, 0.08)' }, ticks: { color: '#475569', callback: v => v + '%' } }
                 }
             }
         });

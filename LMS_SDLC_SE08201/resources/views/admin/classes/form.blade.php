@@ -3,7 +3,7 @@
 @section('title', $class ? 'Sửa lớp học' : 'Tạo lớp học')
 
 @section('content')
-<div class="w-full rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+<div class="w-full rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
     <h2 class="mb-1 text-base font-bold text-slate-800">{{ $class ? 'Cập nhật: '.$class->class_name : 'Tạo lớp học mới' }}</h2>
     @unless ($class)
         <p class="mb-5 text-sm text-slate-500">Thiết lập thông tin và thời khóa biểu để hệ thống tự động sinh buổi học.</p>
@@ -29,7 +29,7 @@
             <div>
                 <label class="block text-sm font-medium text-slate-700 mb-1">Tên lớp *</label>
                 <input type="text" name="class_name" value="{{ old('class_name', $class?->class_name) }}" required
-                       class="w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm focus:border-indigo-500 outline-none">
+                       class="w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm focus:border-[#1e4f8f] outline-none">
             </div>
 
             <div>
@@ -93,12 +93,12 @@
                 <div>
                     <label class="block text-sm font-medium text-slate-700 mb-1">Ngày bắt đầu *</label>
                     <input type="date" name="start_date" id="start_date" value="{{ old('start_date') }}" required
-                           class="w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm focus:border-indigo-500 outline-none">
+                           class="w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm focus:border-[#1e4f8f] outline-none">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-slate-700 mb-1">Số buổi học *</label>
                     <input type="number" name="total_sessions" id="total_sessions" value="{{ old('total_sessions', 12) }}" min="1" max="60" required
-                           class="w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm focus:border-indigo-500 outline-none">
+                           class="w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm focus:border-[#1e4f8f] outline-none">
                 </div>
             </div>
 
@@ -109,7 +109,7 @@
                 </div>
                 <div class="text-right">
                     <span class="text-sm text-slate-600">Ngày kết thúc dự kiến: </span>
-                    <span id="end_date_display" class="font-semibold text-indigo-600">...</span>
+                    <span id="end_date_display" class="font-semibold text-[#1e4f8f]">...</span>
                 </div>
             </div>
 
@@ -137,11 +137,11 @@
                                 @for ($day = 1; $day <= 7; $day++)
                                     <td class="border-b border-r border-slate-200 p-1 last:border-r-0 relative group">
                                         <button type="button" 
-                                            class="tkb-cell w-full h-16 rounded flex flex-col items-center justify-center border border-dashed border-slate-300 bg-slate-50 hover:border-indigo-400 hover:bg-indigo-50 transition-colors disabled:cursor-not-allowed disabled:opacity-75 disabled:hover:border-slate-300 disabled:hover:bg-slate-50"
+                                            class="tkb-cell w-full h-16 rounded flex flex-col items-center justify-center border border-dashed border-slate-300 bg-slate-50 hover:border-blue-400 hover:bg-blue-50 transition-colors disabled:cursor-not-allowed disabled:opacity-75 disabled:hover:border-slate-300 disabled:hover:bg-slate-50"
                                             data-day="{{ $day }}" 
                                             data-slot-id="{{ $slot->slot_id }}"
                                             title="Ca {{ $slot->slot_number }} - Thứ {{ $day === 7 ? 'Chủ nhật' : $day + 1 }}">
-                                            <span class="text-xs text-slate-400 font-medium group-hover:text-indigo-500 pointer-events-none cell-text">+ Chọn</span>
+                                            <span class="text-xs text-slate-500 font-medium group-hover:text-[#163c6d] pointer-events-none cell-text">+ Chọn</span>
                                         </button>
                                     </td>
                                 @endfor
@@ -154,12 +154,12 @@
             <div class="mt-3 flex items-center justify-between text-xs">
                 <div class="flex gap-4">
                     <div class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-slate-50 border border-slate-300 border-dashed"></span> Trống</div>
-                    <div class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-indigo-500 border border-indigo-600"></span> Đã chọn</div>
+                    <div class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-[#1e4f8f] border border-[#1e4f8f]"></span> Đã chọn</div>
                     <div class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-rose-100 border border-rose-300"></span> Xung đột</div>
                     <div class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-slate-200 border border-slate-300"></span> Đã có lớp khác</div>
                 </div>
                 <div class="font-medium text-slate-700" id="selection_counter">
-                    Đã chọn: <span class="text-indigo-600 font-bold" id="selected_count">0</span> ca/tuần
+                    Đã chọn: <span class="text-[#1e4f8f] font-bold" id="selected_count">0</span> ca/tuần
                 </div>
             </div>
 
@@ -169,7 +169,7 @@
         @endunless
 
         <div class="flex gap-3 pt-4 border-t border-slate-100">
-            <button type="submit" id="submit_btn" class="rounded-lg bg-indigo-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors">
+            <button type="submit" id="submit_btn" class="rounded-lg bg-[#1e4f8f] px-6 py-2.5 text-sm font-semibold text-white hover:bg-[#163c6d] transition-colors">
                 {{ $class ? 'Lưu thay đổi' : 'Tạo lớp học' }}
             </button>
             <a href="{{ route('admin.classes.index') }}" class="rounded-lg bg-slate-100 px-6 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-200 transition-colors">Hủy</a>
@@ -275,12 +275,12 @@
         
         function renderTimetable() {
             tkbCells.forEach(cell => {
-                cell.classList.remove('bg-indigo-500', 'border-indigo-600', 'bg-rose-100', 'border-rose-300', 'bg-slate-200', 'border-slate-300');
+                cell.classList.remove('bg-[#1e4f8f]', 'border-[#1e4f8f]', 'bg-rose-100', 'border-rose-300', 'bg-slate-200', 'border-slate-300');
                 cell.classList.add('bg-slate-50', 'border-slate-300');
                 cell.title = '';
                 cell.querySelector('.cell-text').textContent = '+ Chọn';
-                cell.querySelector('.cell-text').classList.replace('text-white', 'text-slate-400');
-                cell.querySelector('.cell-text').classList.replace('text-rose-700', 'text-slate-400');
+                cell.querySelector('.cell-text').classList.replace('text-slate-900', 'text-slate-500');
+                cell.querySelector('.cell-text').classList.replace('text-rose-700', 'text-slate-500');
                 cell.dataset.status = 'empty';
                 
                 const day = parseInt(cell.dataset.day);
@@ -299,13 +299,13 @@
                     if (cell.dataset.status === 'occupied') {
                         cell.classList.replace('bg-slate-200', 'bg-rose-100');
                         cell.classList.replace('border-slate-300', 'border-rose-300');
-                        cell.querySelector('.cell-text').classList.replace('text-slate-400', 'text-rose-700');
+                        cell.querySelector('.cell-text').classList.replace('text-slate-500', 'text-rose-700');
                         cell.dataset.status = 'conflict';
                         cell.title = 'Xung đột: ' + cell.title;
                     } else {
-                        cell.classList.replace('bg-slate-50', 'bg-indigo-500');
-                        cell.classList.replace('border-slate-300', 'border-indigo-600');
-                        cell.querySelector('.cell-text').classList.replace('text-slate-400', 'text-white');
+                        cell.classList.replace('bg-slate-50', 'bg-[#1e4f8f]');
+                        cell.classList.replace('border-slate-300', 'border-[#1e4f8f]');
+                        cell.querySelector('.cell-text').classList.replace('text-slate-500', 'text-slate-900');
                         cell.querySelector('.cell-text').textContent = 'Đã chọn';
                         cell.dataset.status = 'selected';
                     }
