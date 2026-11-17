@@ -24,19 +24,32 @@ class AssignmentService
     }
 
     /**
-     * Toàn bộ bài tập của các lớp giảng viên phụ trách.
+     * Toàn bộ bài tập của các lớp giảng viên phụ trách (hỗ trợ lọc theo môn, lớp và tìm kiếm).
      */
-    public function listFor(User $teacher)
+    public function listFor(User $teacher, ?int $classId = null, ?int $subjectId = null, ?string $search = null)
     {
-        $classIds = $teacher->email === 'teacher@lms.vn'
-            ? ClassRoom::query()->pluck('class_id')
-            : $teacher->teachingClasses()->pluck('class_id');
+        $classIdsQuery = ($teacher->email === 'teacher@lms.vn' || $teacher->role === User::ROLE_ADMIN)
+            ? ClassRoom::query()
+            : $teacher->teachingClasses();
 
-        return Assignment::with('classRoom.subject')
+        if ($classId) {
+            $classIdsQuery->where('class_id', $classId);
+        }
+        if ($subjectId) {
+            $classIdsQuery->where('subject_id', $subjectId);
+        }
+
+        $classIds = $classIdsQuery->pluck('class_id');
+
+        $query = Assignment::with(['classRoom.subject', 'classRoom.students'])
             ->withCount(['submissions', 'questions'])
-            ->whereIn('class_id', $classIds)
-            ->orderByDesc('assignment_id')
-            ->paginate(10);
+            ->whereIn('class_id', $classIds);
+
+        if ($search) {
+            $query->where('title', 'like', "%{$search}%");
+        }
+
+        return $query->orderByDesc('assignment_id')->paginate(10)->withQueryString();
     }
 
     /**
@@ -65,20 +78,29 @@ class AssignmentService
 
             if ($data['type'] === Assignment::TYPE_QUIZ) {
                 foreach ($data['questions'] as $q) {
-                    Question::create([
-                        'assignment_id' => $assignment->assignment_id,
-                        'content' => $q['content'],
-                        'option_a' => $q['option_a'],
-                        'option_b' => $q['option_b'],
-                        'option_c' => $q['option_c'],
-                        'option_d' => $q['option_d'],
-                        'correct_answer' => $q['correct_answer'],
-                    ]);
+                    Question::create($this->normalizeQuestionData($assignment, $q));
                 }
             }
 
             return $assignment;
         });
+    }
+
+    /** Chuẩn hóa dữ liệu một câu hỏi (an toàn cho mọi dạng bài) trước khi lưu. */
+    private function normalizeQuestionData(Assignment $assignment, array $q): array
+    {
+        return [
+            'assignment_id' => $assignment->assignment_id,
+            'content' => $q['content'],
+            'question_type' => $q['question_type'] ?? 'mcq',
+            'option_a' => $q['option_a'] ?? null,
+            'option_b' => $q['option_b'] ?? null,
+            'option_c' => $q['option_c'] ?? null,
+            'option_d' => $q['option_d'] ?? null,
+            'correct_answer' => $q['correct_answer'] ?? null,
+            'correct_text' => $q['correct_text'] ?? null,
+            'explanation' => $q['explanation'] ?? null,
+        ];
     }
 
     // ( Đăng sửa ) Thêm hàm update để xử lý lưu thay đổi và thay thế file cũ nếu có
@@ -110,15 +132,7 @@ class AssignmentService
                 
                 // Tạo câu hỏi mới
                 foreach ($data['questions'] as $q) {
-                    Question::create([
-                        'assignment_id' => $assignment->assignment_id,
-                        'content' => $q['content'],
-                        'option_a' => $q['option_a'],
-                        'option_b' => $q['option_b'],
-                        'option_c' => $q['option_c'],
-                        'option_d' => $q['option_d'],
-                        'correct_answer' => $q['correct_answer'],
-                    ]);
+                    Question::create($this->normalizeQuestionData($assignment, $q));
                 }
             }
 

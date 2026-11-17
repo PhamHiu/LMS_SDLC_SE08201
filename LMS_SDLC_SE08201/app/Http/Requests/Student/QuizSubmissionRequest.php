@@ -14,16 +14,18 @@ class QuizSubmissionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'answers' => ['required', 'array', 'min:1'],
+            'answers' => ['nullable', 'array'],
             'answers.*' => ['nullable', 'in:A,B,C,D'],
+            'answer_text' => ['nullable', 'array'],
+            'answer_text.*' => ['nullable', 'string', 'max:500'],
         ];
     }
 
     public function messages(): array
     {
         return [
-            'answers.required' => 'Bạn chưa trả lời câu hỏi nào.',
             'answers.*.in' => 'Đáp án không hợp lệ.',
+            'answer_text.*.max' => 'Câu trả lời quá dài (tối đa 500 ký tự).',
         ];
     }
 }

@@ -373,19 +373,33 @@
                     <span class="transition duration-200">→</span>
                 </a>
             </div>
-            <ul class="divide-y divide-slate-200 max-h-56 overflow-y-auto pr-1">
+            <ul class="divide-y divide-slate-100 max-h-56 overflow-y-auto pr-1">
                 @forelse ($notifications as $n)
-                    <li class="px-6 py-3.5 hover:bg-slate-100 transition-all duration-200 cursor-pointer"
-                        onclick="window.location='{{ route('student.notifications.index') }}'">
-                        <p class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
-                            <span>{{ $n->title }}</span>
-                            @if ($n->isSystemWide())
-                                <span class="ml-1 rounded-md bg-blue-50 border border-blue-200 px-2 py-0.5 text-[10px] font-semibold text-blue-700">Toàn trường</span>
+                    @php
+                        $isRead = $n->isReadBy(auth()->user());
+                    @endphp
+                    <li class="px-6 py-3.5 transition-all duration-200 cursor-pointer {{ $isRead ? 'bg-sky-50/70 hover:bg-sky-100/70' : 'bg-white hover:bg-slate-50 font-semibold' }}"
+                        onclick="window.location='{{ route('student.notifications.read', $n) }}'"
+                        title="{{ $n->assignment_id ? 'Bấm để vào bài tập nộp bài' : 'Bấm để xem chi tiết' }}">
+                        <div class="flex items-center justify-between gap-2">
+                            <p class="text-sm {{ $isRead ? 'text-slate-700 font-medium' : 'text-slate-900 font-bold' }} flex items-center gap-1.5 truncate">
+                                <span class="truncate">{{ $n->title }}</span>
+                                @if ($n->isSystemWide())
+                                    <span class="ml-1 shrink-0 rounded-md bg-blue-50 border border-blue-200 px-2 py-0.5 text-[10px] font-semibold text-blue-700">Toàn trường</span>
+                                @else
+                                    <span class="ml-1 shrink-0 rounded-md bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">{{ $n->classRoom?->class_name }}</span>
+                                @endif
+                            </p>
+                            @if ($isRead)
+                                <span class="shrink-0 text-[10px] font-bold text-sky-600 bg-sky-100/80 px-1.5 py-0.2 rounded">Đã đọc</span>
                             @else
-                                <span class="ml-1 rounded-md bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">{{ $n->classRoom?->class_name }}</span>
+                                <span class="shrink-0 text-[10px] font-bold text-rose-600 bg-rose-50 px-1.5 py-0.2 rounded border border-rose-200">Mới</span>
                             @endif
-                        </p>
-                        <p class="text-xs text-slate-500 mt-1">{{ $n->author?->full_name }} · {{ $n->created_at?->diffForHumans() }}</p>
+                        </div>
+                        <div class="flex items-center justify-between mt-1 text-xs text-slate-500">
+                            <span>{{ $n->author?->full_name }} · {{ $n->created_at?->diffForHumans() }}</span>
+                            <span class="text-[#1e4f8f] font-semibold text-[11px]">Xem ngay →</span>
+                        </div>
                     </li>
                 @empty
                     <li class="px-6 py-6 text-center text-sm text-slate-500">Không có thông báo mới.</li>

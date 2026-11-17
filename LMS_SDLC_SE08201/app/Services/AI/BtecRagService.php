@@ -2,11 +2,14 @@
 
 namespace App\Services\AI;
 
+use App\Models\BtecKbEmbedding;
 use App\Models\User;
 
 /**
  * BTEC FPT RAG SERVICE
  * Quản lý kho tri thức (Knowledge Base) và thuật ngữ quy chế BTEC FPT + Hướng dẫn ứng dụng Smart LMS.
+ * Truy xuất đoạn tri thức bằng embedding vector (cosine) khi đã đánh chỉ mục,
+ * tự động fallback sang khớp từ khóa nếu chưa có chỉ mục hoặc không gọi được API.
  */
 class BtecRagService
 {
@@ -16,8 +19,12 @@ class BtecRagService
     private array $faqs = [];
     private array $appFeatures = [];
 
-    public function __construct()
-    {
+    /** Cách truy xuất dùng ở lần search gần nhất: VECTOR_HYBRID hoặc LEXICAL. */
+    private string $lastRetrievalMethod = 'LEXICAL';
+
+    public function __construct(
+        private readonly ?GeminiEmbeddingService $embeddingService = null
+    ) {
         $this->loadKnowledgeBase();
         $this->initAppFeatures();
     }
@@ -250,37 +257,8 @@ class BtecRagService
         }
         usort($matchedAppFeatures, fn ($a, $b) => $b['score'] <=> $a['score']);
 
-        // 2. Tìm trong Knowledge Chunks
-        $matchedChunks = [];
-        foreach ($this->chunks as $c) {
-            $score = 0;
-            $text = mb_strtolower($c['title'] . ' ' . $c['text']);
-
-            // Trùng cụm từ nguyên vẹn
-            if (str_contains($text, $cleanQuery)) {
-                $score += 40;
-            }
-
-            // Trùng từng từ khóa
-            foreach ($terms as $term) {
-                if (mb_strlen($term) >= 2 && str_contains($text, $term)) {
-                    $score += 5;
-                }
-            }
-
-            // Boost theo intent
-            if ($intent === 'REGULATION_QUESTION' && in_array($c['topic_id'], ['T07', 'T08', 'T13', 'T14'])) $score += 20;
-            if ($intent === 'FINANCIAL_SUPPORT' && in_array($c['topic_id'], ['T05', 'T06'])) $score += 20;
-            if ($intent === 'ACADEMIC_SUPPORT' && in_array($c['topic_id'], ['T09', 'T10', 'T11', 'T12'])) $score += 20;
-            if ($intent === 'ADMISSION_SUPPORT' && in_array($c['topic_id'], ['T03', 'T04'])) $score += 20;
-            if ($intent === 'STUDENT_SERVICE' && in_array($c['topic_id'], ['T02', 'T16', 'T17'])) $score += 20;
-
-            if ($score > 0) {
-                $matchedChunks[] = ['chunk' => $c, 'score' => $score];
-            }
-        }
-        usort($matchedChunks, fn ($a, $b) => $b['score'] <=> $a['score']);
-        $topChunks = array_slice(array_column($matchedChunks, 'chunk'), 0, 4);
+        // 2. Truy xuất Knowledge Chunks: ưu tiên embedding vector (cosine), fallback từ khóa
+        $topChunks = $this->retrieveChunks($query, $cleanQuery, $intent, $terms);
 
         // 3. Tìm trong Procedures
         $matchedProcedures = [];
@@ -330,6 +308,7 @@ class BtecRagService
 
         return [
             'intent' => $intent,
+            'retrieval_method' => $this->lastRetrievalMethod,
             'top_chunks' => $topChunks,
             'top_procedures' => $topProcedures,
             'top_app_feature' => !empty($matchedAppFeatures) ? $matchedAppFeatures[0]['feature'] : null,
@@ -337,6 +316,102 @@ class BtecRagService
             'actions' => $actions,
             'needs_escalation' => in_array($intent, ['HUMAN_SUPPORT']) || str_contains($cleanQuery, 'khiếu nại') || str_contains($cleanQuery, 'phúc tra'),
         ];
+    }
+
+    /**
+     * Truy xuất top-k đoạn tri thức liên quan nhất.
+     * Chiến lược hybrid: nếu đã có chỉ mục embedding và gọi được Gemini Embedding,
+     * xếp hạng theo độ tương đồng cosine (cộng điểm từ khóa nhẹ + boost theo intent);
+     * ngược lại dùng hoàn toàn khớp từ khóa như trước (fallback an toàn).
+     */
+    private function retrieveChunks(string $rawQuery, string $cleanQuery, string $intent, array $terms): array
+    {
+        // 2a. Điểm từ khóa (lexical) — luôn tính, làm nền.
+        $byId = [];
+        $lexical = [];
+        foreach ($this->chunks as $c) {
+            $id = $c['chunk_id'] ?? null;
+            if ($id === null) {
+                continue;
+            }
+            $byId[$id] = $c;
+
+            $score = 0;
+            $text = mb_strtolower(($c['title'] ?? '') . ' ' . ($c['text'] ?? ''));
+            if ($cleanQuery !== '' && str_contains($text, $cleanQuery)) {
+                $score += 40;
+            }
+            foreach ($terms as $term) {
+                if (mb_strlen($term) >= 2 && str_contains($text, $term)) {
+                    $score += 5;
+                }
+            }
+            $score += $this->intentBoost($intent, (string) ($c['topic_id'] ?? ''));
+            $lexical[$id] = $score;
+        }
+
+        // 2b. Thử xếp hạng bằng embedding vector (cosine).
+        $vecSim = [];
+        $useVector = false;
+        $queryVector = $this->embeddingService?->isConfigured()
+            ? $this->embeddingService->embed($rawQuery, 'RETRIEVAL_QUERY')
+            : null;
+
+        if ($queryVector !== null) {
+            try {
+                $rows = BtecKbEmbedding::all(['chunk_id', 'embedding']);
+                if ($rows->isNotEmpty()) {
+                    foreach ($rows as $row) {
+                        $vecSim[$row->chunk_id] = GeminiEmbeddingService::cosineSimilarity($queryVector, $row->vector());
+                    }
+                    $useVector = true;
+                }
+            } catch (\Throwable $e) {
+                $useVector = false; // bảng chưa migrate hoặc lỗi DB -> fallback từ khóa
+            }
+        }
+
+        $this->lastRetrievalMethod = $useVector ? 'VECTOR_HYBRID' : 'LEXICAL';
+
+        // 2c. Tổng hợp điểm và chọn top 4.
+        $combined = [];
+        foreach ($byId as $id => $chunk) {
+            $kw = (float) ($lexical[$id] ?? 0);
+            if ($useVector && isset($vecSim[$id])) {
+                // Vector là chính (cosine [0..1] * 100), từ khóa + intent là phụ.
+                $combined[$id] = 100.0 * max(0.0, $vecSim[$id]) + 0.5 * $kw;
+            } else {
+                $combined[$id] = $kw;
+            }
+        }
+        arsort($combined);
+
+        $topChunks = [];
+        foreach (array_keys($combined) as $id) {
+            if ($combined[$id] <= 0.0) {
+                continue;
+            }
+            $topChunks[] = $byId[$id];
+            if (count($topChunks) >= 4) {
+                break;
+            }
+        }
+
+        return $topChunks;
+    }
+
+    /** Điểm cộng khi topic của chunk khớp với intent của câu hỏi. */
+    private function intentBoost(string $intent, string $topicId): int
+    {
+        $map = [
+            'REGULATION_QUESTION' => ['T07', 'T08', 'T13', 'T14'],
+            'FINANCIAL_SUPPORT' => ['T05', 'T06'],
+            'ACADEMIC_SUPPORT' => ['T09', 'T10', 'T11', 'T12'],
+            'ADMISSION_SUPPORT' => ['T03', 'T04'],
+            'STUDENT_SERVICE' => ['T02', 'T16', 'T17'],
+        ];
+
+        return isset($map[$intent]) && in_array($topicId, $map[$intent], true) ? 20 : 0;
     }
 }
 

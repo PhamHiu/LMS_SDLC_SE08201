@@ -1,0 +1,69 @@
+{
+  "version": "1.0.0-BestCoder2026",
+  "trained_at": "2026-11-16T21:46:11.611061Z",
+  "selected_model": "RandomForestClassifier",
+  "requires_scaler": false,
+  "feature_columns": [
+    "gpa",
+    "passed_subjects",
+    "failed_subjects",
+    "retake_count",
+    "attendance_fail_count",
+    "max_absence_rate",
+    "overall_absence_rate",
+    "grade_trend",
+    "overdue_assignments"
+  ],
+  "metrics_baseline": {
+    "model_name": "Logistic Regression (Baseline)",
+    "accuracy": 0.9033333333333333,
+    "precision": 0.7142857142857143,
+    "recall": 0.9230769230769231,
+    "f1_score": 0.8053691275167785,
+    "roc_auc": 0.965302782324059,
+    "confusion_matrix": [
+      [
+        211,
+        24
+      ],
+      [
+        5,
+        60
+      ]
+    ]
+  },
+  "metrics_selected": {
+    "model_name": "Random Forest Classifier (Candidate)",
+    "accuracy": 0.9166666666666666,
+    "precision": 0.75,
+    "recall": 0.9230769230769231,
+    "f1_score": 0.8275862068965517,
+    "roc_auc": 0.9586906710310966,
+    "confusion_matrix": [
+      [
+        215,
+        20
+      ],
+      [
+        5,
+        60
+      ]
+    ],
+    "feature_importances": {
+      "gpa": 0.261962711420255,
+      "passed_subjects": 0.05367802046177452,
+      "failed_subjects": 0.09594868591166675,
+      "retake_count": 0.047575223268079496,
+      "attendance_fail_count": 0.09046592372460208,
+      "max_absence_rate": 0.12413994150876417,
+      "overall_absence_rate": 0.15928115325402786,
+      "grade_trend": 0.040017238276977014,
+      "overdue_assignments": 0.12693110217385317
+    }
+  },
+  "dataset_info": {
+    "total_samples": 1500,
+    "positive_dropout_rate": 0.218,
+    "data_type": "Synthetic Benchmark Educational Dataset (Section 10.3)"
+  }
+}

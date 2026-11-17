@@ -29,6 +29,52 @@
         </div>
     </div>
 
+    {{-- PHƯƠNG PHÁP TÍNH TOÁN & CƠ SỞ KHOA HỌC (RESEARCH METHODOLOGY CARD) --}}
+    <div class="rounded-lg border border-slate-200 bg-slate-50/70 p-4 shadow-sm text-xs text-slate-700">
+        <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3 pb-2.5 border-b border-slate-200/80">
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center justify-center w-6 h-6 rounded-md bg-[#1e4f8f] text-white font-bold text-[11px]">AI</span>
+                <span class="font-bold text-slate-900 text-sm">Mô hình Trọng số Dự báo Nguy cơ Sư phạm (Tham khảo OECD, UNICEF, VLUTE 2024, PROTEUS 2025)</span>
+            </div>
+            <div class="flex items-center gap-2 font-mono text-[11px] bg-white px-2.5 py-1 rounded border border-slate-200 text-slate-800">
+                <span>RiskScore = 100 × (0.40·A + 0.35·G + 0.25·R)</span>
+            </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mt-3">
+            <div class="bg-white p-2.5 rounded border border-slate-200">
+                <div class="font-bold text-rose-700 flex items-center justify-between">
+                    <span>1. Chuyên cần (A)</span>
+                    <span class="bg-rose-50 text-rose-700 px-1.5 py-0.5 rounded text-[10px]">Trọng số 40%</span>
+                </div>
+                <p class="text-[11px] text-slate-500 mt-1">Dấu hiệu hành vi theo dõi sớm. Ngưỡng cấm thi đào tạo: vắng &gt; 20% buổi học.</p>
+            </div>
+            <div class="bg-white p-2.5 rounded border border-slate-200">
+                <div class="font-bold text-amber-700 flex items-center justify-between">
+                    <span>2. Học lực GPA (G)</span>
+                    <span class="bg-amber-50 text-amber-700 px-1.5 py-0.5 rounded text-[10px]">Trọng số 35%</span>
+                </div>
+                <p class="text-[11px] text-slate-500 mt-1">Mức độ tiếp thu bài học. Chuẩn hóa: GPA &ge; 7.0 (An toàn), GPA &le; 4.0 (Nguy cơ).</p>
+            </div>
+            <div class="bg-white p-2.5 rounded border border-slate-200">
+                <div class="font-bold text-purple-700 flex items-center justify-between">
+                    <span>3. Nợ môn / Học lại (R)</span>
+                    <span class="bg-purple-50 text-purple-700 px-1.5 py-0.5 rounded text-[10px]">Trọng số 25%</span>
+                </div>
+                <p class="text-[11px] text-slate-500 mt-1">Khó khăn học tập tích lũy. Tỷ lệ môn trượt điểm/vắng và số môn phải đăng ký lại.</p>
+            </div>
+            <div class="bg-white p-2.5 rounded border border-slate-200">
+                <div class="font-bold text-emerald-700 flex items-center justify-between">
+                    <span>4. Bậc cảnh báo vận hành</span>
+                    <span class="bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded text-[10px]">4 Mức chuẩn</span>
+                </div>
+                <p class="text-[11px] text-slate-500 mt-1">0–24: An toàn | 25–49: Cần theo dõi | 50–74: Nguy cơ cao | 75–100: Rất cao.</p>
+            </div>
+        </div>
+        <p class="mt-2.5 text-[11px] text-slate-500 italic">
+            * Lưu ý phương pháp: Điểm nguy cơ là công cụ phân loại mức độ ưu tiên hỗ trợ học vụ, không đồng nhất với xác suất bỏ học thực tế. Tầng 1 nhận diện sớm từ dữ liệu LMS; Tầng 2 xác minh hoàn cảnh cụ thể (tài chính, đi làm, tâm lý) để hỗ trợ đúng nguyên nhân.
+        </p>
+    </div>
+
     {{-- ==================== HÀNG 1: 2 BIỂU ĐỒ TRÒN (PIE CHARTS) ==================== --}}
     <div class="grid grid-cols-1 xl:grid-cols-12 gap-6">
         {{-- PIE CHART 1: NGUYÊN NHÂN HỌC SINH NGHỈ HỌC (7 CỘT) --}}

@@ -69,10 +69,14 @@ class AttendanceController extends Controller
                 ->get();
         }
 
+        $realtimeService = app(\App\Services\Attendance\RealtimeScheduleService::class);
+        $realtimeInfo = $realtimeService->getCurrentTimeInfo();
+
         return view('teacher.attendance.index', [
             'classes' => $classes,
             'selectedClass' => $selectedClass,
             'sessions' => $sessions,
+            'realtimeInfo' => $realtimeInfo,
         ]);
     }
 
@@ -80,13 +84,13 @@ class AttendanceController extends Controller
     public function edit(Request $request, ClassRoom $class, ClassSession $session): View
     {
         $teacher = $request->user() ?? Auth::user();
-        if ($teacher) {
+        if ($teacher && ! $teacher->isAdmin()) {
             $this->classService->authorizeClass($teacher, $class);
         }
         abort_if($session->class_id !== $class->class_id, 404);
 
         $session->load(['slot', 'room']);
-        $sheetData = $this->attendanceService->getSheet($class, $session);
+        $sheetData = $this->attendanceService->getSheet($class, $session, $teacher);
 
         return view('teacher.attendance.edit', array_merge(
             ['class' => $class, 'session' => $session],
@@ -98,12 +102,12 @@ class AttendanceController extends Controller
     public function update(AttendanceRequest $request, ClassRoom $class, ClassSession $session): RedirectResponse
     {
         $teacher = $request->user() ?? Auth::user();
-        if ($teacher) {
+        if ($teacher && ! $teacher->isAdmin()) {
             $this->classService->authorizeClass($teacher, $class);
         }
         abort_if($session->class_id !== $class->class_id, 404);
 
-        $this->attendanceService->save($session, $request->validated('attendances'));
+        $this->attendanceService->save($session, $request->validated('attendances'), $teacher);
 
         return redirect()
             ->route('teacher.attendance.index', ['class_id' => $class->class_id])

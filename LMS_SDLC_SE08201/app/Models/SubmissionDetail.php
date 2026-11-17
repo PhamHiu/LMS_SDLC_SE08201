@@ -10,7 +10,7 @@ class SubmissionDetail extends Model
     protected $primaryKey = 'detail_id';
     public $timestamps = false;
 
-    protected $fillable = ['submission_id', 'question_id', 'selected_option'];
+    protected $fillable = ['submission_id', 'question_id', 'selected_option', 'answer_text'];
 
     public function submission()
     {
@@ -24,6 +24,7 @@ class SubmissionDetail extends Model
 
     public function isCorrect(): bool
     {
-        return $this->question && $this->selected_option === $this->question->correct_answer;
+        return $this->question
+            && $this->question->isAnswerCorrect($this->selected_option, $this->answer_text);
     }
 }

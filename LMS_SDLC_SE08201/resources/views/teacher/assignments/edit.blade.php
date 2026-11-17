@@ -41,8 +41,26 @@
 
             <div>
                 <label class="block text-sm font-medium text-slate-700 mb-1">Hạn nộp *</label>
-                <input type="datetime-local" name="due_date" value="{{ old('due_date', $assignment->due_date->format('Y-m-d\TH:i')) }}" required
+                <input type="datetime-local" id="edit_due_date_input" name="due_date" value="{{ old('due_date', $assignment->due_date ? $assignment->due_date->format('Y-m-d\TH:i') : '') }}" required
                        class="w-full rounded-lg border @error('due_date') border-red-500 @else border-slate-300 @enderror px-4 py-2.5 text-sm focus:border-[#1e4f8f] outline-none">
+                
+                <!-- Phím tắt gia hạn nhanh -->
+                <div class="mt-2 flex flex-wrap items-center gap-1.5 text-xs text-slate-600">
+                    <span class="text-[11px] text-slate-400">Gia hạn nhanh:</span>
+                    <button type="button" onclick="addDaysToDueDate(1)" class="rounded border border-slate-200 bg-slate-50 hover:bg-slate-100 hover:text-[#1e4f8f] px-2 py-0.5 text-[11px] font-medium transition">
+                        +1 Ngày
+                    </button>
+                    <button type="button" onclick="addDaysToDueDate(3)" class="rounded border border-slate-200 bg-slate-50 hover:bg-slate-100 hover:text-[#1e4f8f] px-2 py-0.5 text-[11px] font-medium transition">
+                        +3 Ngày
+                    </button>
+                    <button type="button" onclick="addDaysToDueDate(7)" class="rounded border border-slate-200 bg-slate-50 hover:bg-slate-100 hover:text-[#1e4f8f] px-2 py-0.5 text-[11px] font-medium transition">
+                        +1 Tuần
+                    </button>
+                    <button type="button" onclick="setSundayDueDate()" class="rounded border border-slate-200 bg-slate-50 hover:bg-slate-100 hover:text-[#1e4f8f] px-2 py-0.5 text-[11px] font-medium transition">
+                        Chủ Nhật (23:59)
+                    </button>
+                </div>
+
                 @error('due_date')
                     <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
                 @enderror
@@ -109,13 +127,25 @@
                         $optC = is_array($q) ? ($q['option_c'] ?? '') : $q->option_c;
                         $optD = is_array($q) ? ($q['option_d'] ?? '') : $q->option_d;
                         $correct = is_array($q) ? ($q['correct_answer'] ?? '') : $q->correct_answer;
+                        $qtype = is_array($q) ? ($q['question_type'] ?? 'mcq') : ($q->question_type ?? 'mcq');
+                        $correctText = is_array($q) ? ($q['correct_text'] ?? '') : ($q->correct_text ?? '');
+                        $explanation = is_array($q) ? ($q['explanation'] ?? '') : ($q->explanation ?? '');
                     @endphp
                     <div class="question-item relative rounded-lg border border-slate-200 bg-white p-4 pt-8 shadow-sm">
-                        <button type="button" onclick="this.closest('.question-item').remove(); updateQuestionIndexes();" 
+                        <button type="button" onclick="this.closest('.question-item').remove(); updateQuestionIndexes();"
                                 class="absolute right-3 top-3 text-slate-500 hover:text-red-500" title="Xóa câu hỏi">
                             <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                         </button>
-                        
+
+                        <div class="mb-2 ml-10">
+                            <select name="questions[{{ $index }}][question_type]" onchange="toggleType(this)" class="rounded-lg border border-slate-300 px-3 py-1.5 text-sm bg-white outline-none">
+                                <option value="mcq" @selected($qtype==='mcq')>Trắc nghiệm (A/B/C/D)</option>
+                                <option value="true_false" @selected($qtype==='true_false')>Đúng/Sai</option>
+                                <option value="fill_blank" @selected($qtype==='fill_blank')>Điền khuyết</option>
+                                <option value="code_reading" @selected($qtype==='code_reading')>Đọc code</option>
+                            </select>
+                        </div>
+
                         <div class="mb-3 flex items-center gap-3">
                             <span class="question-index font-bold text-slate-700">Câu {{ $index + 1 }}</span>
                             <div class="flex-1">
@@ -125,20 +155,26 @@
                                 @enderror
                             </div>
                         </div>
-                        
-                        <div class="grid gap-2 sm:grid-cols-2 ml-10">
+
+                        <div class="choice-fields grid gap-2 sm:grid-cols-2 ml-10 {{ $qtype==='fill_blank' ? 'hidden' : '' }}">
                             @foreach(['A' => $optA, 'B' => $optB, 'C' => $optC, 'D' => $optD] as $char => $val)
-                            <div class="flex items-start gap-2">
-                                <input type="radio" name="questions[{{ $index }}][correct_answer]" value="{{ $char }}" required @checked($correct == $char) class="mt-1 h-4 w-4 text-emerald-600 focus:ring-emerald-500">
+                            <div class="flex items-start gap-2 {{ $char==='C' ? 'opt-c' : ($char==='D' ? 'opt-d' : '') }}">
+                                <input type="radio" name="questions[{{ $index }}][correct_answer]" value="{{ $char }}" @checked($correct == $char) class="mt-1 h-4 w-4 text-emerald-600 focus:ring-emerald-500">
                                 <span class="font-medium text-slate-600 mt-1">{{ $char }}.</span>
                                 <div class="flex-1">
-                                    <input type="text" name="questions[{{ $index }}][option_{{ strtolower($char) }}]" value="{{ $val }}" required placeholder="Đáp án {{ $char }}" class="w-full rounded-md border @error('questions.'.$index.'.option_'.strtolower($char)) border-red-500 @else border-slate-200 @enderror px-2 py-1 text-sm outline-none focus:border-[#1e4f8f]">
-                                    @error('questions.'.$index.'.option_'.strtolower($char)) 
-                                        <p class="mt-1 text-xs text-red-500">{{ $message }}</p> 
-                                    @enderror
+                                    <input type="text" name="questions[{{ $index }}][option_{{ strtolower($char) }}]" value="{{ $val }}" placeholder="Đáp án {{ $char }}" class="w-full rounded-md border border-slate-200 px-2 py-1 text-sm outline-none focus:border-[#1e4f8f]">
                                 </div>
                             </div>
                             @endforeach
+                        </div>
+
+                        <div class="fillblank-fields ml-10 {{ $qtype==='fill_blank' ? '' : 'hidden' }}">
+                            <input type="text" name="questions[{{ $index }}][correct_text]" value="{{ $correctText }}" placeholder="Đáp án đúng (nhiều đáp án cách nhau bằng dấu |)" class="w-full rounded-md border @error('questions.'.$index.'.correct_text') border-red-500 @else border-slate-200 @enderror px-2 py-1.5 text-sm outline-none focus:border-[#1e4f8f]">
+                            @error('questions.'.$index.'.correct_text') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
+                        </div>
+
+                        <div class="ml-10 mt-2">
+                            <input type="text" name="questions[{{ $index }}][explanation]" value="{{ $explanation }}" placeholder="Giải thích đáp án (tùy chọn)" class="w-full rounded-md border border-slate-200 px-2 py-1 text-xs text-slate-600 outline-none focus:border-[#1e4f8f]">
                         </div>
                     </div>
                 @endforeach
@@ -158,26 +194,44 @@
     let qIndex = {{ count(old('questions', $assignment->questions)) }};
 
     function addQuestion() {
+        const i = qIndex;
         const tpl = `
             <div class="question-item relative rounded-lg border border-slate-200 bg-white p-4 pt-8 shadow-sm">
-                <button type="button" onclick="this.closest('.question-item').remove(); updateQuestionIndexes();" 
+                <button type="button" onclick="this.closest('.question-item').remove(); updateQuestionIndexes();"
                         class="absolute right-3 top-3 text-slate-500 hover:text-red-500" title="Xóa câu hỏi">
                     <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                 </button>
-                
-                <div class="mb-3 flex items-center gap-3">
-                    <span class="question-index font-bold text-slate-700">Câu ${qIndex + 1}</span>
-                    <input type="text" name="questions[${qIndex}][content]" required placeholder="Nhập câu hỏi..." class="flex-1 rounded-lg border border-slate-300 px-3 py-1.5 text-sm outline-none focus:border-[#1e4f8f]">
+
+                <div class="mb-2 ml-10">
+                    <select name="questions[${i}][question_type]" onchange="toggleType(this)" class="rounded-lg border border-slate-300 px-3 py-1.5 text-sm bg-white outline-none">
+                        <option value="mcq">Trắc nghiệm (A/B/C/D)</option>
+                        <option value="true_false">Đúng/Sai</option>
+                        <option value="fill_blank">Điền khuyết</option>
+                        <option value="code_reading">Đọc code</option>
+                    </select>
                 </div>
-                
-                <div class="grid gap-2 sm:grid-cols-2 ml-10">
+
+                <div class="mb-3 flex items-center gap-3">
+                    <span class="question-index font-bold text-slate-700">Câu ${i + 1}</span>
+                    <input type="text" name="questions[${i}][content]" required placeholder="Nhập câu hỏi..." class="flex-1 rounded-lg border border-slate-300 px-3 py-1.5 text-sm outline-none focus:border-[#1e4f8f]">
+                </div>
+
+                <div class="choice-fields grid gap-2 sm:grid-cols-2 ml-10">
                     ${['A','B','C','D'].map(char => `
-                        <div class="flex items-center gap-2">
-                            <input type="radio" name="questions[${qIndex}][correct_answer]" value="${char}" required class="h-4 w-4 text-emerald-600 focus:ring-emerald-500">
+                        <div class="flex items-center gap-2 ${char==='C'?'opt-c':(char==='D'?'opt-d':'')}">
+                            <input type="radio" name="questions[${i}][correct_answer]" value="${char}" class="h-4 w-4 text-emerald-600 focus:ring-emerald-500">
                             <span class="font-medium text-slate-600">${char}.</span>
-                            <input type="text" name="questions[${qIndex}][option_${char.toLowerCase()}]" required placeholder="Đáp án ${char}" class="flex-1 rounded-md border border-slate-200 px-2 py-1 text-sm outline-none focus:border-[#1e4f8f]">
+                            <input type="text" name="questions[${i}][option_${char.toLowerCase()}]" placeholder="Đáp án ${char}" class="flex-1 rounded-md border border-slate-200 px-2 py-1 text-sm outline-none focus:border-[#1e4f8f]">
                         </div>
                     `).join('')}
+                </div>
+
+                <div class="fillblank-fields ml-10 hidden">
+                    <input type="text" name="questions[${i}][correct_text]" placeholder="Đáp án đúng (nhiều đáp án cách nhau bằng dấu |)" class="w-full rounded-md border border-slate-200 px-2 py-1.5 text-sm outline-none focus:border-[#1e4f8f]">
+                </div>
+
+                <div class="ml-10 mt-2">
+                    <input type="text" name="questions[${i}][explanation]" placeholder="Giải thích đáp án (tùy chọn)" class="w-full rounded-md border border-slate-200 px-2 py-1 text-xs text-slate-600 outline-none focus:border-[#1e4f8f]">
                 </div>
             </div>
         `;
@@ -186,22 +240,61 @@
         updateQuestionIndexes();
     }
 
+    // Hiện/ẩn các trường theo loại câu hỏi
+    function toggleType(sel) {
+        const item = sel.closest('.question-item');
+        const type = sel.value;
+        const choice = item.querySelector('.choice-fields');
+        const fill = item.querySelector('.fillblank-fields');
+        const optC = item.querySelector('.opt-c');
+        const optD = item.querySelector('.opt-d');
+        const optA = item.querySelector('input[name$="[option_a]"]');
+        const optB = item.querySelector('input[name$="[option_b]"]');
+
+        if (type === 'fill_blank') {
+            choice.classList.add('hidden');
+            fill.classList.remove('hidden');
+            return;
+        }
+        choice.classList.remove('hidden');
+        fill.classList.add('hidden');
+        if (type === 'true_false') {
+            if (optA && !optA.value.trim()) optA.value = 'Đúng';
+            if (optB && !optB.value.trim()) optB.value = 'Sai';
+            if (optC) optC.classList.add('hidden');
+            if (optD) optD.classList.add('hidden');
+        } else {
+            if (optC) optC.classList.remove('hidden');
+            if (optD) optD.classList.remove('hidden');
+        }
+    }
+
     function updateQuestionIndexes() {
         document.querySelectorAll('.question-item').forEach((item, index) => {
             item.querySelector('.question-index').textContent = 'Câu ' + (index + 1);
-            
+
             // Cập nhật lại thuộc tính name cho chuẩn array index
             item.querySelector('input[name$="[content]"]').name = `questions[${index}][content]`;
             ['A','B','C','D'].forEach(char => {
                 const optKey = `option_${char.toLowerCase()}`;
-                item.querySelector(`input[name$="[${optKey}]"]`).name = `questions[${index}][${optKey}]`;
+                const el = item.querySelector(`input[name$="[${optKey}]"]`);
+                if (el) el.name = `questions[${index}][${optKey}]`;
             });
             item.querySelectorAll('input[type="radio"]').forEach(r => {
                 r.name = `questions[${index}][correct_answer]`;
             });
+            const qt = item.querySelector('select[name$="[question_type]"]');
+            if (qt) qt.name = `questions[${index}][question_type]`;
+            const ct = item.querySelector('input[name$="[correct_text]"]');
+            if (ct) ct.name = `questions[${index}][correct_text]`;
+            const ex = item.querySelector('input[name$="[explanation]"]');
+            if (ex) ex.name = `questions[${index}][explanation]`;
         });
         qIndex = document.querySelectorAll('.question-item').length;
     }
+
+    // Khởi tạo trạng thái hiển thị cho các câu hỏi đã render sẵn
+    document.querySelectorAll('#questionList select[name$="[question_type]"]').forEach(toggleType);
 
     // AI Modal logic
     function openAiModal() {
@@ -224,7 +317,13 @@
         formData.append('_token', '{{ csrf_token() }}');
         formData.append('topic', document.getElementById('aiTopic').value);
         formData.append('count', document.getElementById('aiCount').value);
-        
+
+        const checkedTypes = [...document.querySelectorAll('.ai-type:checked')].map(c => c.value);
+        if (checkedTypes.length === 0) checkedTypes.push('mcq');
+        checkedTypes.forEach(t => formData.append('types[]', t));
+        const diff = document.getElementById('aiDifficulty');
+        if (diff && diff.value) formData.append('difficulty', diff.value);
+
         const fileInput = document.getElementById('aiFile');
         if (fileInput.files.length > 0) {
             formData.append('document', fileInput.files[0]);
@@ -243,13 +342,24 @@
                     addQuestion();
                     const items = document.querySelectorAll('.question-item');
                     const newItem = items[items.length - 1];
-                    
-                    newItem.querySelector('input[name$="[content]"]').value = q.content;
-                    newItem.querySelector('input[name$="[option_a]"]').value = q.option_a;
-                    newItem.querySelector('input[name$="[option_b]"]').value = q.option_b;
-                    newItem.querySelector('input[name$="[option_c]"]').value = q.option_c;
-                    newItem.querySelector('input[name$="[option_d]"]').value = q.option_d;
-                    newItem.querySelector(`input[type="radio"][value="${q.correct_answer.toUpperCase()}"]`).checked = true;
+
+                    const typeSel = newItem.querySelector('select[name$="[question_type]"]');
+                    typeSel.value = q.question_type || 'mcq';
+                    toggleType(typeSel);
+
+                    newItem.querySelector('input[name$="[content]"]').value = q.content || '';
+                    newItem.querySelector('input[name$="[explanation]"]').value = q.explanation || '';
+
+                    if ((q.question_type || 'mcq') === 'fill_blank') {
+                        newItem.querySelector('input[name$="[correct_text]"]').value = q.correct_text || '';
+                    } else {
+                        newItem.querySelector('input[name$="[option_a]"]').value = q.option_a || '';
+                        newItem.querySelector('input[name$="[option_b]"]').value = q.option_b || '';
+                        newItem.querySelector('input[name$="[option_c]"]').value = q.option_c || '';
+                        newItem.querySelector('input[name$="[option_d]"]').value = q.option_d || '';
+                        const radio = newItem.querySelector(`input[type="radio"][value="${(q.correct_answer || 'A').toUpperCase()}"]`);
+                        if (radio) radio.checked = true;
+                    }
                 });
                 closeAiModal();
                 showToast(`Đã sinh thành công ${result.data.length} câu hỏi!`, 'success');
@@ -263,6 +373,50 @@
             btn.disabled = false;
             btn.innerHTML = originalBtnText;
         }
+    }
+
+    function addDaysToDueDate(days) {
+        const input = document.getElementById('edit_due_date_input');
+        if (!input) return;
+
+        let baseTime = new Date();
+        const currentVal = input.value;
+        if (currentVal) {
+            const parsed = new Date(currentVal);
+            if (!isNaN(parsed) && parsed > baseTime) {
+                baseTime = parsed;
+            }
+        }
+
+        baseTime.setDate(baseTime.getDate() + days);
+        baseTime.setHours(23, 59, 0, 0);
+
+        const pad = (n) => String(n).padStart(2, '0');
+        const year = baseTime.getFullYear();
+        const month = pad(baseTime.getMonth() + 1);
+        const date = pad(baseTime.getDate());
+        const hours = pad(baseTime.getHours());
+        const minutes = pad(baseTime.getMinutes());
+        input.value = `${year}-${month}-${date}T${hours}:${minutes}`;
+    }
+
+    function setSundayDueDate() {
+        const input = document.getElementById('edit_due_date_input');
+        if (!input) return;
+
+        let d = new Date();
+        const day = d.getDay();
+        const diff = (7 - day) % 7;
+        d.setDate(d.getDate() + (diff === 0 ? 7 : diff));
+        d.setHours(23, 59, 0, 0);
+
+        const pad = (n) => String(n).padStart(2, '0');
+        const year = d.getFullYear();
+        const month = pad(d.getMonth() + 1);
+        const date = pad(d.getDate());
+        const hours = pad(d.getHours());
+        const minutes = pad(d.getMinutes());
+        input.value = `${year}-${month}-${date}T${hours}:${minutes}`;
     }
 </script>
 
@@ -299,6 +453,27 @@
             <div>
                 <label class="mb-1 block text-sm font-semibold text-slate-700">Số lượng câu hỏi</label>
                 <input type="number" id="aiCount" value="5" min="1" max="50" required class="w-full rounded-md border border-slate-300 px-4 py-2.5 text-sm outline-none focus:border-[#1e4f8f] focus:ring-1 focus:ring-[#1e4f8f]">
+            </div>
+
+            <div>
+                <label class="mb-1 block text-sm font-semibold text-slate-700">Dạng câu hỏi</label>
+                <div class="grid grid-cols-2 gap-2 text-sm text-slate-700">
+                    <label class="flex items-center gap-2"><input type="checkbox" class="ai-type" value="mcq" checked> Trắc nghiệm</label>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="ai-type" value="true_false"> Đúng/Sai</label>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="ai-type" value="fill_blank"> Điền khuyết</label>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="ai-type" value="code_reading"> Đọc code</label>
+                </div>
+            </div>
+
+            <div>
+                <label class="mb-1 block text-sm font-semibold text-slate-700">Độ khó (thang Bloom)</label>
+                <select id="aiDifficulty" class="w-full rounded-md border border-slate-300 px-4 py-2.5 text-sm outline-none focus:border-[#1e4f8f]">
+                    <option value="">Tự động (xen kẽ)</option>
+                    <option value="Nhớ (Remember)">Nhớ (Remember)</option>
+                    <option value="Hiểu (Understand)">Hiểu (Understand)</option>
+                    <option value="Vận dụng (Apply)">Vận dụng (Apply)</option>
+                    <option value="Phân tích (Analyze)">Phân tích (Analyze)</option>
+                </select>
             </div>
 
             <div>

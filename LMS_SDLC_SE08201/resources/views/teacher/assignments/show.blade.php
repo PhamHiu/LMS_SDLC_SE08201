@@ -20,6 +20,10 @@
             </div>
         </div>
         <div class="flex items-center gap-2.5">
+            <button type="button" onclick="openExtendDeadlineModal()" class="tool-btn !bg-amber-50 hover:!bg-amber-100 !text-amber-800 !border-amber-200" title="Sửa hạn nộp bài">
+                <svg class="w-4 h-4 text-amber-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <span>Sửa hạn nộp</span>
+            </button>
             <a href="{{ route('teacher.assignments.edit', $assignment) }}" class="tool-btn !bg-slate-50 hover:!bg-slate-100 !text-slate-900">
                 <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                 <span>Sửa bài tập</span>
@@ -70,5 +74,159 @@
 <div class="mt-6">
     @include('shared.discussions', ['storeRoute' => route('teacher.discussions.store', $assignment)])
 </div>
+
+<!-- ========================================================================= -->
+<!-- MODAL SỬA HẠN NỘP BÀI / GIA HẠN NỘP BÀI TẬP                             -->
+<!-- ========================================================================= -->
+<div id="extendDeadlineModal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="relative w-full max-w-lg rounded-xl bg-white shadow-2xl border border-slate-200 overflow-hidden transform transition-all">
+        <!-- Header modal -->
+        <div class="flex items-center justify-between border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white px-6 py-4">
+            <div class="flex items-center gap-2.5">
+                <div class="rounded-lg bg-[#1e4f8f]/10 p-2 text-[#1e4f8f]">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </div>
+                <div>
+                    <h3 class="text-base font-bold text-slate-800">Sửa / Gia hạn hạn nộp bài tập</h3>
+                    <p class="text-xs text-slate-500 mt-0.5">{{ $assignment->title }} ({{ $assignment->classRoom?->class_name }})</p>
+                </div>
+            </div>
+            <button type="button" onclick="closeExtendDeadlineModal()" class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+
+        <!-- Body Form -->
+        <form method="POST" action="{{ route('teacher.assignments.extend-deadline', $assignment) }}" class="p-6 space-y-4">
+            @csrf
+            @method('PUT')
+
+            <!-- Hạn nộp hiện tại -->
+            <div class="rounded-lg border border-slate-200 bg-slate-50/80 p-3.5 flex items-center justify-between">
+                <div>
+                    <span class="text-xs text-slate-500">Hạn nộp hiện tại:</span>
+                    <div class="text-sm font-bold {{ $assignment->isOverdue() ? 'text-rose-600' : 'text-slate-800' }}">
+                        {{ $assignment->due_date ? $assignment->due_date->format('H:i, d/m/Y') : 'Không giới hạn' }}
+                        @if ($assignment->isOverdue())
+                            <span class="ml-1 text-xs font-semibold text-rose-500">(Đã quá hạn)</span>
+                        @endif
+                    </div>
+                </div>
+                <div class="text-right">
+                    <span class="text-xs text-slate-500">Đã nộp:</span>
+                    <div class="text-sm font-extrabold text-[#1e4f8f]">{{ $submissionCount }}/{{ $studentCount }} SV</div>
+                </div>
+            </div>
+
+            <!-- Input Hạn nộp mới -->
+            <div>
+                <label for="modal_due_date_input" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                    Hạn nộp mới <span class="text-rose-500">*</span>
+                </label>
+                <input type="datetime-local"
+                       id="modal_due_date_input"
+                       name="due_date"
+                       value="{{ $assignment->due_date ? $assignment->due_date->format('Y-m-d\TH:i') : now()->addDays(3)->format('Y-m-d\TH:i') }}"
+                       required
+                       class="w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm font-medium text-slate-800 focus:border-[#1e4f8f] focus:ring-2 focus:ring-[#1e4f8f]/20 outline-none transition shadow-sm">
+            </div>
+
+            <!-- Phím tắt gia hạn nhanh -->
+            <div>
+                <label class="block text-xs text-slate-500 mb-1.5 font-medium">Chọn nhanh mốc gia hạn:</label>
+                <div class="grid grid-cols-4 gap-2">
+                    <button type="button" onclick="setQuickDeadline(1)" class="rounded-md border border-slate-200 bg-slate-50 hover:bg-[#1e4f8f]/10 hover:border-[#1e4f8f]/30 hover:text-[#1e4f8f] px-2.5 py-1.5 text-xs font-semibold text-slate-700 transition">
+                        +1 Ngày
+                    </button>
+                    <button type="button" onclick="setQuickDeadline(3)" class="rounded-md border border-slate-200 bg-slate-50 hover:bg-[#1e4f8f]/10 hover:border-[#1e4f8f]/30 hover:text-[#1e4f8f] px-2.5 py-1.5 text-xs font-semibold text-slate-700 transition">
+                        +3 Ngày
+                    </button>
+                    <button type="button" onclick="setQuickDeadline(7)" class="rounded-md border border-slate-200 bg-slate-50 hover:bg-[#1e4f8f]/10 hover:border-[#1e4f8f]/30 hover:text-[#1e4f8f] px-2.5 py-1.5 text-xs font-semibold text-slate-700 transition">
+                        +1 Tuần
+                    </button>
+                    <button type="button" onclick="setWeekendDeadline()" class="rounded-md border border-slate-200 bg-slate-50 hover:bg-[#1e4f8f]/10 hover:border-[#1e4f8f]/30 hover:text-[#1e4f8f] px-2.5 py-1.5 text-xs font-semibold text-slate-700 transition">
+                        Chủ Nhật
+                    </button>
+                </div>
+            </div>
+
+            <!-- Checkbox gửi thông báo gia hạn cho lớp -->
+            <div class="rounded-lg border border-blue-100 bg-blue-50/50 p-3.5">
+                <label class="flex items-start gap-2.5 cursor-pointer">
+                    <input type="checkbox" name="notify_students" value="1" checked class="mt-0.5 rounded border-slate-300 text-[#1e4f8f] focus:ring-[#1e4f8f]">
+                    <div class="text-xs">
+                        <span class="font-bold text-slate-800">Gửi thông báo gia hạn nộp bài đến toàn bộ sinh viên trong lớp</span>
+                        <p class="text-slate-500 mt-0.5 leading-relaxed">Hệ thống sẽ tạo thông báo chuông cho sinh viên kèm thông tin hạn nộp mới để các em kịp thời nộp bài.</p>
+                    </div>
+                </label>
+            </div>
+
+            <!-- Nút hành động -->
+            <div class="pt-3 border-t border-slate-100 flex items-center justify-end gap-2.5">
+                <button type="button" onclick="closeExtendDeadlineModal()" class="rounded-lg border border-slate-200 bg-white hover:bg-slate-50 px-4 py-2.5 text-xs font-bold text-slate-600 transition shadow-sm">
+                    Hủy bỏ
+                </button>
+                <button type="submit" class="inline-flex items-center gap-1.5 rounded-lg bg-[#1e4f8f] hover:bg-[#163c6d] px-5 py-2.5 text-xs font-bold text-white transition shadow-sm">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                    Lưu hạn nộp mới
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function openExtendDeadlineModal() {
+    const modal = document.getElementById('extendDeadlineModal');
+    if (modal) modal.classList.remove('hidden');
+}
+
+function closeExtendDeadlineModal() {
+    const modal = document.getElementById('extendDeadlineModal');
+    if (modal) modal.classList.add('hidden');
+}
+
+function setQuickDeadline(days) {
+    const input = document.getElementById('modal_due_date_input');
+    if (!input) return;
+
+    let baseTime = new Date();
+    const currentVal = input.value;
+    if (currentVal) {
+        const parsed = new Date(currentVal);
+        if (!isNaN(parsed) && parsed > baseTime) {
+            baseTime = parsed;
+        }
+    }
+
+    baseTime.setDate(baseTime.getDate() + days);
+    baseTime.setHours(23, 59, 0, 0);
+
+    input.value = formatDateTimeLocal(baseTime);
+}
+
+function setWeekendDeadline() {
+    const input = document.getElementById('modal_due_date_input');
+    if (!input) return;
+
+    let d = new Date();
+    const day = d.getDay();
+    const diff = (7 - day) % 7;
+    d.setDate(d.getDate() + (diff === 0 ? 7 : diff));
+    d.setHours(23, 59, 0, 0);
+
+    input.value = formatDateTimeLocal(d);
+}
+
+function formatDateTimeLocal(d) {
+    const pad = (n) => String(n).padStart(2, '0');
+    const year = d.getFullYear();
+    const month = pad(d.getMonth() + 1);
+    const date = pad(d.getDate());
+    const hours = pad(d.getHours());
+    const minutes = pad(d.getMinutes());
+    return `${year}-${month}-${date}T${hours}:${minutes}`;
+}
+</script>
 @include('components.toast')
 @endsection

@@ -17,24 +17,69 @@
 <div class="mt-6 grid gap-6 xl:grid-cols-5">
     {{-- Buổi học & điểm danh --}}
     <div class="xl:col-span-2 rounded-lg border border-slate-200 bg-white shadow-sm h-fit">
-        <div class="border-b border-slate-100 px-5 py-4"><h3 class="font-bold text-slate-800">Buổi học & Điểm danh</h3></div>
+        <div class="border-b border-slate-100 px-5 py-4 flex items-center justify-between">
+            <h3 class="font-bold text-slate-800">Buổi học & Điểm danh</h3>
+            <span class="text-xs text-slate-500"><span class="inline-block w-2.5 h-2.5 rounded-full bg-[#1e4f8f] mr-1"></span>Xanh đậm: Đã học & điểm danh</span>
+        </div>
         <ul class="max-h-[480px] divide-y divide-slate-100 overflow-y-auto">
             @foreach ($sessions ?? $class->sessions as $i => $session)
-                @php($marked = $session->attendances->isNotEmpty())
-                <li class="flex items-center justify-between gap-3 px-5 py-3">
+                @php
+                    $isToday = $session->isToday();
+                    $isDone = $session->isLearnedAndMarked();
+                    $marked = $session->attendances->isNotEmpty();
+                    $slotDetail = $session->getSlotTimeDisplay();
+                @endphp
+                <li class="flex items-center justify-between gap-3 px-5 py-3 transition
+                    @if ($isToday)
+                        bg-emerald-50/50 border-l-4 border-l-emerald-600
+                    @elseif ($isDone)
+                        bg-blue-50/40 border-l-4 border-l-[#1e4f8f]
+                    @else
+                        hover:bg-slate-50
+                    @endif">
                     <div>
-                        <p class="text-sm font-semibold text-slate-700">Buổi {{ $i + 1 }} — {{ $session->session_date->format('d/m/Y') }}</p>
-                        <p class="text-xs text-slate-500">{{ $session->room?->room_name ?? 'Chưa xếp phòng' }} · {{ $session->slot?->label ?? 'Chưa xếp ca' }}</p>
+                        <p class="text-sm font-bold
+                            @if ($isToday)
+                                text-emerald-800
+                            @elseif ($isDone)
+                                text-[#1e4f8f]
+                            @else
+                                text-slate-700
+                            @endif">
+                            Buổi {{ $i + 1 }} — {{ $session->session_date->format('d/m/Y') }}
+                            @if ($isToday)
+                                <span class="ml-1 text-[10px] font-extrabold uppercase px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800">Hôm nay</span>
+                            @endif
+                        </p>
+                        <p class="text-xs text-slate-500 mt-0.5">
+                            {{ $session->room?->room_name ?? 'Phòng Lab' }} · <span class="font-semibold
+                            @if ($isToday)
+                                text-emerald-700
+                            @elseif ($isDone)
+                                text-[#1e4f8f]
+                            @else
+                                text-slate-600
+                            @endif">{{ $slotDetail }}</span>
+                        </p>
                     </div>
                     <div class="flex items-center gap-2">
-                        @if ($marked)
-                            <span class="rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-medium text-emerald-700">Đã điểm danh</span>
+                        @if ($isToday)
+                            <span class="rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-bold text-emerald-800 shadow-sm">📍 Hôm nay</span>
+                        @elseif ($isDone)
+                            <span class="rounded-full bg-[#1e4f8f] px-2.5 py-0.5 text-[11px] font-bold text-white shadow-sm">✓ Đã điểm danh</span>
                         @elseif ($session->session_date->isFuture())
                             <span class="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] text-slate-500">Chưa diễn ra</span>
                         @endif
                         <a href="{{ route('teacher.attendance.edit', [$class, $session]) }}"
-                           class="rounded-lg px-3 py-1.5 text-xs font-medium {{ $marked ? 'bg-slate-100 text-slate-600 hover:bg-slate-200' : 'bg-[#1e4f8f] text-white hover:bg-[#163c6d]' }}">
-                            {{ $marked ? 'Sửa' : 'Điểm danh' }}
+                           class="rounded-lg px-3 py-1.5 text-xs font-bold shadow-sm transition
+                           @if ($isToday)
+                               bg-emerald-600 text-white hover:bg-emerald-700
+                           @elseif ($isDone)
+                               bg-[#1e4f8f] text-white hover:bg-[#163c6d]
+                           @else
+                               bg-slate-100 text-slate-700 hover:bg-slate-200
+                           @endif">
+                            {{ $isToday ? 'Điểm danh hôm nay' : ($isDone ? 'Xem / Sửa' : 'Chi tiết') }}
                         </a>
                     </div>
                 </li>

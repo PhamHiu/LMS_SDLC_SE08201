@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Teacher;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Teacher\GradeRequest;
 use App\Models\Assignment;
+use App\Models\Notification;
 use App\Models\Submission;
+use App\Models\User;
 use App\Services\Teacher\AssignmentService;
 use App\Services\Teacher\GradingService;
 use Illuminate\Http\RedirectResponse;
@@ -66,5 +68,75 @@ class GradingController extends Controller
         $this->gradingService->grade($submission, $request->validated(), $request->file('other_file'));
 
         return back()->with('success', 'Đã chấm điểm cho '.$submission->student->full_name.'.');
+    }
+
+    /**
+     * Gửi thông báo nhắc nhở nộp bài đến toàn bộ sinh viên chưa nộp trong lớp.
+     */
+    public function remind(Request $request, Assignment $assignment): RedirectResponse
+    {
+        $this->assignmentService->authorizeAssignment($request->user(), $assignment);
+
+        $overview = $this->gradingService->submissionsOverview($assignment);
+        $notSubmitted = $overview['notSubmitted'];
+
+        if ($notSubmitted->isEmpty()) {
+            return back()->with('info', 'Tất cả sinh viên trong lớp đã hoàn thành nộp bài tập này!');
+        }
+
+        $dueDateStr = $assignment->due_date ? $assignment->due_date->format('H:i d/m/Y') : 'sớm nhất có thể';
+        $title = 'Nhắc nhở nộp bài: ' . $assignment->title;
+        $body = sprintf(
+            'Thầy/Cô nhắc nhở các bạn chưa nộp bài tập "%s" (%s) thuộc lớp %s. Hạn chót: %s. Hiện tại lớp còn %d bạn chưa nộp bài, các em khẩn trương hoàn thành và nộp bài trên hệ thống nhé!',
+            $assignment->title,
+            $assignment->typeLabel(),
+            $assignment->classRoom?->class_name ?? '',
+            $dueDateStr,
+            $notSubmitted->count()
+        );
+
+        // Bảng notifications có unique(assignment_id) để chống trùng
+        Notification::updateOrCreate(
+            ['assignment_id' => $assignment->assignment_id],
+            [
+                'user_id' => $request->user()->user_id,
+                'class_id' => $assignment->class_id,
+                'title' => $title,
+                'body' => $body,
+            ]
+        );
+
+        return back()->with('success', "Đã gửi thông báo nhắc nhở nộp bài tập đến toàn bộ {$notSubmitted->count()} sinh viên chưa nộp bài trong lớp!");
+    }
+
+    /**
+     * Gửi thông báo nhắc nhở cá nhân cho một sinh viên cụ thể chưa nộp bài.
+     */
+    public function remindStudent(Request $request, Assignment $assignment, User $student): RedirectResponse
+    {
+        $this->assignmentService->authorizeAssignment($request->user(), $assignment);
+
+        $dueDateStr = $assignment->due_date ? $assignment->due_date->format('H:i d/m/Y') : 'sớm nhất có thể';
+        $title = 'Nhắc nhở nộp bài: ' . $assignment->title;
+        $body = sprintf(
+            'Chào bạn %s, Thầy/Cô nhắc bạn chưa hoàn thành nộp bài tập "%s" cho lớp %s. Hạn chót nộp bài: %s. Bạn vui lòng hoàn thành và nộp bài sớm nhé!',
+            $student->full_name,
+            $assignment->title,
+            $assignment->classRoom?->class_name ?? '',
+            $dueDateStr
+        );
+
+        // Lưu thông báo nhắc nhở kèm assignment_id để học sinh bấm vào sẽ đến ngay bài tập
+        Notification::create([
+            'user_id' => $request->user()->user_id,
+            'class_id' => $assignment->class_id,
+            'assignment_id' => $assignment->assignment_id,
+            'title' => $title,
+            'body' => $body,
+        ]);
+
+        $studentIdentifier = $student->student_code ?: $student->email;
+
+        return back()->with('success', "Đã gửi thông báo nhắc nhở nộp bài đến sinh viên {$student->full_name} ({$studentIdentifier})!");
     }
 }

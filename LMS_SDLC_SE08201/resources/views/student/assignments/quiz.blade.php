@@ -48,16 +48,33 @@
             <div class="space-y-6">
                 @foreach ($assignment->questions as $i => $q)
                     <div class="rounded-md border border-slate-200 bg-white/[0.02] p-5">
-                        <p class="font-bold !text-slate-900 text-base">Câu {{ $i + 1 }}: <span class="!text-slate-800 font-normal">{{ $q->content }}</span></p>
-                        <div class="mt-4 grid gap-2.5">
-                            @foreach ($q->options() as $key => $option)
-                                <label class="flex cursor-pointer items-center gap-3.5 rounded-md border border-slate-200 bg-white px-4 py-3 text-sm !text-slate-700 transition-all duration-200 hover:border-[#1e4f8f] hover:bg-slate-100 has-[:checked]:border-[#1e4f8f] has-[:checked]:bg-[#1e4f8f]/10 has-[:checked]:!text-[#1e4f8f]">
-                                    <input type="radio" name="answers[{{ $q->question_id }}]" value="{{ $key }}"
-                                           class="quiz-radio text-[#1e4f8f] focus:ring-[#1e4f8f] border-slate-200 bg-slate-50 w-4 h-4" onchange="updateProgress()" required>
-                                    <span><b class="text-slate-900">{{ $key }}.</b> {{ $option }}</span>
-                                </label>
-                            @endforeach
+                        <div class="mb-1 flex items-center gap-2">
+                            <span class="inline-flex items-center rounded-full bg-[#1e4f8f]/10 border border-[#1e4f8f]/30 px-2.5 py-0.5 text-xs font-semibold text-[#1e4f8f]">{{ $q->typeLabel() }}</span>
                         </div>
+                        @if ($q->question_type === 'code_reading')
+                            <p class="font-bold !text-slate-900 text-base">Câu {{ $i + 1 }}:</p>
+                            <pre class="mt-2 overflow-x-auto rounded-md border border-slate-200 bg-slate-900 px-4 py-3 text-sm text-slate-100 whitespace-pre-wrap font-mono">{{ $q->content }}</pre>
+                        @else
+                            <p class="font-bold !text-slate-900 text-base">Câu {{ $i + 1 }}: <span class="!text-slate-800 font-normal">{{ $q->content }}</span></p>
+                        @endif
+
+                        @if ($q->isFillBlank())
+                            <div class="mt-4">
+                                <input type="text" name="answer_text[{{ $q->question_id }}]"
+                                       class="quiz-text w-full rounded-md border border-slate-300 px-4 py-3 text-sm !text-slate-800 outline-none focus:border-[#1e4f8f]"
+                                       placeholder="Nhập câu trả lời của bạn..." autocomplete="off" oninput="updateProgress()" required>
+                            </div>
+                        @else
+                            <div class="mt-4 grid gap-2.5">
+                                @foreach ($q->options() as $key => $option)
+                                    <label class="flex cursor-pointer items-center gap-3.5 rounded-md border border-slate-200 bg-white px-4 py-3 text-sm !text-slate-700 transition-all duration-200 hover:border-[#1e4f8f] hover:bg-slate-100 has-[:checked]:border-[#1e4f8f] has-[:checked]:bg-[#1e4f8f]/10 has-[:checked]:!text-[#1e4f8f]">
+                                        <input type="radio" name="answers[{{ $q->question_id }}]" value="{{ $key }}"
+                                               class="quiz-radio text-[#1e4f8f] focus:ring-[#1e4f8f] border-slate-200 bg-slate-50 w-4 h-4" onchange="updateProgress()" required>
+                                        <span><b class="text-slate-900">{{ $key }}.</b> {{ $option }}</span>
+                                    </label>
+                                @endforeach
+                            </div>
+                        @endif
                     </div>
                 @endforeach
             </div>
@@ -75,8 +92,9 @@
 <script>
     function updateProgress() {
         const total = {{ $assignment->questions->count() }};
-        const answered = new Set([...document.querySelectorAll('.quiz-radio:checked')].map(r => r.name)).size;
-        document.getElementById('progress').textContent = `${answered}/${total}`;
+        const radios = new Set([...document.querySelectorAll('.quiz-radio:checked')].map(r => r.name));
+        const texts = new Set([...document.querySelectorAll('.quiz-text')].filter(t => t.value.trim() !== '').map(t => t.name));
+        document.getElementById('progress').textContent = `${radios.size + texts.size}/${total}`;
     }
 </script>
 @endsection

@@ -88,13 +88,13 @@ class SubmissionService
     /**
      * Nộp bài trắc nghiệm: lưu chi tiết đáp án + hệ thống TỰ ĐỘNG CHẤM ĐIỂM.
      */
-    public function submitQuiz(User $student, Assignment $assignment, array $answers): Submission
+    public function submitQuiz(User $student, Assignment $assignment, array $answers, array $answerTexts = []): Submission
     {
         abort_unless($assignment->isQuiz(), 422, 'Bài này không phải Quiz.');
         abort_if($assignment->isOverdue(), 422, 'Đã quá hạn làm bài.');
         abort_if($this->submissionOf($student, $assignment) !== null, 422, 'Bạn đã làm bài Quiz này rồi.');
 
-        return DB::transaction(function () use ($student, $assignment, $answers) {
+        return DB::transaction(function () use ($student, $assignment, $answers, $answerTexts) {
             $submission = Submission::create([
                 'user_id' => $student->user_id,
                 'assignment_id' => $assignment->assignment_id,
@@ -106,14 +106,16 @@ class SubmissionService
 
             foreach ($questions as $question) {
                 $selected = $answers[$question->question_id] ?? null;
+                $text = $answerTexts[$question->question_id] ?? null;
 
                 SubmissionDetail::create([
                     'submission_id' => $submission->submission_id,
                     'question_id' => $question->question_id,
-                    'selected_option' => $selected,
+                    'selected_option' => $question->isFillBlank() ? null : $selected,
+                    'answer_text' => $question->isFillBlank() ? $text : null,
                 ]);
 
-                if ($selected === $question->correct_answer) {
+                if ($question->isAnswerCorrect($selected, $text)) {
                     $correct++;
                 }
             }

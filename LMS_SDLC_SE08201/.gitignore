@@ -27,6 +27,10 @@ bootstrap/cache/
 Thumbs.db
 .DS_Store
 
+# Python
+__pycache__/
+*.py[cod]
+
 # Claude
 .claude/
 

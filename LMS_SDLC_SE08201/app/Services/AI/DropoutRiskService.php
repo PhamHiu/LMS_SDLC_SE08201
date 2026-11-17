@@ -51,38 +51,51 @@ class DropoutRiskService
      * Phân tích và lưu lại kết quả đánh giá nguy cơ của sinh viên (Lưu lịch sử, không ghi đè).
      * Tự động ưu tiên Machine Learning khi service online, hoặc fallback liền mạch sang Rule Engine.
      */
+    /** Thứ hạng mức độ nghiêm trọng để so sánh hai tầng (số lớn hơn = nguy hiểm hơn). */
+    private const LEVEL_SEVERITY = [
+        RiskPrediction::LEVEL_SAFE => 0,
+        RiskPrediction::LEVEL_MEDIUM => 1,
+        RiskPrediction::LEVEL_HIGH => 2,
+        RiskPrediction::LEVEL_VERY_HIGH => 3,
+    ];
+
+    /** Trả về mức nguy cơ cao hơn giữa hai tầng Rule Engine và Machine Learning. */
+    private function moreSevereLevel(string $levelA, string $levelB): string
+    {
+        $rankA = self::LEVEL_SEVERITY[$levelA] ?? 0;
+        $rankB = self::LEVEL_SEVERITY[$levelB] ?? 0;
+
+        return $rankA >= $rankB ? $levelA : $levelB;
+    }
+
     public function analyzeAndRecord(User $student): RiskPrediction
     {
+        // Tầng 1 — Rule Engine luôn chạy (minh bạch, tuân thủ quy chế chuyên cần 20%).
+        $result = $this->ruleEngine->evaluate($student);
+
+        // Tầng 2 — Machine Learning (nếu service online). Mức cuối lấy MỨC CAO HƠN của hai tầng.
         $features = $this->ruleEngine->extractFeatures($student);
         $mlResult = $this->callMlService($features);
 
         if ($mlResult && isset($mlResult['risk_level'])) {
-            $result = [
-                'risk_level' => $mlResult['risk_level'],
-                'risk_score' => (float) ($mlResult['risk_score'] ?? round(($mlResult['probability'] ?? 0) * 100, 1)),
-                'analysis_method' => 'MACHINE_LEARNING',
-                'model_version' => $mlResult['model_version'] ?? 'v1.0-ml',
-                'summary_explanation' => $mlResult['explanation'] ?? '',
-                'recommendations' => is_array($mlResult['recommendations'] ?? null)
-                    ? implode(' ', $mlResult['recommendations'])
-                    : ($mlResult['recommendations'] ?? ''),
-                'data_quality_status' => $mlResult['data_quality_status'] ?? 'COMPLETE',
-                'factors' => [],
-            ];
+            $mlLevel = $mlResult['risk_level'];
+            $mlScore = (float) ($mlResult['risk_score'] ?? round(($mlResult['probability'] ?? 0) * 100, 1));
 
-            foreach ($mlResult['contributing_factors'] ?? [] as $cf) {
-                $result['factors'][] = [
-                    'subject_id' => null,
-                    'factor_type' => $cf['factor_type'] ?? 'GENERAL',
-                    'title' => $cf['title'] ?? '',
-                    'description' => $cf['description'] ?? '',
-                    'severity' => $cf['severity'] ?? 'INFO',
-                    'impact_weight' => (float) ($cf['impact_weight'] ?? 0.0),
-                ];
+            $finalLevel = $this->moreSevereLevel($result['risk_level'], $mlLevel);
+
+            // Giữ nguyên phân rã theo từng môn của Rule Engine (minh bạch), chỉ nâng mức/điểm theo tầng cao hơn.
+            $result['risk_level'] = $finalLevel;
+            $result['risk_score'] = max((float) ($result['risk_score'] ?? 0.0), $mlScore);
+            $result['analysis_method'] = 'HYBRID_ML_RULE';
+            $result['model_version'] = 'v2.0-hybrid-ml-rule';
+            $result['data_quality_status'] = $mlResult['data_quality_status'] ?? ($result['data_quality_status'] ?? 'COMPLETE');
+
+            // Bổ sung phần giải thích của ML (bao gồm kết luận SHAP) vào tóm tắt.
+            $mlExplanation = trim((string) ($mlResult['explanation'] ?? ''));
+            if ($mlExplanation !== '') {
+                $result['summary_explanation'] = trim((string) ($result['summary_explanation'] ?? ''))
+                    . ' [Mô hình ML] ' . $mlExplanation;
             }
-        } else {
-            // Fallback sang Rule Engine minh bạch tuân thủ chuẩn 20%
-            $result = $this->ruleEngine->evaluate($student);
         }
 
         return DB::transaction(function () use ($student, $result) {
@@ -115,13 +128,14 @@ class DropoutRiskService
     }
 
     /**
-     * Lấy kết quả phân tích mới nhất của một sinh viên (nếu chưa có thì tự động phân tích).
+     * Lấy kết quả phân tích mới nhất của một sinh viên (nếu chưa có hoặc phiên bản cũ thì tự động phân tích lại theo chuẩn toán học).
      */
     public function getLatestOrAnalyze(User $student): RiskPrediction
     {
         $latest = $student->latestRiskPrediction;
 
-        if (! $latest || $latest->analyzed_at->diffInDays(now()) >= 3) {
+        $freshVersions = ['v2.0-academic-math', 'v2.0-hybrid-ml-rule'];
+        if (! $latest || $latest->analyzed_at->diffInDays(now()) >= 3 || ! in_array($latest->model_version, $freshVersions, true)) {
             return $this->analyzeAndRecord($student);
         }
 

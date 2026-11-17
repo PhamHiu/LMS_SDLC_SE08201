@@ -33,7 +33,7 @@ class RiskAnalyticsChartService
         ],
         'morning_weekend' => [
             'label' => 'Khó khăn ca sáng sớm (07:15) & Cuối tuần',
-            'short' => 'Ca sáng sớm / Cuối tuần',
+            'short' => 'Ca sáng sớm / Đi lại xa',
             'color' => '#eab308',
         ],
         'multi_subject_overload' => [
@@ -41,10 +41,25 @@ class RiskAnalyticsChartService
             'short' => 'Quá tải đa môn',
             'color' => '#a855f7',
         ],
+        'financial_work' => [
+            'label' => 'Khó khăn tài chính / Đi làm thêm nhiều giờ',
+            'short' => 'Tài chính / Đi làm thêm',
+            'color' => '#14b8a6',
+        ],
+        'motivation_major' => [
+            'label' => 'Chọn sai ngành / Thiếu động lực (PROTEUS: 24.35%)',
+            'short' => 'Chọn sai ngành / Chán nản',
+            'color' => '#ec4899',
+        ],
         'excused_personal' => [
-            'label' => 'Sức khỏe / Việc gia đình (Có phép)',
-            'short' => 'Sức khỏe / Gia đình',
+            'label' => 'Biến cố gia đình / Việc riêng có phép',
+            'short' => 'Biến cố gia đình',
             'color' => '#06b6d4',
+        ],
+        'mental_health' => [
+            'label' => 'Sức khỏe yếu / Căng thẳng, tâm lý',
+            'short' => 'Sức khỏe & Tâm lý',
+            'color' => '#6366f1',
         ],
         'unexcused_habit' => [
             'label' => 'Vắng tự phát không phép / Ý thức chuyên cần',
@@ -381,8 +396,15 @@ class RiskAnalyticsChartService
             }
         }
 
+        $mathEval = app(DropoutRiskRuleEngine::class)->evaluate($student);
+
         return [
             'has_data' => true,
+            'math_eval' => $mathEval,
+            'score_breakdown' => $mathEval['score_breakdown'] ?? [],
+            'risk_score' => $mathEval['risk_score'] ?? 0.0,
+            'risk_level' => $mathEval['risk_level'] ?? 'SAFE',
+            'summary_explanation' => $mathEval['summary_explanation'] ?? '',
             'pie' => [
                 'labels' => $pieLabels,
                 'data' => $pieData,
@@ -939,6 +961,15 @@ class RiskAnalyticsChartService
 
         // 1. Ưu tiên phân tích ngữ nghĩa từ ghi chú thực tế của giảng viên (nếu có lý do cụ thể)
         if ($normalizedNote !== '' && $normalizedNote !== 'vắng không phép' && $normalizedNote !== 'không phép') {
+            if (preg_match('/stress|trầm cảm|tâm lý|kiệt sức|khủng hoảng/u', $normalizedNote)) {
+                return 'mental_health';
+            }
+            if (preg_match('/làm thêm|đi làm|tài chính|tiền nong|học phí|kiếm tiền/u', $normalizedNote)) {
+                return 'financial_work';
+            }
+            if (preg_match('/chán|không thích|sai ngành|chuyển ngành|đổi ngành|mất động lực/u', $normalizedNote)) {
+                return 'motivation_major';
+            }
             if (preg_match('/ốm|bệnh|sức khỏe|viện|sốt|đau|khám|tai nạn|gia đình|việc riêng|có phép|xin phép|cưới|tang|quê/u', $normalizedNote)) {
                 return 'excused_personal';
             }
@@ -951,7 +982,7 @@ class RiskAnalyticsChartService
             if (preg_match('/cấm thi|bỏ môn|buông xuôi|quá 20/u', $normalizedNote)) {
                 return 'post_ban_drop';
             }
-            if (preg_match('/trùng lịch|làm thêm|đi làm|quá tải|nhiều môn/u', $normalizedNote)) {
+            if (preg_match('/trùng lịch|quá tải|nhiều môn/u', $normalizedNote)) {
                 return 'multi_subject_overload';
             }
         }

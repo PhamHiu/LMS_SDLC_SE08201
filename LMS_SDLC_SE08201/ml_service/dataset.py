@@ -18,6 +18,7 @@ FEATURE_COLUMNS = [
     'max_absence_rate',
     'overall_absence_rate',
     'grade_trend',
+    'overdue_assignments',
 ]
 
 
@@ -76,6 +77,14 @@ def generate_synthetic_dataset(num_samples: int = 1200, random_seed: int = 42) -
     grade_trend = np.clip(np.random.normal(loc=0.05, scale=0.8, size=num_samples), -3.0, 3.0)
     grade_trend = np.round(grade_trend, 2)
 
+    # 6b. Overdue assignments: số bài tập nộp trễ/chưa nộp — tín hiệu hành vi học tập.
+    # Sinh viên có dấu hiệu bỏ bê (trốn học hoặc GPA thấp) có xu hướng tồn đọng nhiều bài quá hạn hơn.
+    regular_overdue = np.random.poisson(lam=0.6, size=num_samples)
+    at_risk_overdue = np.random.poisson(lam=3.2, size=num_samples)
+    disengaged = is_truant | (gpa < 5.0)
+    overdue_assignments = np.where(disengaged, at_risk_overdue, regular_overdue)
+    overdue_assignments = np.clip(overdue_assignments, 0, 20).astype(int)
+
     # 7. Ground Truth: Dropout probability calculation (Logistic Log-odds formulation)
     # Log-odds formula combining key domain risk factors:
     logits = (
@@ -86,6 +95,7 @@ def generate_synthetic_dataset(num_samples: int = 1200, random_seed: int = 42) -
         + 0.95 * attendance_fail_count         # Attendance failure is high predictor
         + 0.04 * (overall_absence_rate - 15.0) # Overall absenteeism
         - 0.60 * grade_trend                   # Improving grades buffer risk
+        + 0.22 * overdue_assignments           # Bài quá hạn tích tụ → tín hiệu sớm của sa sút
     )
 
     dropout_prob = 1.0 / (1.0 + np.exp(-logits))
@@ -102,6 +112,7 @@ def generate_synthetic_dataset(num_samples: int = 1200, random_seed: int = 42) -
         'max_absence_rate': max_absence_rate,
         'overall_absence_rate': overall_absence_rate,
         'grade_trend': grade_trend,
+        'overdue_assignments': overdue_assignments,
         'dropout': dropout,
     })
 

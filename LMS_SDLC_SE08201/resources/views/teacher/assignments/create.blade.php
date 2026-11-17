@@ -70,43 +70,51 @@
             <div id="questionList" class="space-y-4">
                 @if(old('questions'))
                     @foreach(old('questions') as $index => $q)
+                        @php($qtype = $q['question_type'] ?? 'mcq')
                         <div class="question-item rounded-md border border-blue-200 bg-white p-4">
                             <div class="mb-2 flex items-center justify-between">
                                 <p class="text-sm font-bold text-slate-700">Câu <span class="q-number">{{ $index + 1 }}</span></p>
                                 <button type="button" onclick="this.closest('.question-item').remove(); renumber()" class="text-xs font-medium text-rose-600 hover:underline">Xóa câu này</button>
                             </div>
-                            <textarea name="questions[{{ $index }}][content]" rows="2" required placeholder="Nội dung câu hỏi..."
+                            <div class="mb-2">
+                                <label class="block text-xs font-medium text-slate-600 mb-1">Loại câu hỏi</label>
+                                <select data-name="question_type" name="questions[{{ $index }}][question_type]" onchange="toggleType(this)" class="rounded-lg border border-slate-300 px-3 py-1.5 text-sm bg-white outline-none">
+                                    <option value="mcq" @selected($qtype==='mcq')>Trắc nghiệm (A/B/C/D)</option>
+                                    <option value="true_false" @selected($qtype==='true_false')>Đúng/Sai</option>
+                                    <option value="fill_blank" @selected($qtype==='fill_blank')>Điền khuyết</option>
+                                    <option value="code_reading" @selected($qtype==='code_reading')>Đọc code</option>
+                                </select>
+                            </div>
+                            <textarea data-name="content" name="questions[{{ $index }}][content]" rows="2" required placeholder="Nội dung câu hỏi..."
                                       class="w-full rounded-lg border @error('questions.'.$index.'.content') border-red-500 @else border-slate-300 @enderror px-3 py-2 text-sm focus:border-[#1e4f8f] outline-none">{{ $q['content'] ?? '' }}</textarea>
                             @error('questions.'.$index.'.content')
                                 <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
                             @enderror
-                            <div class="mt-2 grid gap-2 sm:grid-cols-2">
-                                <div>
-                                    <input name="questions[{{ $index }}][option_a]" type="text" value="{{ $q['option_a'] ?? '' }}" required placeholder="Đáp án A" class="w-full rounded-lg border @error('questions.'.$index.'.option_a') border-red-500 @else border-slate-300 @enderror px-3 py-2 text-sm outline-none focus:border-[#1e4f8f]">
-                                    @error('questions.'.$index.'.option_a') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
+
+                            <div class="choice-fields {{ $qtype==='fill_blank' ? 'hidden' : '' }}">
+                                <div class="mt-2 grid gap-2 sm:grid-cols-2">
+                                    <input data-name="option_a" name="questions[{{ $index }}][option_a]" type="text" value="{{ $q['option_a'] ?? '' }}" placeholder="Đáp án A" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-[#1e4f8f]">
+                                    <input data-name="option_b" name="questions[{{ $index }}][option_b]" type="text" value="{{ $q['option_b'] ?? '' }}" placeholder="Đáp án B" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-[#1e4f8f]">
+                                    <input data-name="option_c" name="questions[{{ $index }}][option_c]" type="text" value="{{ $q['option_c'] ?? '' }}" placeholder="Đáp án C" class="opt-c w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-[#1e4f8f]">
+                                    <input data-name="option_d" name="questions[{{ $index }}][option_d]" type="text" value="{{ $q['option_d'] ?? '' }}" placeholder="Đáp án D" class="opt-d w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-[#1e4f8f]">
                                 </div>
-                                <div>
-                                    <input name="questions[{{ $index }}][option_b]" type="text" value="{{ $q['option_b'] ?? '' }}" required placeholder="Đáp án B" class="w-full rounded-lg border @error('questions.'.$index.'.option_b') border-red-500 @else border-slate-300 @enderror px-3 py-2 text-sm outline-none focus:border-[#1e4f8f]">
-                                    @error('questions.'.$index.'.option_b') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
-                                </div>
-                                <div>
-                                    <input name="questions[{{ $index }}][option_c]" type="text" value="{{ $q['option_c'] ?? '' }}" required placeholder="Đáp án C" class="w-full rounded-lg border @error('questions.'.$index.'.option_c') border-red-500 @else border-slate-300 @enderror px-3 py-2 text-sm outline-none focus:border-[#1e4f8f]">
-                                    @error('questions.'.$index.'.option_c') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
-                                </div>
-                                <div>
-                                    <input name="questions[{{ $index }}][option_d]" type="text" value="{{ $q['option_d'] ?? '' }}" required placeholder="Đáp án D" class="w-full rounded-lg border @error('questions.'.$index.'.option_d') border-red-500 @else border-slate-300 @enderror px-3 py-2 text-sm outline-none focus:border-[#1e4f8f]">
-                                    @error('questions.'.$index.'.option_d') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
+                                <div class="mt-2 flex items-center gap-2 text-sm">
+                                    <label class="font-medium text-slate-600">Đáp án đúng:</label>
+                                    <select data-name="correct_answer" name="questions[{{ $index }}][correct_answer]" class="rounded-lg border border-slate-300 px-3 py-1.5 text-sm bg-white outline-none">
+                                        <option value="A" @selected(($q['correct_answer'] ?? '') === 'A')>A</option>
+                                        <option value="B" @selected(($q['correct_answer'] ?? '') === 'B')>B</option>
+                                        <option value="C" @selected(($q['correct_answer'] ?? '') === 'C')>C</option>
+                                        <option value="D" @selected(($q['correct_answer'] ?? '') === 'D')>D</option>
+                                    </select>
                                 </div>
                             </div>
-                            <div class="mt-2 flex items-center gap-2 text-sm">
-                                <label class="font-medium text-slate-600">Đáp án đúng:</label>
-                                <select name="questions[{{ $index }}][correct_answer]" required class="rounded-lg border border-slate-300 px-3 py-1.5 text-sm bg-white outline-none">
-                                    <option value="A" @selected(($q['correct_answer'] ?? '') === 'A')>A</option>
-                                    <option value="B" @selected(($q['correct_answer'] ?? '') === 'B')>B</option>
-                                    <option value="C" @selected(($q['correct_answer'] ?? '') === 'C')>C</option>
-                                    <option value="D" @selected(($q['correct_answer'] ?? '') === 'D')>D</option>
-                                </select>
+
+                            <div class="fillblank-fields {{ $qtype==='fill_blank' ? '' : 'hidden' }} mt-2">
+                                <input data-name="correct_text" name="questions[{{ $index }}][correct_text]" type="text" value="{{ $q['correct_text'] ?? '' }}" placeholder="Đáp án đúng (nhiều đáp án cách nhau bằng dấu |)" class="w-full rounded-lg border @error('questions.'.$index.'.correct_text') border-red-500 @else border-slate-300 @enderror px-3 py-2 text-sm outline-none focus:border-[#1e4f8f]">
+                                @error('questions.'.$index.'.correct_text') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                             </div>
+
+                            <textarea data-name="explanation" name="questions[{{ $index }}][explanation]" rows="1" placeholder="Giải thích đáp án (tùy chọn)" class="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2 text-xs text-slate-600 focus:border-[#1e4f8f] outline-none">{{ $q['explanation'] ?? '' }}</textarea>
                         </div>
                     @endforeach
                 @endif
@@ -126,20 +134,35 @@
             <p class="text-sm font-bold text-slate-700">Câu <span class="q-number"></span></p>
             <button type="button" onclick="this.closest('.question-item').remove(); renumber()" class="text-xs font-medium text-rose-600 hover:underline">Xóa câu này</button>
         </div>
-        <textarea data-name="content" rows="2" required placeholder="Nội dung câu hỏi..."
-                  class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-[#1e4f8f] outline-none"></textarea>
-        <div class="mt-2 grid gap-2 sm:grid-cols-2">
-            <input data-name="option_a" type="text" required placeholder="Đáp án A" class="rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-[#1e4f8f]">
-            <input data-name="option_b" type="text" required placeholder="Đáp án B" class="rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-[#1e4f8f]">
-            <input data-name="option_c" type="text" required placeholder="Đáp án C" class="rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-[#1e4f8f]">
-            <input data-name="option_d" type="text" required placeholder="Đáp án D" class="rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-[#1e4f8f]">
-        </div>
-        <div class="mt-2 flex items-center gap-2 text-sm">
-            <label class="font-medium text-slate-600">Đáp án đúng:</label>
-            <select data-name="correct_answer" required class="rounded-lg border border-slate-300 px-3 py-1.5 text-sm bg-white outline-none">
-                <option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option>
+        <div class="mb-2">
+            <label class="block text-xs font-medium text-slate-600 mb-1">Loại câu hỏi</label>
+            <select data-name="question_type" onchange="toggleType(this)" class="rounded-lg border border-slate-300 px-3 py-1.5 text-sm bg-white outline-none">
+                <option value="mcq">Trắc nghiệm (A/B/C/D)</option>
+                <option value="true_false">Đúng/Sai</option>
+                <option value="fill_blank">Điền khuyết</option>
+                <option value="code_reading">Đọc code</option>
             </select>
         </div>
+        <textarea data-name="content" rows="2" required placeholder="Nội dung câu hỏi..."
+                  class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-[#1e4f8f] outline-none"></textarea>
+        <div class="choice-fields">
+            <div class="mt-2 grid gap-2 sm:grid-cols-2">
+                <input data-name="option_a" type="text" placeholder="Đáp án A" class="rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-[#1e4f8f]">
+                <input data-name="option_b" type="text" placeholder="Đáp án B" class="rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-[#1e4f8f]">
+                <input data-name="option_c" type="text" placeholder="Đáp án C" class="opt-c rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-[#1e4f8f]">
+                <input data-name="option_d" type="text" placeholder="Đáp án D" class="opt-d rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-[#1e4f8f]">
+            </div>
+            <div class="mt-2 flex items-center gap-2 text-sm">
+                <label class="font-medium text-slate-600">Đáp án đúng:</label>
+                <select data-name="correct_answer" class="rounded-lg border border-slate-300 px-3 py-1.5 text-sm bg-white outline-none">
+                    <option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option>
+                </select>
+            </div>
+        </div>
+        <div class="fillblank-fields hidden mt-2">
+            <input data-name="correct_text" type="text" placeholder="Đáp án đúng (nhiều đáp án cách nhau bằng dấu |)" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-[#1e4f8f]">
+        </div>
+        <textarea data-name="explanation" rows="1" placeholder="Giải thích đáp án (tùy chọn)" class="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2 text-xs text-slate-600 focus:border-[#1e4f8f] outline-none"></textarea>
     </div>
 </template>
 
@@ -170,8 +193,42 @@
         });
     }
 
+    // Hiện/ẩn các trường theo loại câu hỏi
+    function toggleType(sel) {
+        const item = sel.closest('.question-item');
+        const type = sel.value;
+        const choice = item.querySelector('.choice-fields');
+        const fill = item.querySelector('.fillblank-fields');
+        const optC = item.querySelector('.opt-c');
+        const optD = item.querySelector('.opt-d');
+        const optA = item.querySelector('[data-name="option_a"]');
+        const optB = item.querySelector('[data-name="option_b"]');
+
+        if (type === 'fill_blank') {
+            choice.classList.add('hidden');
+            fill.classList.remove('hidden');
+            return;
+        }
+
+        choice.classList.remove('hidden');
+        fill.classList.add('hidden');
+
+        if (type === 'true_false') {
+            if (optA && !optA.value.trim()) optA.value = 'Đúng';
+            if (optB && !optB.value.trim()) optB.value = 'Sai';
+            if (optC) optC.classList.add('hidden');
+            if (optD) optD.classList.add('hidden');
+        } else {
+            if (optC) optC.classList.remove('hidden');
+            if (optD) optD.classList.remove('hidden');
+        }
+    }
+
     typeSelect.addEventListener('change', toggleQuiz);
     toggleQuiz();
+
+    // Khởi tạo trạng thái hiển thị cho các câu hỏi đã render sẵn (old input)
+    document.querySelectorAll('#questionList select[data-name="question_type"]').forEach(toggleType);
 
     // Bắt sự kiện submit form chính để cảnh báo nếu thiếu Tiêu đề hoặc Hạn nộp
     document.getElementById('mainForm').addEventListener('submit', function(e) {
@@ -244,6 +301,27 @@
             </div>
 
             <div>
+                <label class="mb-1 block text-sm font-semibold text-slate-700">Dạng câu hỏi</label>
+                <div class="grid grid-cols-2 gap-2 text-sm text-slate-700">
+                    <label class="flex items-center gap-2"><input type="checkbox" class="ai-type" value="mcq" checked> Trắc nghiệm</label>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="ai-type" value="true_false"> Đúng/Sai</label>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="ai-type" value="fill_blank"> Điền khuyết</label>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="ai-type" value="code_reading"> Đọc code</label>
+                </div>
+            </div>
+
+            <div>
+                <label class="mb-1 block text-sm font-semibold text-slate-700">Độ khó (thang Bloom)</label>
+                <select id="aiDifficulty" class="w-full rounded-md border border-slate-300 px-4 py-2.5 text-sm outline-none focus:border-[#1e4f8f]">
+                    <option value="">Tự động (xen kẽ)</option>
+                    <option value="Nhớ (Remember)">Nhớ (Remember)</option>
+                    <option value="Hiểu (Understand)">Hiểu (Understand)</option>
+                    <option value="Vận dụng (Apply)">Vận dụng (Apply)</option>
+                    <option value="Phân tích (Analyze)">Phân tích (Analyze)</option>
+                </select>
+            </div>
+
+            <div>
                 <label class="mb-1 block text-sm font-semibold text-slate-700">Tài liệu tham khảo (Tùy chọn)</label>
                 <input type="file" id="aiFile" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-600 outline-none file:mr-4 file:rounded-lg file:border-0 file:bg-blue-50 file:px-4 file:py-1.5 file:text-sm file:font-semibold file:text-[#1e4f8f] hover:file:bg-blue-100">
                 <p class="mt-2 text-xs text-slate-500">Hỗ trợ file .txt, .pdf, .docx. AI sẽ đọc tài liệu để sinh câu hỏi sát nội dung.</p>
@@ -280,7 +358,13 @@
         formData.append('_token', '{{ csrf_token() }}');
         formData.append('topic', document.getElementById('aiTopic').value);
         formData.append('count', document.getElementById('aiCount').value);
-        
+
+        const checkedTypes = [...document.querySelectorAll('.ai-type:checked')].map(c => c.value);
+        if (checkedTypes.length === 0) checkedTypes.push('mcq');
+        checkedTypes.forEach(t => formData.append('types[]', t));
+        const diff = document.getElementById('aiDifficulty');
+        if (diff && diff.value) formData.append('difficulty', diff.value);
+
         const fileInput = document.getElementById('aiFile');
         if (fileInput.files.length > 0) {
             formData.append('document', fileInput.files[0]);
@@ -311,13 +395,23 @@
                     addQuestion();
                     const items = document.querySelectorAll('.question-item');
                     const newItem = items[items.length - 1];
-                    
-                    newItem.querySelector('textarea[name$="[content]"]').value = q.content;
-                    newItem.querySelector('input[name$="[option_a]"]').value = q.option_a;
-                    newItem.querySelector('input[name$="[option_b]"]').value = q.option_b;
-                    newItem.querySelector('input[name$="[option_c]"]').value = q.option_c;
-                    newItem.querySelector('input[name$="[option_d]"]').value = q.option_d;
-                    newItem.querySelector(`select[name$="[correct_answer]"]`).value = q.correct_answer.toUpperCase();
+
+                    const typeSel = newItem.querySelector('select[name$="[question_type]"]');
+                    typeSel.value = q.question_type || 'mcq';
+                    toggleType(typeSel);
+
+                    newItem.querySelector('textarea[name$="[content]"]').value = q.content || '';
+                    newItem.querySelector('textarea[name$="[explanation]"]').value = q.explanation || '';
+
+                    if ((q.question_type || 'mcq') === 'fill_blank') {
+                        newItem.querySelector('input[name$="[correct_text]"]').value = q.correct_text || '';
+                    } else {
+                        newItem.querySelector('input[name$="[option_a]"]').value = q.option_a || '';
+                        newItem.querySelector('input[name$="[option_b]"]').value = q.option_b || '';
+                        newItem.querySelector('input[name$="[option_c]"]').value = q.option_c || '';
+                        newItem.querySelector('input[name$="[option_d]"]').value = q.option_d || '';
+                        newItem.querySelector('select[name$="[correct_answer]"]').value = (q.correct_answer || 'A').toUpperCase();
+                    }
                 });
                 closeAiModal();
                 showToast(`Đã sinh thành công ${result.data.length} câu hỏi!`, 'success');

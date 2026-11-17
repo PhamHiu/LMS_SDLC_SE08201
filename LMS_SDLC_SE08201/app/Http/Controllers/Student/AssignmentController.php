@@ -99,7 +99,8 @@ class AssignmentController extends Controller
         $submission = $this->submissionService->submitQuiz(
             $request->user(),
             $assignment,
-            $request->validated('answers'),
+            $request->validated('answers') ?? [],
+            $request->validated('answer_text') ?? [],
         );
 
         return redirect()

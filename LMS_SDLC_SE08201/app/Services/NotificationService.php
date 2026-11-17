@@ -53,7 +53,7 @@ class NotificationService
     {
         $classIds = $student->enrollments()->pluck('class_id');
 
-        return Notification::with(['author', 'classRoom'])
+        return Notification::with(['author', 'classRoom', 'assignment', 'reads' => fn ($q) => $q->where('user_id', $student->user_id)])
             ->where(fn ($q) => $q->whereNull('class_id')->orWhereIn('class_id', $classIds))
             ->orderByDesc('created_at')
             ->paginate(10);
@@ -65,7 +65,7 @@ class NotificationService
         if ($user->isStudent()) {
             $classIds = $user->enrollments()->pluck('class_id');
 
-            return Notification::with(['author', 'classRoom'])
+            return Notification::with(['author', 'classRoom', 'assignment', 'reads' => fn ($q) => $q->where('user_id', $user->user_id)])
                 ->where(fn ($q) => $q->whereNull('class_id')->orWhereIn('class_id', $classIds))
                 ->orderByDesc('created_at')->take($limit)->get();
         }
@@ -73,12 +73,34 @@ class NotificationService
         if ($user->isTeacher()) {
             $classIds = $user->teachingClasses()->pluck('class_id');
 
-            return Notification::with(['author', 'classRoom'])
+            return Notification::with(['author', 'classRoom', 'assignment'])
                 ->where(fn ($q) => $q->whereNull('class_id')->orWhereIn('class_id', $classIds))
                 ->orderByDesc('created_at')->take($limit)->get();
         }
 
         return Notification::with('author')->orderByDesc('created_at')->take($limit)->get();
+    }
+
+    /** Đánh dấu một thông báo là đã đọc cho người dùng */
+    public function markAsRead(Notification $notification, User $user): void
+    {
+        \App\Models\NotificationRead::firstOrCreate([
+            'notification_id' => $notification->notification_id,
+            'user_id' => $user->user_id,
+        ], [
+            'read_at' => now(),
+        ]);
+    }
+
+    /** Đánh dấu toàn bộ thông báo của học sinh là đã đọc */
+    public function markAllAsReadForStudent(User $student): void
+    {
+        $classIds = $student->enrollments()->pluck('class_id');
+        $notifications = Notification::where(fn ($q) => $q->whereNull('class_id')->orWhereIn('class_id', $classIds))->get();
+
+        foreach ($notifications as $n) {
+            $this->markAsRead($n, $student);
+        }
     }
 
     /**

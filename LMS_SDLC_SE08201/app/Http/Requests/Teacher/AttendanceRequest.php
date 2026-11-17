@@ -8,7 +8,8 @@ class AttendanceRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->isTeacher();
+        $user = $this->user();
+        return $user && ($user->isTeacher() || $user->isAdmin());
     }
 
     public function rules(): array

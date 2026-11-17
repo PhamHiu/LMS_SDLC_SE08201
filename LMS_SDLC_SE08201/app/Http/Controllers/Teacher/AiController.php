@@ -23,10 +23,15 @@ class AiController extends Controller
             'topic' => 'required|string|max:255',
             'count' => 'required|integer|min:1|max:50',
             'document' => 'nullable|file|mimes:txt,pdf,docx|max:5120', // 5MB max
+            'types' => 'nullable|array',
+            'types.*' => 'in:mcq,true_false,fill_blank,code_reading',
+            'difficulty' => 'nullable|string|max:50',
         ]);
 
         $topic = $request->input('topic');
         $count = $request->input('count');
+        $types = $request->input('types', ['mcq']);
+        $difficulty = $request->input('difficulty');
         $documentText = null;
         $inlineData = null;
 
@@ -58,7 +63,7 @@ class AiController extends Controller
         }
 
         try {
-            $questions = $this->geminiService->generateQuestions($topic, $count, $documentText, $inlineData);
+            $questions = $this->geminiService->generateQuestions($topic, $count, $documentText, $inlineData, $types, $difficulty);
             return response()->json([
                 'success' => true,
                 'data' => $questions

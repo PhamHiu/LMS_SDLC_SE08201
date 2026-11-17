@@ -126,6 +126,7 @@ Route::middleware(['auth', 'role:TEACHER'])->prefix('teacher')->name('teacher.')
     Route::get('assignments/{assignment}/edit', [Teacher\AssignmentController::class, 'edit'])->name('assignments.edit');
     // ( Đăng thêm ) Thêm route để thực thi cập nhật bài tập
     Route::put('assignments/{assignment}', [Teacher\AssignmentController::class, 'update'])->name('assignments.update');
+    Route::put('assignments/{assignment}/extend-deadline', [Teacher\AssignmentController::class, 'extendDeadline'])->name('assignments.extend-deadline');
     // ( Đăng thêm ) Thêm route để tải xuống file đính kèm của bài tập
     Route::get('assignments/{assignment}/download-attachment', [Teacher\AssignmentController::class, 'downloadAttachment'])->name('assignments.download-attachment');
     Route::delete('assignments/{assignment}', [Teacher\AssignmentController::class, 'destroy'])->name('assignments.destroy');
@@ -135,6 +136,8 @@ Route::middleware(['auth', 'role:TEACHER'])->prefix('teacher')->name('teacher.')
     Route::get('submissions/{submission}/grade', [Teacher\GradingController::class, 'show'])->name('grading.show');
     Route::get('submissions/{submission}/download', [Teacher\GradingController::class, 'download'])->name('grading.download');
     Route::post('submissions/{submission}/grade', [Teacher\GradingController::class, 'grade'])->name('grading.grade');
+    Route::post('assignments/{assignment}/remind', [Teacher\GradingController::class, 'remind'])->name('grading.remind');
+    Route::post('assignments/{assignment}/remind/{student}', [Teacher\GradingController::class, 'remindStudent'])->name('grading.remind.student');
 
     // Thông báo lớp
     Route::get('notifications', [Teacher\NotificationController::class, 'index'])->name('notifications.index');
@@ -185,6 +188,8 @@ Route::middleware(['auth', 'role:STUDENT'])->prefix('student')->name('student.')
 
     // Thông báo + thảo luận
     Route::get('notifications', [Student\NotificationController::class, 'index'])->name('notifications.index');
+    Route::get('notifications/{notification}/read', [Student\NotificationController::class, 'read'])->name('notifications.read');
+    Route::post('notifications/mark-all-read', [Student\NotificationController::class, 'markAllRead'])->name('notifications.mark-all-read');
     Route::post('assignments/{assignment}/discussions', [Student\DiscussionController::class, 'store'])->name('discussions.store');
 
     // AI Learning Tutor (Mr. Biết Tuốt): Chỉ dành riêng cho Sinh viên (STUDENT)
