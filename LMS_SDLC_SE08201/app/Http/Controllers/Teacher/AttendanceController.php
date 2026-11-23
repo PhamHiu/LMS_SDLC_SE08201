@@ -111,6 +111,32 @@ class AttendanceController extends Controller
 
         return redirect()
             ->route('teacher.attendance.index', ['class_id' => $class->class_id])
-            ->with('success', 'Đã lưu điểm danh buổi ' . $session->session_date->format('d/m/Y') . ' thành công và tự động đồng bộ cảnh báo nguy cơ AI.');
+            ->with('success', 'Đã lưu điểm danh buổi ' . $session->session_date->format('d/m/Y') . ' thành công và tự động cập nhật tỷ lệ nghỉ học của học sinh.');
+    }
+
+    /** Khôi phục điểm danh cho 1 sinh viên (tối đa 1 lần / 1 môn) */
+    public function restore(Request $request, ClassRoom $class, ClassSession $session, User $student): RedirectResponse
+    {
+        $teacher = $request->user() ?? Auth::user();
+        if ($teacher && ! $teacher->isAdmin()) {
+            $this->classService->authorizeClass($teacher, $class);
+        }
+        abort_if($session->class_id !== $class->class_id, 404);
+
+        $validated = $request->validate([
+            'restore_reason' => 'nullable|string|max:255',
+        ]);
+
+        $this->attendanceService->restoreAttendance(
+            $class,
+            $session,
+            $student,
+            $teacher,
+            $validated['restore_reason'] ?? null,
+        );
+
+        return redirect()
+            ->route('teacher.attendance.edit', [$class, $session])
+            ->with('success', "Đã khôi phục điểm danh (1/1 lượt môn) cho sinh viên {$student->full_name} sang Có mặt (P) và gửi thông báo tới sinh viên.");
     }
 }

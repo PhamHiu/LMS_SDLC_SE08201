@@ -20,6 +20,8 @@ class AiConversation extends Model
         'title',
         'mode',
         'model_used',
+        'context_summary',
+        'summarized_up_to_message_id',
     ];
 
     public function user()

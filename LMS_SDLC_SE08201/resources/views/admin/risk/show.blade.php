@@ -1,149 +1,140 @@
 @extends('layouts.app')
 
-@section('title', 'Hồ sơ Cảnh báo Học tập Sinh viên — Admin')
+@section('title', 'Chi tiết Nghỉ học theo Môn — ' . $student->full_name)
 
 @section('content')
 <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
     <div>
-        <a href="{{ route('admin.risk.index') }}" class="inline-flex items-center gap-1.5 text-xs font-semibold !text-slate-500 hover:!text-[#163c6d] transition mb-2">
-            <span>←</span> Quay lại danh sách toàn trường
+        <a href="{{ route('admin.risk.index') }}" class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-[#163c6d] transition mb-2">
+            <span>←</span> Quay lại thống kê toàn trường
         </a>
-        <h1 class="text-2xl font-bold !text-slate-900 flex items-center gap-2.5">
-            <svg class="w-7 h-7 text-[#1e4f8f] inline-block filter" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-            </svg>
-            <span>Giám sát Cảnh báo Học tập & Can thiệp</span>
-        </h1>
-        <p class="text-xs !text-slate-600 mt-1">Sinh viên: <strong class="!text-slate-900">{{ $student->full_name }}</strong> · Mã SV: <span class="font-mono text-[#1e4f8f] font-bold">{{ $student->student_code ?? 'HL'.str_pad($student->user_id, 5, '0', STR_PAD_LEFT) }}</span> · Ngành: {{ $student->major->major_name ?? '—' }}</p>
+        <h1 class="text-2xl font-bold text-slate-900">Chi tiết số buổi nghỉ học theo môn</h1>
+        <p class="text-sm text-slate-600 mt-1">
+            Học sinh: <strong class="text-slate-900">{{ $student->full_name }}</strong>
+            · Mã SV: <span class="font-mono font-bold text-[#1e4f8f]">{{ $student->student_code ?? 'HL'.str_pad($student->user_id, 5, '0', STR_PAD_LEFT) }}</span>
+            · Ngành: {{ $student->major->major_name ?? '—' }}
+        </p>
     </div>
 
-    <div>
-        @php
-            $badgeDot = match($prediction->risk_level) {
-                'SAFE' => 'bg-emerald-600',
-                'MEDIUM' => 'bg-amber-600',
-                'HIGH' => 'bg-orange-600',
-                'VERY_HIGH' => 'bg-rose-400',
-                default => 'bg-slate-400'
-            };
-        @endphp
-        <span class="inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-bold shadow-sm {{ $prediction->badgeColorClass() }}">
-            <span class="w-3 h-3 rounded-full {{ $badgeDot }} inline-block"></span>
-            <span>MỨC ĐỘ: {{ mb_strtoupper($prediction->levelLabel()) }}</span>
-        </span>
+    <div class="flex flex-wrap gap-2 text-xs font-bold">
+        <span class="rounded-md border border-slate-200 bg-white px-3 py-2 text-slate-700">Tổng môn: {{ $breakdown['summary']['total_subjects'] }}</span>
+        <span class="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-rose-700">Trượt môn (&gt;20%): {{ $breakdown['summary']['failed_subjects'] }}</span>
+        <span class="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-amber-700">Sắp trượt: {{ $breakdown['summary']['warning_subjects'] }}</span>
     </div>
 </div>
 
-{{-- BIỂU ĐỒ CHẨN ĐOÁN CÁ NHÂN (PIE / LINE / COLUMN) --}}
-@include('components.student-risk-charts', ['studentCharts' => $studentCharts ?? null])
+{{-- BẢNG SỐ BUỔI NGHỈ THEO TỪNG MÔN HỌC --}}
+<div class="mb-6 rounded-lg border border-slate-200 bg-white shadow-sm overflow-hidden">
+    <div class="border-b border-slate-200 bg-slate-50 px-6 py-4 flex items-center justify-between">
+        <h2 class="font-bold text-slate-900">Thống kê chuyên cần từng môn học</h2>
+        <span class="text-xs text-slate-500">Quy chế: nghỉ quá 20% tổng số buổi bị trượt môn</span>
+    </div>
+
+    <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm">
+            <thead class="bg-slate-50 text-xs font-bold uppercase tracking-wider text-slate-600 border-b border-slate-200">
+                <tr>
+                    <th class="px-5 py-3.5">Môn học</th>
+                    <th class="px-5 py-3.5">Lớp</th>
+                    <th class="px-5 py-3.5 text-center">Tổng buổi</th>
+                    <th class="px-5 py-3.5 text-center">Có mặt</th>
+                    <th class="px-5 py-3.5 text-center">Đi muộn</th>
+                    <th class="px-5 py-3.5 text-center">Số buổi nghỉ</th>
+                    <th class="px-5 py-3.5 text-center">Tỷ lệ nghỉ</th>
+                    <th class="px-5 py-3.5 text-center">Trạng thái</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-200">
+                @forelse($breakdown['subjects'] as $sub)
+                    <tr class="hover:bg-slate-50">
+                        <td class="px-5 py-3.5">
+                            <div class="font-semibold text-slate-900">{{ $sub['subject_name'] }}</div>
+                            <div class="text-xs text-slate-500 font-mono">{{ $sub['subject_code'] }}</div>
+                        </td>
+                        <td class="px-5 py-3.5 text-slate-700 font-medium">{{ $sub['class_name'] }}</td>
+                        <td class="px-5 py-3.5 text-center font-semibold text-slate-800">{{ $sub['total_sessions'] }}</td>
+                        <td class="px-5 py-3.5 text-center font-semibold text-emerald-700">{{ $sub['present_sessions'] }}</td>
+                        <td class="px-5 py-3.5 text-center font-semibold text-amber-700">{{ $sub['late_sessions'] }}</td>
+                        <td class="px-5 py-3.5 text-center">
+                            <span class="font-bold {{ $sub['status'] === 'FAILED' ? 'text-rose-700' : 'text-slate-900' }}">{{ $sub['absent_sessions'] }}</span>
+                            <span class="text-xs text-slate-400"> (tối đa {{ $sub['max_allowed_absences'] }})</span>
+                        </td>
+                        <td class="px-5 py-3.5 text-center">
+                            <span class="inline-flex rounded-full px-2.5 py-0.5 text-xs font-bold {{ $sub['status'] === 'FAILED' ? 'bg-rose-100 text-rose-800' : ($sub['status'] === 'WARNING' ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-700') }}">
+                                {{ number_format($sub['absence_rate'], 1) }}%
+                            </span>
+                        </td>
+                        <td class="px-5 py-3.5 text-center">
+                            @if($sub['status'] === 'FAILED')
+                                <span class="inline-flex rounded-full border border-rose-300 bg-rose-100 px-3 py-1 text-xs font-bold text-rose-800">Trượt môn (&gt;20%)</span>
+                            @elseif($sub['status'] === 'WARNING')
+                                <span class="inline-flex rounded-full border border-amber-300 bg-amber-100 px-3 py-1 text-xs font-bold text-amber-800">Sắp trượt (15%–20%)</span>
+                            @else
+                                <span class="inline-flex rounded-full border border-emerald-300 bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-800">Đạt chuyên cần</span>
+                            @endif
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="8" class="px-6 py-8 text-center text-slate-500">Học sinh chưa ghi danh môn học nào.</td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+</div>
 
 <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
-    <div class="lg:col-span-2 space-y-6">
-        {{-- Card Tóm tắt nguyên nhân --}}
-        <div class="rounded-lg border border-slate-200 bg-white p-6 shadow-sm glass-card">
-            <h2 class="text-base font-bold !text-slate-900 flex items-center gap-2.5 mb-3">
-                <svg class="w-5 h-5 text-[#1e4f8f] inline-block filter" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                </svg>
-                <span>Căn cứ Phân tích & Giải thích Tự động</span>
-            </h2>
-            <div class="rounded-md bg-slate-50 border border-slate-200 p-4 text-sm leading-relaxed !text-slate-700">
-                <p class="font-bold !text-slate-900 text-base">{{ $prediction->summary_explanation }}</p>
-                <div class="mt-3 pt-3 border-t border-slate-200 flex flex-wrap gap-4 text-xs !text-slate-600">
-                    <span>Phương pháp: <strong class="!text-slate-900">{{ $prediction->analysis_method }}</strong></span>
-                    <span>Phiên bản mô hình: <strong class="!text-slate-900">{{ $prediction->model_version }}</strong></span>
-                    <span>Thời điểm phân tích: <strong class="!text-slate-900">{{ $prediction->analyzed_at->format('H:i d/m/Y') }}</strong></span>
-                </div>
-            </div>
-
-            @if($prediction->recommendations)
-                <div class="mt-4 rounded-md bg-[#1e4f8f]/10 border border-[#1e4f8f]/30 p-4">
-                    <h3 class="text-xs font-bold uppercase tracking-wider text-[#1e4f8f] mb-1">Khuyến nghị sư phạm từ hệ thống:</h3>
-                    <p class="text-sm !text-slate-800 font-medium leading-relaxed">{{ $prediction->recommendations }}</p>
-                </div>
-            @endif
+    {{-- LỊCH SỬ CÁC BUỔI ĐÃ NGHỈ --}}
+    <div class="lg:col-span-2 rounded-lg border border-slate-200 bg-white shadow-sm overflow-hidden">
+        <div class="border-b border-slate-200 bg-slate-50 px-6 py-4">
+            <h2 class="font-bold text-slate-900">Lịch sử các buổi đã nghỉ ({{ $breakdown['absent_history']->count() }} buổi gần nhất)</h2>
         </div>
-
-        {{-- Card Các yếu tố rủi ro --}}
-        <div class="rounded-lg border border-slate-200 bg-white p-6 shadow-sm glass-card">
-            <h2 class="text-base font-bold !text-slate-900 flex items-center gap-2.5 mb-4">
-                <svg class="w-5 h-5 text-[#1e4f8f] inline-block filter" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-                </svg>
-                <span>Chi tiết các Yếu tố Ảnh hưởng (Contributing Factors)</span>
-            </h2>
-
-            <div class="space-y-3">
-                @forelse($prediction->factors as $factor)
-                    @php
-                        $factorIconColor = $factor->severity === 'CRITICAL' ? 'text-rose-400' : ($factor->severity === 'WARNING' ? 'text-amber-400' : 'text-sky-400');
-                    @endphp
-                    <div class="rounded-md border p-4 transition {{ $factor->severity === 'CRITICAL' ? 'border-rose-200 bg-rose-50' : ($factor->severity === 'WARNING' ? 'border-amber-200 bg-amber-50' : 'border-slate-200 bg-slate-50') }}">
-                        <div class="flex items-center justify-between gap-2">
-                            <h3 class="text-sm font-bold !text-slate-900 flex items-center gap-2">
-                                <svg class="w-4 h-4 {{ $factorIconColor }} inline-block filter" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                                </svg>
-                                <span>{{ $factor->title }}</span>
-                            </h3>
-                            <span class="rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase border {{ $factor->severity === 'CRITICAL' ? 'bg-rose-50 border-rose-200 text-rose-700' : ($factor->severity === 'WARNING' ? 'bg-amber-50 border-amber-200 text-amber-700' : 'bg-slate-50 border-slate-200 text-slate-600') }}">
-                                {{ $factor->severity }}
-                            </span>
-                        </div>
-                        <p class="text-xs !text-slate-600 mt-2 leading-relaxed">{{ $factor->description }}</p>
-                    </div>
-                @empty
-                    <div class="text-center py-6 !text-slate-500 text-sm flex items-center justify-center gap-1.5">
-                        <svg class="w-5 h-5 text-emerald-600 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                        <span>Không có yếu tố rủi ro nào được ghi nhận.</span>
-                    </div>
-                @endforelse
-            </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm">
+                <thead class="bg-slate-50 text-xs font-bold uppercase tracking-wider text-slate-600 border-b border-slate-200">
+                    <tr>
+                        <th class="px-5 py-3">Ngày học</th>
+                        <th class="px-5 py-3">Môn học / Lớp</th>
+                        <th class="px-5 py-3">Ghi chú / Lý do</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200">
+                    @forelse($breakdown['absent_history'] as $hist)
+                        <tr>
+                            <td class="px-5 py-3 font-mono text-xs font-semibold text-slate-800">{{ \Carbon\Carbon::parse($hist->session_date)->format('d/m/Y') }}</td>
+                            <td class="px-5 py-3">
+                                <span class="font-semibold text-slate-900">{{ $hist->subject_name }}</span>
+                                <span class="text-xs text-slate-500">({{ $hist->class_name }})</span>
+                            </td>
+                            <td class="px-5 py-3 text-xs text-slate-600">{{ $hist->note ?: 'Không có ghi chú' }}</td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="3" class="px-5 py-6 text-center text-slate-500 text-xs">Chưa có buổi nghỉ nào được ghi nhận.</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
     </div>
 
-    {{-- CỘT PHẢI: THÔNG TIN HỌC VỤ & NHẬT KÝ CAN THIỆP --}}
-    <div class="lg:col-span-1 space-y-6">
-        <div class="rounded-lg border border-slate-200 bg-white p-6 shadow-sm glass-card">
-            <h2 class="text-base font-bold !text-slate-900 flex items-center gap-2 mb-3">
-                <svg class="w-5 h-5 text-[#1e4f8f] inline-block filter" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
-                </svg>
-                <span>Các lớp đang học</span>
-            </h2>
-            <div class="space-y-2">
-                @forelse($student->enrolledClasses as $c)
-                    <div class="rounded-md border border-slate-200 bg-slate-50 p-3 text-xs">
-                        <strong class="!text-slate-900 block text-sm">{{ $c->class_name }}</strong>
-                        <span class="!text-slate-600 mt-0.5 block">Môn: {{ $c->subject?->subject_name ?? '—' }}</span>
+    {{-- NHẬT KÝ HỖ TRỢ / NHẮC NHỞ CỦA GV --}}
+    <div class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+        <h2 class="font-bold text-slate-900 mb-3">Lịch sử nhắc nhở / hỗ trợ của GV</h2>
+        <div class="space-y-3">
+            @forelse($interventions as $item)
+                <div class="rounded-md border border-slate-200 bg-slate-50 p-3 text-xs">
+                    <div class="flex justify-between font-bold text-[#1e4f8f] mb-1">
+                        <span>{{ $item->actionLabel() }}</span>
+                        <span class="text-slate-500 font-normal">{{ $item->created_at->format('d/m/Y') }}</span>
                     </div>
-                @empty
-                    <p class="text-xs !text-slate-500">Chưa ghi danh lớp nào.</p>
-                @endforelse
-            </div>
-        </div>
-
-        <div class="rounded-lg border border-slate-200 bg-white p-6 shadow-sm glass-card">
-            <h2 class="text-base font-bold !text-slate-900 flex items-center gap-2 mb-3">
-                <svg class="w-5 h-5 text-[#1e4f8f] inline-block filter" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
-                </svg>
-                <span>Lịch sử can thiệp của GV</span>
-            </h2>
-            <div class="space-y-3">
-                @forelse($interventions as $item)
-                    <div class="rounded-md border border-slate-200 bg-slate-50 p-3 text-xs">
-                        <div class="flex justify-between font-bold text-[#1e4f8f] mb-1">
-                            <span>{{ $item->actionLabel() }}</span>
-                            <span class="!text-slate-500 font-normal">{{ $item->created_at->format('d/m/Y') }}</span>
-                        </div>
-                        <p class="!text-slate-700 mt-1 leading-relaxed">{{ $item->notes }}</p>
-                        <p class="!text-slate-600 mt-1.5 font-medium">Bởi: {{ $item->teacher?->full_name ?? 'Hệ thống' }}</p>
-                    </div>
-                @empty
-                    <p class="text-xs !text-slate-500 text-center py-4">Chưa có nhật ký can thiệp.</p>
-                @endforelse
-            </div>
+                    <p class="text-slate-700 leading-relaxed">{{ $item->notes }}</p>
+                    <p class="text-slate-500 mt-1.5">Bởi: {{ $item->teacher?->full_name ?? 'Hệ thống' }}</p>
+                </div>
+            @empty
+                <p class="text-xs text-slate-500 text-center py-4">Chưa có ghi chú hỗ trợ nào.</p>
+            @endforelse
         </div>
     </div>
 </div>

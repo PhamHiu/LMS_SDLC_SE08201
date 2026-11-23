@@ -4,23 +4,23 @@ Provides real-time ML inference and model explainability for the Smart LMS platf
 Complies with BestCoder 2026 Master Prompt Section X and XI.
 """
 
-import os
-import json
-import joblib
-import numpy as np
-import pandas as pd
+import os       # Thư viện hệ thống: quản lý đường dẫn file model (.joblib, .json) và đọc biến môi trường (VI_EMBED_MODEL)
+import json     # Đọc/ghi siêu dữ liệu cấu hình mô hình (model_meta.json)
+import joblib   # Thư viện nạp mô hình Machine Learning đã huấn luyện (dropout_model.joblib, scaler.joblib)
+import numpy as np   # Thư viện toán học ma trận/vector: chuyển đổi mảng đặc trưng và xử lý mảng SHAP values
+import pandas as pd  # Thư viện cấu trúc bảng dữ liệu phục vụ tiền xử lý đặc trưng
 
 try:
-    import shap  # SHAP (Lundberg & Lee, 2017) — giải thích đóng góp từng đặc trưng cho mỗi dự đoán
+    import shap  # Thư viện SHAP (Lundberg & Lee, 2017): tính giá trị Shapley giải thích đóng góp từng đặc trưng (Explainable AI)
     _SHAP_AVAILABLE = True
 except Exception:  # pragma: no cover - môi trường chưa cài shap vẫn chạy được (bỏ qua giải thích SHAP)
     shap = None
     _SHAP_AVAILABLE = False
-from datetime import datetime
-from typing import List, Optional, Dict, Any
-from pydantic import BaseModel, Field
-from fastapi import FastAPI, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
+from datetime import datetime                       # Ghi nhận mốc thời gian thực hiện phân tích dự đoán
+from typing import List, Optional, Dict, Any        # Type Hinting chuẩn Python cho kiểu dữ liệu tĩnh rõ ràng
+from pydantic import BaseModel, Field               # Thư viện Pydantic: xác thực dữ liệu (Validation) request/response tự động
+from fastapi import FastAPI, HTTPException          # Thư viện FastAPI: khởi tạo REST API endpoints và bắt lỗi HTTP
+from fastapi.middleware.cors import CORSMiddleware  # Middleware CORS: cho phép Laravel backend gọi chéo cổng sang FastAPI
 
 # Initialize FastAPI App
 app = FastAPI(
@@ -437,4 +437,185 @@ def explain_factors(features: StudentFeatures):
         "global_feature_importance": importances,
         "explanation": pred.explanation
     }
+
+
+# =========================================================================
+# PHẦN 2 TRONG PIPELINE RAG: ĐỘNG CƠ NHÚNG VECTOR TIẾNG VIỆT (EMBEDDING ENGINE)
+# - Model: AITeamVN/Vietnamese_Embedding_v2 (HuggingFace - fine-tuned trên BGE-M3 tiếng Việt).
+# - Vai trò: Chuyển một đoạn văn bản tiếng Việt (câu hỏi sinh viên hoặc chunk quy chế/học liệu)
+#   thành vector số thực 1024 chiều đã chuẩn hóa độ dài L2 (normalize_embeddings=True).
+# - Được gọi bởi PHP Laravel (GeminiEmbeddingService::embedViaLocalMl) ở Tầng 1 của Waterfall.
+# =========================================================================
+EMBED_MODEL_ID = os.environ.get("VI_EMBED_MODEL", "AITeamVN/Vietnamese_Embedding_v2")
+_embedder = None
+
+
+class EmbedRequest(BaseModel):
+    text: str = Field(..., min_length=1, max_length=16000)
+
+
+def get_embedder():
+    """
+    Lazy-loading: Chỉ khởi tạo và nạp trọng số model vào RAM khi có request /embed đầu tiên,
+    giúp FastAPI khởi động tức thì mà không làm nghẽn API dự đoán bỏ học (/predict).
+    """
+    global _embedder
+    if _embedder is None:
+        from sentence_transformers import SentenceTransformer
+        _embedder = SentenceTransformer(EMBED_MODEL_ID)
+    return _embedder
+
+
+@app.post("/embed")
+def embed_text(req: EmbedRequest):
+    """
+    API nhận văn bản tiếng Việt và trả về mảng vector float 1024 chiều phục vụ Hybrid RAG.
+    """
+    try:
+        model = get_embedder()
+        vec = model.encode(req.text, normalize_embeddings=True).tolist()
+        return {
+            "model": EMBED_MODEL_ID,
+            "dimension": len(vec),
+            "embedding": vec,
+        }
+    except Exception as e:
+        raise HTTPException(status_code=503, detail=f"Vietnamese_Embedding_v2 unavailable: {e}")
+
+
+# =========================================================================
+# TÓM TẮT TÀI LIỆU TIẾNG VIỆT (VietAI/vit5-base-vietnews-summarization)
+# & NÉN NGỮ CẢNH HỘI THOẠI (Microsoft LLMLingua-2)
+# =========================================================================
+VIT5_MODEL_ID = os.environ.get("VIT5_SUMMARIZE_MODEL", "VietAI/vit5-base-vietnews-summarization")
+_vit5_tokenizer = None
+_vit5_model = None
+_llmlingua_compressor = None
+
+
+class SummarizeRequest(BaseModel):
+    text: Optional[str] = Field(default=None, max_length=60000)
+    file_path: Optional[str] = Field(default=None, max_length=1000)
+    max_length: int = Field(default=256, ge=64, le=512)
+
+
+class CompressContextRequest(BaseModel):
+    context: str = Field(..., min_length=1, max_length=60000)
+    rate: float = Field(default=0.5, ge=0.2, le=0.9)
+
+
+def extract_text_from_file(file_path: str) -> str:
+    """Bóc tách văn bản từ file PDF (PyMuPDF), DOCX (python-docx), PPTX (python-pptx) hoặc TXT."""
+    if not file_path or not os.path.exists(file_path):
+        return ""
+    ext = os.path.splitext(file_path)[1].lower()
+    if ext == ".pdf":
+        import fitz  # PyMuPDF
+        doc = fitz.open(file_path)
+        return "\n".join(page.get_text("text") for page in doc).strip()
+    if ext == ".docx":
+        import docx  # python-docx
+        d = docx.Document(file_path)
+        return "\n".join(p.text for p in d.paragraphs if p.text.strip()).strip()
+    if ext == ".pptx":
+        from pptx import Presentation  # python-pptx
+        prs = Presentation(file_path)
+        texts = []
+        for slide in prs.slides:
+            for shape in slide.shapes:
+                if hasattr(shape, "text") and shape.text.strip():
+                    texts.append(shape.text.strip())
+        return "\n".join(texts).strip()
+    with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
+        return f.read().strip()
+
+
+def get_vit5():
+    """Lazy-loading mô hình VietAI/vit5-base-vietnews-summarization."""
+    global _vit5_tokenizer, _vit5_model
+    if _vit5_tokenizer is None or _vit5_model is None:
+        from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
+        _vit5_tokenizer = AutoTokenizer.from_pretrained(VIT5_MODEL_ID)
+        _vit5_model = AutoModelForSeq2SeqLM.from_pretrained(VIT5_MODEL_ID)
+    return _vit5_tokenizer, _vit5_model
+
+
+def get_llmlingua():
+    """Lazy-loading Microsoft LLMLingua-2 (xlm-roberta đa ngôn ngữ hỗ trợ tiếng Việt)."""
+    global _llmlingua_compressor
+    if _llmlingua_compressor is None:
+        from llmlingua import PromptCompressor
+        _llmlingua_compressor = PromptCompressor(
+            model_name="microsoft/llmlingua-2-xlm-roberta-large-meetingbank",
+            use_llmlingua2=True,
+            device_map="cpu",
+        )
+    return _llmlingua_compressor
+
+
+@app.post("/summarize")
+def summarize_document(req: SummarizeRequest):
+    """
+    Tóm tắt tài liệu học tiếng Việt bằng VietAI/vit5-base-vietnews-summarization.
+    Hỗ trợ nhận trực tiếp text hoặc đường dẫn file PDF/DOCX/PPTX/TXT.
+    """
+    raw_text = (req.text or "").strip()
+    if req.file_path:
+        extracted = extract_text_from_file(req.file_path)
+        if extracted:
+            raw_text = f"{raw_text}\n{extracted}".strip() if raw_text else extracted
+
+    if not raw_text:
+        raise HTTPException(status_code=400, detail="Không có nội dung văn bản để tóm tắt.")
+
+    try:
+        tokenizer, model = get_vit5()
+        # Cắt đoạn 2500 ký tự đầu để tránh vượt ngưỡng 1024 token của ViT5
+        input_text = "vietnews: " + raw_text[:2500] + " </s>"
+        encoding = tokenizer(input_text, return_tensors="pt", max_length=1024, truncation=True)
+        outputs = model.generate(
+            input_ids=encoding["input_ids"],
+            attention_mask=encoding["attention_mask"],
+            max_length=req.max_length,
+            min_length=48,
+            num_beams=4,
+            early_stopping=True,
+            no_repeat_ngram_size=3,
+        )
+        summary = tokenizer.decode(outputs[0], skip_special_tokens=True, clean_up_tokenization_spaces=True)
+        return {
+            "model": VIT5_MODEL_ID,
+            "summary": summary,
+            "extracted_chars": len(raw_text),
+        }
+    except Exception as e:
+        raise HTTPException(status_code=503, detail=f"ViT5 summarization unavailable: {e}")
+
+
+@app.post("/compress-context")
+def compress_context(req: CompressContextRequest):
+    """
+    Nén ngữ cảnh hội thoại dài bằng Microsoft LLMLingua-2 (tự fallback sang ViT5 nếu chưa cài llmlingua).
+    """
+    try:
+        compressor = get_llmlingua()
+        result = compressor.compress_prompt(req.context, rate=req.rate, force_tokens=["\n", ".", ":"])
+        return {
+            "method": "LLMLINGUA_2",
+            "compressed_context": result.get("compressed_prompt", req.context),
+            "origin_tokens": result.get("origin_tokens", 0),
+            "compressed_tokens": result.get("compressed_tokens", 0),
+        }
+    except Exception:
+        # Fallback sang ViT5 nếu chưa cài llmlingua
+        try:
+            res = summarize_document(SummarizeRequest(text=req.context, max_length=180))
+            return {
+                "method": "VIT5_SUMMARY",
+                "compressed_context": res["summary"],
+            }
+        except Exception as e:
+            raise HTTPException(status_code=503, detail=f"Context compression unavailable: {e}")
+
+
 

@@ -6,23 +6,25 @@ use App\Http\Controllers\Controller;
 use App\Models\BtecSupportConversation;
 use App\Models\BtecSupportMessage;
 use App\Services\AI\BtecSupportAiService;
+use App\Services\AI\SupportAuthorizationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class BtecSupportController extends Controller
 {
     public function __construct(
-        private readonly BtecSupportAiService $supportService
+        private readonly BtecSupportAiService $supportService,
+        private readonly SupportAuthorizationService $authService,
     ) {
     }
 
     /**
-     * Khởi tạo hội thoại và lấy dữ liệu ban đầu cho Floating Bubble.
+     * Khởi tạo hội thoại và kiểm tra lại quyền cho từng tin nhắn lịch sử riêng tư.
      */
     public function init(Request $request): JsonResponse
     {
         $user = $request->user();
-        
+
         $conversation = BtecSupportConversation::where('user_id', $user->user_id)
             ->latest()
             ->first();
@@ -30,27 +32,23 @@ class BtecSupportController extends Controller
         $messages = [];
         if ($conversation) {
             $messages = $conversation->messages()
-                ->orderBy('created_at')
-                ->take(30)
+                ->with('conversation')
+                ->orderByDesc('message_id')
+                ->take(40)
                 ->get()
-                ->map(fn ($m) => [
-                    'message_id' => $m->message_id,
-                    'role' => $m->role,
-                    'message' => $m->message,
-                    'citations' => $m->citations,
-                    'actions' => $m->actions,
-                    'feedback' => $m->feedback,
-                    'created_at' => $m->created_at->format('H:i d/m'),
-                ]);
+                ->reverse()
+                ->values()
+                ->map(fn (BtecSupportMessage $m) => $this->authService->formatHistoryMessageForActor($user, $m))
+                ->values();
         }
 
         $defaultSuggestions = [
-            '⏰ Nghỉ mấy buổi thì bị cấm thi môn học?',
-            '📝 Quy định nộp Assignment và tỷ lệ đạo văn thế nào?',
-            '💰 Hạn nộp học phí và quy định chậm đóng tiền?',
-            '📱 Hướng dẫn cách xem Lịch học và Điểm danh trên ứng dụng?',
-            '🏛️ Điều kiện và thủ tục bảo lưu học tập tại BTEC FPT?',
-            '📞 Tôi cần liên hệ ai ở Phòng Đào tạo hoặc Dịch vụ sinh viên?',
+            'Lịch học ngày mai của em có môn nào?',
+            'Điểm các môn hiện tại của em ra sao?',
+            'Em còn nghỉ được mấy buổi nữa?',
+            'Nghỉ mấy buổi thì bị trượt môn học?',
+            'Quy định nộp Assignment và tỷ lệ đạo văn thế nào?',
+            'Điều kiện và thủ tục bảo lưu học tập?',
         ];
 
         return response()->json([
@@ -61,26 +59,33 @@ class BtecSupportController extends Controller
             'student' => [
                 'name' => $user->full_name,
                 'email' => $user->email,
-            ]
+                'role' => $user->role,
+            ],
         ]);
     }
 
     /**
-     * Gửi tin nhắn hỏi trợ lý AI và nhận câu trả lời RAG.
+     * Gửi tin nhắn thường: xác thực chủ hội thoại TRƯỚC khi xử lý.
      */
     public function chat(Request $request): JsonResponse
     {
         $request->validate([
             'message' => 'required|string|max:3000',
-            'conversation_id' => 'nullable|exists:btec_support_conversations,conversation_id',
+            'conversation_id' => 'nullable|integer',
         ]);
 
         $user = $request->user();
         $conversation = null;
         if ($request->filled('conversation_id')) {
-            $conversation = BtecSupportConversation::where('user_id', $user->user_id)
-                ->where('conversation_id', $request->conversation_id)
-                ->first();
+            $existing = BtecSupportConversation::find((int) $request->conversation_id);
+            if ($existing && ! $this->authService->canAccessConversation($user, $existing)) {
+                $this->authService->logDeniedAttempt($user, 'conversation_access', 'Attempted to access another user conversation');
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Hội thoại này không thuộc quyền truy cập của tài khoản hiện tại.',
+                ], 403);
+            }
+            $conversation = $existing;
         }
 
         $result = $this->supportService->sendMessage(
@@ -93,32 +98,36 @@ class BtecSupportController extends Controller
     }
 
     /**
-     * Tạo Ticket chuyển tiếp cho Phòng Đào tạo / CTSV.
+     * Server-Sent Events (SSE) Streaming: kiểm tra quyền hội thoại TRƯỚC khi phát byte đầu tiên.
      */
-    
-    /**
-     * PHƯƠNG PHÁP 4: Server-Sent Events (SSE) Streaming tin nhắn BTEC AI Support
-     */
-    public function stream(Request $request): \Symfony\Component\HttpFoundation\StreamedResponse
+    public function stream(Request $request): \Symfony\Component\HttpFoundation\Response
     {
         $request->validate([
             'message' => 'required|string|max:3000',
-            'conversation_id' => 'nullable|exists:btec_support_conversations,conversation_id',
+            'conversation_id' => 'nullable|integer',
         ]);
 
         $user = $request->user();
         $conversation = null;
         if ($request->filled('conversation_id')) {
-            $conversation = BtecSupportConversation::where('user_id', $user->user_id)
-                ->where('conversation_id', $request->conversation_id)
-                ->first();
+            $existing = BtecSupportConversation::find((int) $request->conversation_id);
+            if ($existing && ! $this->authService->canAccessConversation($user, $existing)) {
+                $this->authService->logDeniedAttempt($user, 'conversation_stream_access', 'Attempted to stream into another user conversation');
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Hội thoại này không thuộc quyền truy cập của tài khoản hiện tại.',
+                ], 403);
+            }
+            $conversation = $existing;
         }
 
         $userMessage = $request->message;
 
         return response()->stream(function () use ($conversation, $userMessage, $user) {
-            while (ob_get_level() > 0) {
-                ob_end_flush();
+            if (! app()->runningUnitTests()) {
+                while (ob_get_level() > 0) {
+                    ob_end_flush();
+                }
             }
 
             $res = $this->supportService->streamMessage(
@@ -127,9 +136,11 @@ class BtecSupportController extends Controller
                 $user,
                 session()->getId(),
                 function ($chunk) {
-                    echo "data: " . json_encode(['chunk' => $chunk]) . "\n\n";
-                    if (ob_get_level() > 0) ob_flush();
-                    flush();
+                    echo "data: " . json_encode(['chunk' => $chunk], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n\n";
+                    if (! app()->runningUnitTests()) {
+                        if (ob_get_level() > 0) ob_flush();
+                        flush();
+                    }
                 }
             );
 
@@ -139,15 +150,20 @@ class BtecSupportController extends Controller
                 'conversation_id' => $res['conversation']->conversation_id,
                 'message_id' => $res['message']->message_id,
                 'intent' => $res['rag']['intent'] ?? 'general',
+                'is_private' => (bool) ($res['message']->is_private ?? false),
+                'moderated' => (bool) ($res['rag']['moderated'] ?? false),
+                'masked_user_message' => $res['rag']['masked_user_message'] ?? null,
                 'sources' => $res['rag']['citations'] ?? [],
                 'app_actions' => $res['rag']['actions'] ?? [],
                 'confidence' => $res['rag']['confidence'] ?? 0.9,
                 'suggest_ticket' => $res['rag']['needs_escalation'] ?? false,
                 'created_at' => $res['message']->created_at->format('H:i d/m'),
-            ]) . "\n\n";
+            ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n\n";
 
-            if (ob_get_level() > 0) ob_flush();
-            flush();
+            if (! app()->runningUnitTests()) {
+                if (ob_get_level() > 0) ob_flush();
+                flush();
+            }
         }, 200, [
             'Content-Type' => 'text/event-stream',
             'Cache-Control' => 'no-cache',
@@ -156,31 +172,44 @@ class BtecSupportController extends Controller
         ]);
     }
 
+    /**
+     * Tạo Ticket hỗ trợ sau khi người dùng xác nhận; chỉ báo thành công khi backend đã lưu.
+     */
     public function submitTicket(Request $request): JsonResponse
     {
-        $request->validate([
+        $validated = $request->validate([
             'topic' => 'required|string|max:150',
             'description' => 'required|string|max:3000',
             'department' => 'nullable|string|max:100',
+            'class_id' => 'nullable|integer|exists:classes,class_id',
         ]);
 
+        $user = $request->user();
+        $classId = $validated['class_id'] ?? null;
+
+        // Xác thực phạm vi lớp học của sinh viên trước khi gắn vào ticket
+        if ($classId && $user->isStudent()) {
+            $enrolled = $user->enrollments()->where('class_id', $classId)->exists();
+            if (! $enrolled) {
+                $classId = null;
+            }
+        }
+
         $ticket = $this->supportService->createTicket(
-            $request->user(),
-            $request->topic,
-            $request->description,
-            $request->input('department', 'Phòng Đào tạo')
+            $user,
+            $validated['topic'],
+            $validated['description'],
+            $validated['department'] ?? 'Phòng Đào tạo',
+            $classId ? (int) $classId : null,
         );
 
         return response()->json([
             'success' => true,
             'ticket_code' => $ticket->ticket_code,
-            'message' => "Yêu cầu của bạn đã được ghi nhận với mã phiếu: {$ticket->ticket_code}. Cán bộ phụ trách sẽ kiểm tra và phản hồi qua email của bạn.",
+            'message' => "Yêu cầu đã được lưu thành công với mã phiếu: {$ticket->ticket_code}. Quản trị viên đã nhận thông báo và sẽ xử lý hoặc chuyển tiếp giảng viên phụ trách.",
         ]);
     }
 
-    /**
-     * Đánh giá câu trả lời (Helpful / Not Helpful).
-     */
     public function feedback(Request $request): JsonResponse
     {
         $request->validate([
@@ -199,4 +228,3 @@ class BtecSupportController extends Controller
         return response()->json(['success' => true]);
     }
 }
-

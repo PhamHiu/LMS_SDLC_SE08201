@@ -21,12 +21,16 @@ class DiscussionController extends Controller
     {
         $this->access->authorizeAssignment($request->user(), $assignment);
 
-        $this->discussionService->post(
+        $discussion = $this->discussionService->post(
             $request->user(),
             $assignment,
             $request->validated('comment'),
             $request->validated('parent_id'),
         );
+
+        if ($discussion->getAttribute('was_moderated')) {
+            return back()->with('error', (string) $discussion->getAttribute('moderation_warning'));
+        }
 
         return back()->with('success', 'Đã đăng bình luận.');
     }

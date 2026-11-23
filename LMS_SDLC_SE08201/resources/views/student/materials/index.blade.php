@@ -29,6 +29,14 @@
         <a href="{{ route('student.materials.index') }}" class="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-md border border-slate-200 bg-slate-50 text-slate-600 transition-all hover:bg-slate-100 hover:border-slate-200 hover:text-[#163c6d]" title="Làm mới">
             <svg class="h-5 w-5 text-[#1e4f8f]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
         </a>
+        @if (!empty($subjectId))
+            <button type="button"
+                    onclick="requestAiSummary('{{ route('student.materials.summarize-subject', $subjectId) }}', 'Tổng hợp toàn bộ tài liệu môn học')"
+                    class="inline-flex h-[42px] items-center gap-2 rounded-md border border-[#1e4f8f]/30 bg-blue-50 hover:bg-blue-100 px-4 text-xs font-bold text-[#1e4f8f] transition shadow-xs cursor-pointer">
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                <span>Tóm tắt toàn bộ môn này (ViT5)</span>
+            </button>
+        @endif
     </form>
 </div>
 
@@ -65,12 +73,22 @@
                     </svg>
                     <span>{{ $m->uploader?->full_name }}</span>
                 </span>
-                <a href="{{ route('student.materials.download', $m) }}" class="inline-flex items-center gap-1.5 rounded-md bg-[#1e4f8f] hover:bg-blue-600 border border-[#1e4f8f]/30 px-3.5 py-1.5 text-xs font-bold text-white hover:border-[#1e4f8f] transition-all">
-                    <svg class="w-3.5 h-3.5 text-white filter" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-                    </svg>
-                    <span>Tải về</span>
-                </a>
+                <div class="flex items-center gap-1.5">
+                    @if (! $m->isVideo())
+                        <button type="button"
+                                onclick="requestAiSummary('{{ route('student.materials.summarize', $m) }}', '{{ addslashes($m->title) }}')"
+                                class="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-slate-50 hover:bg-blue-50 hover:border-blue-200 hover:text-[#1e4f8f] px-2.5 py-1.5 text-xs font-semibold text-slate-700 transition cursor-pointer"
+                                title="Tóm tắt nội dung tài liệu bằng ViT5">
+                            <span>Tóm tắt AI</span>
+                        </button>
+                    @endif
+                    <a href="{{ route('student.materials.download', $m) }}" class="inline-flex items-center gap-1.5 rounded-md bg-[#1e4f8f] hover:bg-blue-600 border border-[#1e4f8f]/30 px-3.5 py-1.5 text-xs font-bold text-white hover:border-[#1e4f8f] transition-all">
+                        <svg class="w-3.5 h-3.5 text-white filter" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                        </svg>
+                        <span>Tải về</span>
+                    </a>
+                </div>
             </div>
         </div>
     @empty
@@ -87,6 +105,26 @@
 
 <div class="mt-4">{{ $materials->links() }}</div>
 
+{{-- Modal hiển thị kết quả Tóm tắt Tài liệu / Tóm tắt Môn học (ViT5) --}}
+<div id="aiSummaryModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4">
+    <div class="w-full max-w-2xl rounded-xl border border-slate-200 bg-white shadow-xl overflow-hidden flex flex-col max-h-[85vh]">
+        <div class="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-5 py-3.5">
+            <div class="min-w-0 pr-3">
+                <h3 id="aiSummaryTitle" class="text-sm font-bold text-slate-900 truncate">Tóm tắt tài liệu</h3>
+                <p id="aiSummaryEngine" class="text-[11px] font-medium text-[#1e4f8f] mt-0.5">Đang xử lý...</p>
+            </div>
+            <button type="button" onclick="closeAiSummaryModal()" class="rounded-md p-1.5 text-slate-500 hover:bg-slate-200 hover:text-slate-800 transition">✕</button>
+        </div>
+        <div id="aiSummaryBody" class="flex-1 overflow-y-auto p-5 text-sm text-slate-700 whitespace-pre-line leading-relaxed">
+            Đang đọc và tóm tắt nội dung tài liệu...
+        </div>
+        <div class="flex items-center justify-end gap-2 border-t border-slate-200 bg-slate-50 px-5 py-3">
+            <button type="button" onclick="copyAiSummary()" class="rounded-md border border-slate-200 bg-white hover:bg-slate-100 px-3.5 py-1.5 text-xs font-semibold text-slate-700 transition">Sao chép</button>
+            <button type="button" onclick="closeAiSummaryModal()" class="rounded-md bg-[#1e4f8f] hover:bg-[#163c6d] px-4 py-1.5 text-xs font-bold text-white transition">Đóng</button>
+        </div>
+    </div>
+</div>
+
 <script>
     let timeout = null;
     function debounceSearch() {
@@ -94,6 +132,51 @@
         timeout = setTimeout(() => {
             document.getElementById('material-filter-form').submit();
         }, 1000);
+    }
+
+    async function requestAiSummary(url, title) {
+        const modal = document.getElementById('aiSummaryModal');
+        const titleEl = document.getElementById('aiSummaryTitle');
+        const engineEl = document.getElementById('aiSummaryEngine');
+        const bodyEl = document.getElementById('aiSummaryBody');
+
+        titleEl.textContent = title;
+        engineEl.textContent = 'Đang chạy VietAI/vit5-base-vietnews-summarization...';
+        bodyEl.textContent = 'Đang bóc tách văn bản và tổng hợp ý chính, vui lòng đợi vài giây...';
+        modal.classList.remove('hidden');
+
+        try {
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json',
+                },
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                bodyEl.textContent = data.message || 'Không thể tóm tắt tài liệu này.';
+                engineEl.textContent = 'Lỗi xử lý';
+                return;
+            }
+            titleEl.textContent = data.title || title;
+            engineEl.textContent = 'Mô hình: ' + (data.engine || 'ViT5');
+            bodyEl.textContent = data.summary || 'Không có nội dung tóm tắt.';
+        } catch (err) {
+            engineEl.textContent = 'Lỗi kết nối';
+            bodyEl.textContent = 'Không thể kết nối máy chủ tóm tắt. Vui lòng thử lại.';
+        }
+    }
+
+    function closeAiSummaryModal() {
+        document.getElementById('aiSummaryModal').classList.add('hidden');
+    }
+
+    function copyAiSummary() {
+        const text = document.getElementById('aiSummaryBody').textContent.trim();
+        if (text) {
+            navigator.clipboard.writeText(text);
+        }
     }
 </script>
 @endsection

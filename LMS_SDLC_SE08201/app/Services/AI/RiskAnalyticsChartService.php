@@ -27,7 +27,7 @@ class RiskAnalyticsChartService
             'color' => '#f43f5e',
         ],
         'post_ban_drop' => [
-            'label' => 'Buông xuôi sau vượt ngưỡng cấm thi (>20%)',
+            'label' => 'Buông xuôi sau khi trượt môn (vắng >20%)',
             'short' => 'Buông xuôi (>20%)',
             'color' => '#f97316',
         ],
@@ -131,13 +131,13 @@ class RiskAnalyticsChartService
 
         return array_merge($core, [
             'scope_label' => ($selectedLevel && $selectedLevel !== 'ALL')
-                ? 'Nhóm mức rủi ro: ' . $selectedLevel
-                : 'Toàn trường (' . ($overview['total_students'] ?? 0) . ' sinh viên)',
+                ? 'Nhóm mức đánh giá: ' . $selectedLevel
+                : 'Toàn trường (' . ($overview['total_students'] ?? 0) . ' học sinh)',
             'mode' => 'admin',
             'risk_factors_pie' => [
                 'labels' => [
-                    'Trượt chuyên cần (>20%)',
-                    'Tiệm cận cấm thi (15%–20%)',
+                    'Trượt môn do vắng (>20%)',
+                    'Sắp trượt môn (vắng 15%–20%)',
                     'Điểm trung bình yếu (<5.0)',
                     'Nợ / Không nộp ≥50% bài tập',
                     'Học lại / Tích lũy đa môn',
@@ -146,7 +146,7 @@ class RiskAnalyticsChartService
                 'colors' => ['#f43f5e', '#f59e0b', '#fb923c', '#a855f7', '#38bdf8'],
             ],
             'risk_levels_pie' => [
-                'labels' => ['An toàn', 'Trung bình (Cảnh báo sớm)', 'Nguy cơ Cao', 'Nguy cơ Rất cao'],
+                'labels' => ['An toàn', 'Cần theo dõi (15%–20%)', 'Vượt ngưỡng (>20% / Trượt môn)', 'Nghỉ rất cao / Trượt nhiều môn'],
                 'data' => [
                     (int) ($levelCounts['SAFE'] ?? 0),
                     (int) ($levelCounts['MEDIUM'] ?? 0),
@@ -197,17 +197,17 @@ class RiskAnalyticsChartService
             'mode' => 'teacher',
             'risk_factors_pie' => [
                 'labels' => [
-                    'Trượt chuyên cần môn này (>20%)',
-                    'Tiệm cận ngưỡng 20% (15%–20%)',
+                    'Trượt môn này do vắng (>20%)',
+                    'Sắp trượt môn (vắng 15%–20%)',
                     'Điểm bài tập môn này yếu (<5.0)',
                     'Nợ / Bỏ nộp ≥50% bài tập lớp',
-                    'Rủi ro kéo theo từ môn học khác',
+                    'Ảnh hưởng từ môn học khác',
                 ],
                 'data' => array_values($factorCounts),
                 'colors' => ['#f43f5e', '#f59e0b', '#fb923c', '#a855f7', '#38bdf8'],
             ],
             'risk_levels_pie' => [
-                'labels' => ['An toàn', 'Trung bình (Tiệm cận 20%)', 'Nguy cơ Cao', 'Nguy cơ Rất cao'],
+                'labels' => ['An toàn', 'Cần theo dõi (15%–20%)', 'Vượt ngưỡng (>20% / Trượt môn)', 'Nghỉ rất cao / Trượt nhiều môn'],
                 'data' => [
                     $levelCounts['SAFE'],
                     $levelCounts['MEDIUM'],

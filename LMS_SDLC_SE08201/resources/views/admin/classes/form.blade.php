@@ -37,7 +37,7 @@
                 <select name="major_id" id="major_select" required class="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm bg-white outline-none">
                     <option value="">— Chọn ngành —</option>
                     @foreach ($majors as $major)
-                        <option value="{{ $major->major_id }}" @selected(old('major_id', $class?->major_id) == $major->major_id)>{{ $major->major_name }}</option>
+                        <option value="{{ $major->major_id }}" data-code="{{ $major->major_code }}" @selected(old('major_id', $class?->major_id) == $major->major_id)>{{ $major->major_code }} — {{ $major->major_name }}</option>
                     @endforeach
                 </select>
             </div>
@@ -92,7 +92,7 @@
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-slate-700 mb-1">Ngày bắt đầu *</label>
-                    <input type="date" name="start_date" id="start_date" value="{{ old('start_date') }}" required
+                    <input type="date" name="start_date" id="start_date" value="{{ old('start_date', now()->toDateString()) }}" required
                            class="w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm focus:border-[#1e4f8f] outline-none">
                 </div>
                 <div>
@@ -213,6 +213,7 @@
                 .then(data => {
                     data.forEach(sub => {
                         const option = new Option(`${sub.subject_code} — ${sub.subject_name}`, sub.subject_id);
+                        option.dataset.code = sub.subject_code || '';
                         subjectSelect.add(option);
                     });
                     if (subjectSelect.dataset.selected) {
@@ -248,6 +249,24 @@
             majorSelect.dispatchEvent(new Event('change'));
         }
 
+        // Tự động gợi ý tên lớp gắn với Mã ngành + Mã môn khi tạo lớp mới
+        const classNameInput = document.querySelector('input[name="class_name"]');
+        const isCreateMode = {{ $class ? 'false' : 'true' }};
+        let isAutoSuggested = false;
+        if (isCreateMode && classNameInput) {
+            classNameInput.addEventListener('input', () => { isAutoSuggested = false; });
+            subjectSelect.addEventListener('change', () => {
+                const majorOpt = majorSelect.options[majorSelect.selectedIndex];
+                const subOpt = subjectSelect.options[subjectSelect.selectedIndex];
+                const mCode = majorOpt?.dataset?.code || '';
+                const sCode = subOpt?.dataset?.code || '';
+                if (mCode && sCode && (!classNameInput.value.trim() || isAutoSuggested)) {
+                    classNameInput.value = `${mCode}19301-${sCode}`;
+                    isAutoSuggested = true;
+                }
+            });
+        }
+
         async function loadExistingTimetable() {
             if (!startDateInput) return;
             const startDate = startDateInput.value;
@@ -274,39 +293,64 @@
         }
         
         function renderTimetable() {
+            const hasFilter = Boolean((teacherSelect && teacherSelect.value) || (roomSelect && roomSelect.value));
+
             tkbCells.forEach(cell => {
-                cell.classList.remove('bg-[#1e4f8f]', 'border-[#1e4f8f]', 'bg-rose-100', 'border-rose-300', 'bg-slate-200', 'border-slate-300');
-                cell.classList.add('bg-slate-50', 'border-slate-300');
+                cell.classList.remove(
+                    'bg-[#1e4f8f]', 'border-[#1e4f8f]', 'border-solid',
+                    'bg-rose-100', 'border-rose-400', 'bg-rose-50', 'border-rose-300',
+                    'bg-slate-200', 'border-slate-300', 'bg-slate-100'
+                );
+                cell.classList.add('bg-slate-50', 'border-slate-300', 'border-dashed');
                 cell.title = '';
-                cell.querySelector('.cell-text').textContent = '+ Chọn';
-                cell.querySelector('.cell-text').classList.replace('text-slate-900', 'text-slate-500');
-                cell.querySelector('.cell-text').classList.replace('text-rose-700', 'text-slate-500');
+
+                const textEl = cell.querySelector('.cell-text');
+                textEl.className = 'text-[11px] leading-tight text-slate-500 font-medium pointer-events-none cell-text px-1 text-center';
+                textEl.innerHTML = '+ Chọn';
                 cell.dataset.status = 'empty';
                 
                 const day = parseInt(cell.dataset.day);
                 const slotId = parseInt(cell.dataset.slotId);
                 
-                const existing = existingTimetable.find(e => e.day_of_week === day && e.slot_id === slotId);
-                if (existing) {
-                    cell.classList.replace('bg-slate-50', 'bg-slate-200');
-                    cell.querySelector('.cell-text').textContent = existing.class_name;
-                    cell.title = `Đã có lớp ${existing.class_name}`;
-                    cell.dataset.status = 'occupied';
+                const matches = existingTimetable.filter(e => e.day_of_week === day && e.slot_id === slotId);
+                const hardConflicts = matches.filter(e => e.is_hard_conflict);
+
+                if (matches.length > 0) {
+                    const first = hardConflicts[0] || matches[0];
+                    const tooltipLines = matches.map(m => `${m.class_name} (${m.room_name} · GV: ${m.teacher_name}) — ${m.conflict_reason}`);
+                    cell.title = tooltipLines.join('\n');
+
+                    if (hardConflicts.length > 0) {
+                        cell.classList.remove('bg-slate-50', 'border-slate-300', 'border-dashed');
+                        cell.classList.add('bg-rose-50', 'border-rose-300', 'border-solid');
+                        textEl.className = 'text-[11px] leading-tight text-rose-700 font-semibold pointer-events-none cell-text px-1 text-center';
+                        textEl.innerHTML = `<span class="block truncate max-w-[115px]">${first.class_name}</span><span class="block text-[10px] font-normal text-rose-600">${first.conflict_reason}</span>`;
+                        cell.dataset.status = 'hard_occupied';
+                    } else {
+                        cell.classList.remove('bg-slate-50', 'border-dashed');
+                        cell.classList.add('bg-slate-100', 'border-solid');
+                        textEl.className = 'text-[11px] leading-tight text-slate-700 font-medium pointer-events-none cell-text px-1 text-center';
+                        const extra = matches.length > 1 ? ` (+${matches.length - 1})` : '';
+                        textEl.innerHTML = `<span class="block truncate max-w-[115px]">${first.class_name}${extra}</span><span class="block text-[10px] text-slate-500">${first.room_name}</span>`;
+                        cell.dataset.status = 'occupied';
+                    }
                 }
                 
                 const isSelected = selectedSlots.some(s => s.day_of_week === day && s.slot_id === slotId);
                 if (isSelected) {
-                    if (cell.dataset.status === 'occupied') {
-                        cell.classList.replace('bg-slate-200', 'bg-rose-100');
-                        cell.classList.replace('border-slate-300', 'border-rose-300');
-                        cell.querySelector('.cell-text').classList.replace('text-slate-500', 'text-rose-700');
+                    if (cell.dataset.status === 'hard_occupied' || (!hasFilter && false)) {
+                        cell.classList.remove('bg-rose-50', 'border-rose-300', 'bg-slate-100');
+                        cell.classList.add('bg-rose-100', 'border-rose-400', 'border-solid');
+                        textEl.className = 'text-[11px] leading-tight text-rose-800 font-bold pointer-events-none cell-text px-1 text-center';
+                        const first = hardConflicts[0] || matches[0];
+                        textEl.innerHTML = `<span class="block">⚠ Xung đột</span><span class="block text-[10px] font-medium truncate max-w-[115px]">${first.class_name}</span>`;
                         cell.dataset.status = 'conflict';
-                        cell.title = 'Xung đột: ' + cell.title;
+                        cell.title = 'XUNG ĐỘT LỊCH:\n' + cell.title;
                     } else {
-                        cell.classList.replace('bg-slate-50', 'bg-[#1e4f8f]');
-                        cell.classList.replace('border-slate-300', 'border-[#1e4f8f]');
-                        cell.querySelector('.cell-text').classList.replace('text-slate-500', 'text-slate-900');
-                        cell.querySelector('.cell-text').textContent = 'Đã chọn';
+                        cell.classList.remove('bg-slate-50', 'bg-slate-100', 'border-slate-300', 'border-dashed');
+                        cell.classList.add('bg-[#1e4f8f]', 'border-[#1e4f8f]', 'border-solid');
+                        textEl.className = 'text-xs leading-tight text-white font-bold pointer-events-none cell-text px-1 text-center';
+                        textEl.innerHTML = '✓ Đã chọn';
                         cell.dataset.status = 'selected';
                     }
                 }
@@ -388,11 +432,11 @@
                     return;
                 }
                 
-                const hasConflict = Array.from(tkbCells).some(c => c.dataset.status === 'conflict');
-                if (hasConflict) {
-                    if (!confirm('Có ca học đang bị xung đột lịch. Bạn có chắc chắn muốn tiếp tục tạo lớp?')) {
-                        e.preventDefault();
-                    }
+                const conflictCells = Array.from(tkbCells).filter(c => c.dataset.status === 'conflict');
+                if (conflictCells.length > 0) {
+                    e.preventDefault();
+                    alert('Không thể tạo lớp vì có ca học đang bị xung đột Giảng viên hoặc Phòng học (ô màu đỏ). Vui lòng bỏ chọn các ca bị trùng hoặc đổi phòng/giảng viên khác.');
+                    return;
                 }
             });
         }

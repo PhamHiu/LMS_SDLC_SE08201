@@ -23,38 +23,73 @@ class NotificationService
         ]);
     }
 
+    /**
+     * Gửi thông báo riêng đích danh 1 người dùng (Admin / Giảng viên / Sinh viên).
+     */
+    public function notifyUser(
+        User $author,
+        int $recipientUserId,
+        string $title,
+        string $body,
+        ?string $targetUrl = null,
+        ?int $classId = null,
+    ): Notification {
+        return Notification::create([
+            'user_id' => $author->user_id,
+            'recipient_user_id' => $recipientUserId,
+            'class_id' => $classId,
+            'title' => $title,
+            'body' => $body,
+            'target_url' => $targetUrl,
+        ]);
+    }
+
     public function delete(Notification $notification): void
     {
         $notification->delete();
     }
 
-    /** Thông báo do Admin quản lý (toàn hệ thống) */
+    /** Thông báo do Admin quản lý (toàn hệ thống + thông báo riêng gửi cho Admin) */
     public function paginateSystem(): LengthAwarePaginator
     {
+        $adminId = auth()->id();
+
         return Notification::with('author')
-            ->whereNull('class_id')
+            ->where(function ($q) use ($adminId) {
+                $q->where(fn ($sub) => $sub->whereNull('class_id')->whereNull('recipient_user_id'));
+                if ($adminId) {
+                    $q->orWhere('recipient_user_id', $adminId);
+                }
+            })
             ->orderByDesc('created_at')
             ->paginate(10);
     }
 
-    /** Thông báo các lớp giảng viên phụ trách */
+    /** Thông báo các lớp giảng viên phụ trách + thông báo riêng gửi tới giảng viên */
     public function paginateForTeacher(User $teacher): LengthAwarePaginator
     {
         $classIds = $teacher->teachingClasses()->pluck('class_id');
 
         return Notification::with(['author', 'classRoom'])
-            ->whereIn('class_id', $classIds)
+            ->where(function ($q) use ($classIds, $teacher) {
+                $q->where('recipient_user_id', $teacher->user_id)
+                    ->orWhere(fn ($sub) => $sub->whereNull('recipient_user_id')->whereIn('class_id', $classIds));
+            })
             ->orderByDesc('created_at')
             ->paginate(10);
     }
 
-    /** Thông báo sinh viên nhìn thấy: toàn hệ thống + lớp đã ghi danh */
+    /** Thông báo sinh viên nhìn thấy: toàn hệ thống + lớp đã ghi danh + thông báo riêng */
     public function paginateForStudent(User $student): LengthAwarePaginator
     {
         $classIds = $student->enrollments()->pluck('class_id');
 
         return Notification::with(['author', 'classRoom', 'assignment', 'reads' => fn ($q) => $q->where('user_id', $student->user_id)])
-            ->where(fn ($q) => $q->whereNull('class_id')->orWhereIn('class_id', $classIds))
+            ->where(function ($q) use ($classIds, $student) {
+                $q->where('recipient_user_id', $student->user_id)
+                    ->orWhere(fn ($sub) => $sub->whereNull('recipient_user_id')
+                        ->where(fn ($c) => $c->whereNull('class_id')->orWhereIn('class_id', $classIds)));
+            })
             ->orderByDesc('created_at')
             ->paginate(10);
     }
@@ -66,7 +101,11 @@ class NotificationService
             $classIds = $user->enrollments()->pluck('class_id');
 
             return Notification::with(['author', 'classRoom', 'assignment', 'reads' => fn ($q) => $q->where('user_id', $user->user_id)])
-                ->where(fn ($q) => $q->whereNull('class_id')->orWhereIn('class_id', $classIds))
+                ->where(function ($q) use ($classIds, $user) {
+                    $q->where('recipient_user_id', $user->user_id)
+                        ->orWhere(fn ($sub) => $sub->whereNull('recipient_user_id')
+                            ->where(fn ($c) => $c->whereNull('class_id')->orWhereIn('class_id', $classIds)));
+                })
                 ->orderByDesc('created_at')->take($limit)->get();
         }
 
@@ -74,11 +113,20 @@ class NotificationService
             $classIds = $user->teachingClasses()->pluck('class_id');
 
             return Notification::with(['author', 'classRoom', 'assignment'])
-                ->where(fn ($q) => $q->whereNull('class_id')->orWhereIn('class_id', $classIds))
+                ->where(function ($q) use ($classIds, $user) {
+                    $q->where('recipient_user_id', $user->user_id)
+                        ->orWhere(fn ($sub) => $sub->whereNull('recipient_user_id')
+                            ->where(fn ($c) => $c->whereNull('class_id')->orWhereIn('class_id', $classIds)));
+                })
                 ->orderByDesc('created_at')->take($limit)->get();
         }
 
-        return Notification::with('author')->orderByDesc('created_at')->take($limit)->get();
+        return Notification::with('author')
+            ->where(function ($q) use ($user) {
+                $q->whereNull('recipient_user_id')
+                    ->orWhere('recipient_user_id', $user->user_id);
+            })
+            ->orderByDesc('created_at')->take($limit)->get();
     }
 
     /** Đánh dấu một thông báo là đã đọc cho người dùng */
@@ -96,7 +144,11 @@ class NotificationService
     public function markAllAsReadForStudent(User $student): void
     {
         $classIds = $student->enrollments()->pluck('class_id');
-        $notifications = Notification::where(fn ($q) => $q->whereNull('class_id')->orWhereIn('class_id', $classIds))->get();
+        $notifications = Notification::where(function ($q) use ($classIds, $student) {
+            $q->where('recipient_user_id', $student->user_id)
+                ->orWhere(fn ($sub) => $sub->whereNull('recipient_user_id')
+                    ->where(fn ($c) => $c->whereNull('class_id')->orWhereIn('class_id', $classIds)));
+        })->get();
 
         foreach ($notifications as $n) {
             $this->markAsRead($n, $student);

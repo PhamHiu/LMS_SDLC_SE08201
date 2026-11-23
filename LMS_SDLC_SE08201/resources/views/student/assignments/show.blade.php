@@ -201,10 +201,12 @@
                         <h3 class="font-semibold text-base text-slate-900">Kết quả chấm điểm & Nhận xét</h3>
                     </div>
                     
-                    @if (! $submission->isGraded())
+                    @if (! $submission->isGraded() || ! $assignment->isGradesPublished())
                         <div class="rounded-md bg-amber-50 border border-amber-200 p-4 text-center flex items-center justify-center gap-2 text-amber-700">
                             <svg class="w-5 h-5 text-amber-600 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                            <span class="text-sm font-semibold">Bài làm đang chờ giảng viên chấm điểm.</span>
+                            <span class="text-sm font-semibold">
+                                {{ $submission->isGraded() ? 'Giảng viên chưa công bố điểm bài tự luận của lớp. Bạn sẽ nhận được thông báo ngay khi điểm được công bố.' : 'Bài làm đang chờ giảng viên chấm điểm.' }}
+                            </span>
                         </div>
                     @else
                         <div class="space-y-4">

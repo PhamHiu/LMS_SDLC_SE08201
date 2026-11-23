@@ -332,6 +332,24 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    const htFontMono = "'JetBrains Mono', monospace";
+    const htFontSans = "'Inter', 'Be Vietnam Pro', sans-serif";
+    const htTooltip = {
+        backgroundColor: '#09090b',
+        borderColor: '#27272a',
+        borderWidth: 1,
+        titleColor: '#fafafa',
+        bodyColor: '#d4d4d8',
+        titleFont: { family: htFontSans, size: 12, weight: '600' },
+        bodyFont: { family: htFontMono, size: 11 },
+        padding: { top: 8, bottom: 8, left: 11, right: 11 },
+        cornerRadius: 6,
+        displayColors: true,
+        boxWidth: 8,
+        boxHeight: 8,
+        boxPadding: 5,
+    };
+
     // === Bar Chart: Phân bố điểm ===
     const scoreDist = @json($score_distribution);
     new Chart(document.getElementById('scoreDistChart'), {
@@ -339,12 +357,11 @@ document.addEventListener('DOMContentLoaded', function() {
         data: {
             labels: Object.keys(scoreDist),
             datasets: [{
-                label: 'Số lượt',
+                label: 'Số bài',
                 data: Object.values(scoreDist),
-                backgroundColor: ['#ef4444', '#f97316', '#eab308', '#22c55e', '#1e4f8f'],
-                borderRadius: 8,
-                borderSkipped: false,
-                barThickness: 36
+                backgroundColor: ['#e11d48', '#d97706', '#94a3b8', '#2563eb', '#09090b'],
+                borderRadius: 4,
+                maxBarThickness: 28
             }]
         },
         options: {
@@ -352,25 +369,20 @@ document.addEventListener('DOMContentLoaded', function() {
             maintainAspectRatio: false,
             plugins: {
                 legend: { display: false },
-                tooltip: { 
-                    backgroundColor: '#0f172a',
-                    borderColor: 'rgba(30, 79, 143, 0.4)',
-                    borderWidth: 1,
-                    titleColor: '#f8fafc',
-                    bodyColor: '#cbd5e1',
-                    padding: 10, 
-                    cornerRadius: 8 
-                }
+                tooltip: htTooltip,
+                datalabels: { display: false }
             },
             scales: {
-                y: { 
-                    beginAtZero: true, 
-                    grid: { color: 'rgba(15, 23, 42, 0.08)' }, 
-                    ticks: { stepSize: 1, color: '#6b7280' } 
+                y: {
+                    beginAtZero: true,
+                    border: { display: false },
+                    grid: { color: '#f4f4f5' },
+                    ticks: { stepSize: 1, font: { family: htFontMono, size: 11 }, color: '#71717a', padding: 6 }
                 },
-                x: { 
+                x: {
+                    border: { display: false },
                     grid: { display: false },
-                    ticks: { color: '#475569' }
+                    ticks: { font: { family: htFontSans, size: 11, weight: '500' }, color: '#3f3f46' }
                 }
             }
         }
@@ -384,28 +396,27 @@ document.addEventListener('DOMContentLoaded', function() {
             labels: ['Đã nộp', 'Chưa nộp'],
             datasets: [{
                 data: [subRate, Math.max(0, 100 - subRate)],
-                backgroundColor: ['#10b981', '#e5e7eb'],
+                backgroundColor: ['#09090b', '#e4e4e7'],
                 borderWidth: 2,
-                borderColor: '#0f172a'
+                borderColor: '#ffffff',
+                hoverOffset: 3
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: true,
             plugins: {
-                legend: { 
-                    position: 'bottom', 
-                    labels: { padding: 15, usePointStyle: true, pointStyle: 'circle', color: '#475569' } 
+                legend: {
+                    position: 'bottom',
+                    labels: { padding: 14, usePointStyle: true, pointStyle: 'circle', boxWidth: 7, font: { family: htFontSans, size: 11, weight: '500' }, color: '#52525b' }
                 },
-                tooltip: { 
-                    backgroundColor: '#0f172a', 
-                    borderColor: '#ffffff',
-                    borderWidth: 1,
-                    padding: 10, 
-                    cornerRadius: 8 
-                }
+                tooltip: {
+                    ...htTooltip,
+                    callbacks: { label: (ctx) => ` ${ctx.label}: ${ctx.raw}%` }
+                },
+                datalabels: { display: false }
             },
-            cutout: '70%'
+            cutout: '78%'
         }
     });
 });

@@ -1,143 +1,147 @@
 @extends('layouts.app')
 
-@section('title', 'Trung tâm Cảnh báo Nguy cơ Toàn trường — Admin')
+@section('title', 'Thống kê Số buổi Nghỉ học theo Môn — Admin')
 
 @section('content')
 <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
     <div>
-        <h1 class="text-2xl font-bold !text-slate-900 flex items-center gap-2.5">
-            <svg class="w-7 h-7 text-[#1e4f8f] inline-block filter" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-            </svg>
-            <span>Trung tâm Cảnh báo Sớm Toàn trường (Early Warning Center)</span>
-        </h1>
-        <p class="text-xs !text-slate-600 mt-1">Phân tích dữ liệu học tập tổng hợp, phát hiện nguy cơ bỏ học và giám sát can thiệp sư phạm</p>
-    </div>
-
-    {{-- Bộ lọc mức độ nguy cơ --}}
-    <div class="flex flex-wrap items-center gap-1.5 rounded-lg bg-white border border-slate-200 p-1.5 shadow-sm glass-card text-xs font-bold">
-        <a href="{{ route('admin.risk.index', ['level' => 'ALL']) }}" class="rounded-md px-3 py-1.5 transition {{ $selectedLevel === 'ALL' ? 'bg-[#1e4f8f] !text-white shadow-sm ' : '!text-slate-600 hover:bg-slate-100' }}">Tất cả ({{ $overview['total_students'] }})</a>
-        <a href="{{ route('admin.risk.index', ['level' => 'SAFE']) }}" class="rounded-md px-3 py-1.5 transition {{ $selectedLevel === 'SAFE' ? 'bg-emerald-600 !text-white shadow' : '!text-slate-600 hover:bg-slate-100' }} flex items-center gap-1.5">
-            <span class="w-2 h-2 rounded-full bg-emerald-600 inline-block"></span>
-            <span>An toàn ({{ $overview['counts_by_level']['SAFE'] ?? 0 }})</span>
-        </a>
-        <a href="{{ route('admin.risk.index', ['level' => 'MEDIUM']) }}" class="rounded-md px-3 py-1.5 transition {{ $selectedLevel === 'MEDIUM' ? 'bg-amber-600 !text-white shadow' : '!text-slate-600 hover:bg-slate-100' }} flex items-center gap-1.5">
-            <span class="w-2 h-2 rounded-full bg-amber-600 inline-block"></span>
-            <span>Trung bình ({{ $overview['counts_by_level']['MEDIUM'] ?? 0 }})</span>
-        </a>
-        <a href="{{ route('admin.risk.index', ['level' => 'HIGH']) }}" class="rounded-md px-3 py-1.5 transition {{ $selectedLevel === 'HIGH' ? 'bg-orange-600 !text-white shadow' : '!text-slate-600 hover:bg-slate-100' }} flex items-center gap-1.5">
-            <span class="w-2 h-2 rounded-full bg-orange-600 inline-block"></span>
-            <span>Nguy cơ cao ({{ $overview['counts_by_level']['HIGH'] ?? 0 }})</span>
-        </a>
-        <a href="{{ route('admin.risk.index', ['level' => 'VERY_HIGH']) }}" class="rounded-md px-3 py-1.5 transition {{ $selectedLevel === 'VERY_HIGH' ? 'bg-rose-600 !text-white shadow' : '!text-slate-600 hover:bg-slate-100' }} flex items-center gap-1.5">
-            <span class="w-2 h-2 rounded-full bg-rose-400 inline-block"></span>
-            <span>Rất cao ({{ $overview['counts_by_level']['VERY_HIGH'] ?? 0 }})</span>
-        </a>
+        <h1 class="text-2xl font-bold text-slate-900">Tỷ lệ nghỉ học của học sinh theo môn</h1>
+        <p class="text-sm text-slate-500 mt-1">Thống kê số buổi nghỉ học của học sinh theo từng môn. Quy chế đào tạo: nghỉ quá <strong>20%</strong> tổng số buổi sẽ bị <strong>trượt môn</strong>.</p>
     </div>
 </div>
 
 {{-- 4 THẺ THỐNG KÊ TỔNG QUAN --}}
 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-6">
-    <div class="rounded-lg border border-emerald-200 bg-emerald-50 p-5 shadow-sm glass-card">
-        <div class="flex items-center justify-between">
-            <span class="text-xs font-bold uppercase tracking-wider text-emerald-700">An toàn</span>
-            <svg class="w-5 h-5 text-emerald-600 filter" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-        </div>
-        <p class="mt-2 text-3xl font-bold !text-slate-900">{{ $overview['counts_by_level']['SAFE'] ?? 0 }}</p>
-        <p class="text-xs text-emerald-700 mt-1">PASS toàn bộ, chuyên cần chuẩn &lt; 20%</p>
+    <div class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+        <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Tổng lượt học sinh × môn</span>
+        <p class="mt-2 text-3xl font-bold text-slate-900">{{ $counts['total'] ?? 0 }}</p>
+        <p class="text-xs text-slate-500 mt-1">Theo bộ lọc môn học hiện tại</p>
     </div>
 
-    <div class="rounded-lg border border-amber-200 bg-amber-50 p-5 shadow-sm glass-card">
-        <div class="flex items-center justify-between">
-            <span class="text-xs font-bold uppercase tracking-wider text-amber-700">Cần theo dõi (Trung bình)</span>
-            <svg class="w-5 h-5 text-amber-600 filter" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-        </div>
-        <p class="mt-2 text-3xl font-bold !text-slate-900">{{ $overview['counts_by_level']['MEDIUM'] ?? 0 }}</p>
-        <p class="text-xs text-amber-700 mt-1">Nghỉ tiệm cận 20% hoặc nợ 1 môn</p>
+    <div class="rounded-lg border border-emerald-200 bg-emerald-50 p-5 shadow-sm">
+        <span class="text-xs font-bold uppercase tracking-wider text-emerald-700">Đạt chuyên cần (&lt; 15%)</span>
+        <p class="mt-2 text-3xl font-bold text-emerald-800">{{ $counts['SAFE'] ?? 0 }}</p>
+        <p class="text-xs text-emerald-700 mt-1">Nghỉ dưới 15% tổng số buổi</p>
     </div>
 
-    <div class="rounded-lg border border-orange-200 bg-orange-50 p-5 shadow-sm glass-card">
-        <div class="flex items-center justify-between">
-            <span class="text-xs font-bold uppercase tracking-wider text-orange-700">Nguy cơ Cao</span>
-            <svg class="w-5 h-5 text-orange-600 filter" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-        </div>
-        <p class="mt-2 text-3xl font-bold !text-slate-900">{{ $overview['counts_by_level']['HIGH'] ?? 0 }}</p>
-        <p class="text-xs text-orange-700 mt-1">Nghỉ &gt; 20% hoặc nợ từ 2 môn</p>
+    <div class="rounded-lg border border-amber-200 bg-amber-50 p-5 shadow-sm">
+        <span class="text-xs font-bold uppercase tracking-wider text-amber-700">Sắp trượt môn (15% – 20%)</span>
+        <p class="mt-2 text-3xl font-bold text-amber-800">{{ $counts['WARNING'] ?? 0 }}</p>
+        <p class="text-xs text-amber-700 mt-1">Cần nhắc nhở, không nghỉ thêm</p>
     </div>
 
-    <div class="rounded-lg border border-rose-200 bg-rose-50 p-5 shadow-sm glass-card">
-        <div class="flex items-center justify-between">
-            <span class="text-xs font-bold uppercase tracking-wider text-rose-700">Nguy cơ Rất cao</span>
-            <svg class="w-5 h-5 text-rose-600 filter" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-        </div>
-        <p class="mt-2 text-3xl font-bold !text-slate-900">{{ $overview['counts_by_level']['VERY_HIGH'] ?? 0 }}</p>
-        <p class="text-xs text-rose-700 mt-1">Trượt chuyên cần & nợ nhiều môn</p>
+    <div class="rounded-lg border border-rose-200 bg-rose-50 p-5 shadow-sm">
+        <span class="text-xs font-bold uppercase tracking-wider text-rose-700">Trượt môn (&gt; 20%)</span>
+        <p class="mt-2 text-3xl font-bold text-rose-800">{{ $counts['FAILED'] ?? 0 }}</p>
+        <p class="text-xs text-rose-700 mt-1">Đã nghỉ vượt quá 20% số buổi</p>
     </div>
 </div>
 
-{{-- HỆ THỐNG BIỂU ĐỒ PHÂN TÍCH NGUYÊN NHÂN NGHỈ HỌC (PIE / LINE / COLUMN) --}}
-@include('components.risk-analytics-charts', ['charts' => $charts ?? null])
+{{-- BỘ LỌC THEO MÔN HỌC, TRẠNG THÁI, TÌM KIẾM --}}
+<div class="mb-6 rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+    <form method="GET" action="{{ route('admin.risk.index') }}" class="flex flex-wrap items-end gap-3">
+        <div class="min-w-[220px] flex-1">
+            <label for="subject_id" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">Môn học</label>
+            <select name="subject_id" id="subject_id" onchange="this.form.submit()" class="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 focus:border-[#1e4f8f] focus:outline-none">
+                <option value="">Tất cả các môn học</option>
+                @foreach($subjects as $sub)
+                    <option value="{{ $sub->subject_id }}" {{ (int) $selectedSubjectId === (int) $sub->subject_id ? 'selected' : '' }}>
+                        {{ $sub->subject_code }} — {{ $sub->subject_name }}
+                    </option>
+                @endforeach
+            </select>
+        </div>
 
-{{-- BẢNG DANH SÁCH SINH VIÊN TOÀN TRƯỜNG --}}
-<div class="rounded-lg border border-slate-200 bg-white shadow-sm glass-card overflow-hidden">
+        <div class="min-w-[190px]">
+            <label for="status" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">Trạng thái chuyên cần</label>
+            <select name="status" id="status" onchange="this.form.submit()" class="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 focus:border-[#1e4f8f] focus:outline-none">
+                <option value="ALL" {{ $selectedStatus === 'ALL' ? 'selected' : '' }}>Tất cả ({{ $counts['total'] ?? 0 }})</option>
+                <option value="FAILED" {{ $selectedStatus === 'FAILED' ? 'selected' : '' }}>Trượt môn &gt; 20% ({{ $counts['FAILED'] ?? 0 }})</option>
+                <option value="WARNING" {{ $selectedStatus === 'WARNING' ? 'selected' : '' }}>Sắp trượt 15%–20% ({{ $counts['WARNING'] ?? 0 }})</option>
+                <option value="SAFE" {{ $selectedStatus === 'SAFE' ? 'selected' : '' }}>Đạt &lt; 15% ({{ $counts['SAFE'] ?? 0 }})</option>
+            </select>
+        </div>
+
+        <div class="min-w-[220px] flex-1">
+            <label for="q" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">Tìm học sinh / lớp</label>
+            <input type="text" name="q" id="q" value="{{ $search }}" placeholder="Nhập mã SV, họ tên, tên lớp..." class="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 focus:border-[#1e4f8f] focus:outline-none">
+        </div>
+
+        <div class="flex items-center gap-2">
+            <button type="submit" class="rounded-md bg-[#1e4f8f] hover:bg-[#163c6d] px-4 py-2 text-sm font-semibold text-white transition">Lọc</button>
+            @if($selectedSubjectId || $selectedStatus !== 'ALL' || $search)
+                <a href="{{ route('admin.risk.index') }}" class="rounded-md border border-slate-300 bg-white hover:bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-700 transition">Đặt lại</a>
+            @endif
+        </div>
+    </form>
+</div>
+
+{{-- BẢNG THỐNG KÊ SỐ BUỔI NGHỈ HỌC THEO MÔN --}}
+<div class="rounded-lg border border-slate-200 bg-white shadow-sm overflow-hidden">
     <div class="border-b border-slate-200 bg-slate-50 px-6 py-4 flex flex-wrap items-center justify-between gap-2">
-        <h2 class="font-bold !text-slate-900">Danh sách sinh viên theo dõi nguy cơ ({{ $filteredStudents->count() }} sinh viên)</h2>
-        <span class="text-xs !text-slate-600">Mô hình phân tích: <strong class="text-[#1e4f8f]">Rule-based Engine v1.0 (BestCoder 2026)</strong></span>
+        <h2 class="font-bold text-slate-900">Danh sách số buổi nghỉ học theo môn ({{ $rows->count() }} bản ghi)</h2>
+        <span class="text-xs text-slate-500">Sắp xếp theo tỷ lệ nghỉ từ cao xuống thấp</span>
     </div>
 
     <div class="overflow-x-auto">
         <table class="w-full text-left text-sm">
-            <thead class="bg-slate-50 text-xs font-bold uppercase tracking-wider !text-slate-700 border-b border-slate-200">
+            <thead class="bg-slate-50 text-xs font-bold uppercase tracking-wider text-slate-600 border-b border-slate-200">
                 <tr>
-                    <th class="px-6 py-3.5">Mã SV</th>
-                    <th class="px-6 py-3.5">Họ và tên</th>
-                    <th class="px-6 py-3.5">Chuyên ngành</th>
-                    <th class="px-6 py-3.5 text-center">Mức độ rủi ro</th>
-                    <th class="px-6 py-3.5">Tóm tắt nguyên nhân đánh giá</th>
-                    <th class="px-6 py-3.5 text-right">Chi tiết</th>
+                    <th class="px-5 py-3.5">Mã SV</th>
+                    <th class="px-5 py-3.5">Học sinh</th>
+                    <th class="px-5 py-3.5">Môn học / Lớp</th>
+                    <th class="px-5 py-3.5 text-center">Có mặt / Muộn</th>
+                    <th class="px-5 py-3.5 text-center">Số buổi nghỉ</th>
+                    <th class="px-5 py-3.5 text-center">Tỷ lệ nghỉ</th>
+                    <th class="px-5 py-3.5 text-center">Trạng thái</th>
+                    <th class="px-5 py-3.5 text-right">Chi tiết</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-slate-200">
-                @forelse($filteredStudents as $item)
-                    @php
-                        $st = $item['student'];
-                        $pred = $item['prediction'];
-                        $riskDotColor = match($pred->risk_level) {
-                            'SAFE' => 'bg-emerald-600',
-                            'MEDIUM' => 'bg-amber-600',
-                            'HIGH' => 'bg-orange-600',
-                            'VERY_HIGH' => 'bg-rose-400',
-                            default => 'bg-slate-400'
-                        };
-                    @endphp
-                    <tr class="hover:bg-slate-100 transition duration-150">
-                        <td class="px-6 py-4 font-mono font-bold !text-slate-900">{{ $st->student_code ?? 'HL'.str_pad($st->user_id, 5, '0', STR_PAD_LEFT) }}</td>
-                        <td class="px-6 py-4">
-                            <div class="font-bold !text-slate-900">{{ $st->full_name }}</div>
-                            <div class="text-xs !text-slate-500 mt-0.5">{{ $st->email }}</div>
+                @forelse($rows as $row)
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="px-5 py-3.5 font-mono font-bold text-slate-900">{{ $row['student_code'] }}</td>
+                        <td class="px-5 py-3.5">
+                            <div class="font-semibold text-slate-900">{{ $row['full_name'] }}</div>
+                            <div class="text-xs text-slate-500">{{ $row['email'] }}</div>
                         </td>
-                        <td class="px-6 py-4">
-                            <span class="rounded-lg bg-slate-50 border border-slate-200 px-2.5 py-1 text-xs font-semibold !text-slate-700">{{ $st->major->major_name ?? 'Chưa phân ngành' }}</span>
+                        <td class="px-5 py-3.5">
+                            <div class="font-semibold text-slate-800">{{ $row['subject_name'] }}</div>
+                            <div class="text-xs text-slate-500">{{ $row['subject_code'] }} · Lớp {{ $row['class_name'] }}</div>
                         </td>
-                        <td class="px-6 py-4 text-center">
-                            <span class="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-bold {{ $pred->badgeColorClass() }}">
-                                <span class="w-2 h-2 rounded-full {{ $riskDotColor }} inline-block"></span>
-                                <span>{{ $pred->levelLabel() }}</span>
+                        <td class="px-5 py-3.5 text-center text-xs text-slate-600">
+                            <span class="font-semibold text-emerald-700">{{ $row['present_sessions'] }}</span> có mặt ·
+                            <span class="font-semibold text-amber-700">{{ $row['late_sessions'] }}</span> muộn
+                        </td>
+                        <td class="px-5 py-3.5 text-center">
+                            <span class="font-bold {{ $row['status'] === 'FAILED' ? 'text-rose-700' : ($row['status'] === 'WARNING' ? 'text-amber-700' : 'text-slate-800') }}">
+                                {{ $row['absent_sessions'] }} / {{ $row['total_sessions'] }} buổi
+                            </span>
+                            <div class="text-[11px] text-slate-500">Tối đa: {{ $row['max_allowed_absences'] }} buổi</div>
+                        </td>
+                        <td class="px-5 py-3.5 text-center">
+                            <span class="inline-flex rounded-full px-2.5 py-0.5 text-xs font-bold {{ $row['status'] === 'FAILED' ? 'bg-rose-100 text-rose-800' : ($row['status'] === 'WARNING' ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-700') }}">
+                                {{ number_format($row['absence_rate'], 1) }}%
                             </span>
                         </td>
-                        <td class="px-6 py-4 text-xs !text-slate-700 max-w-md leading-relaxed">
-                            {{ $pred->summary_explanation }}
+                        <td class="px-5 py-3.5 text-center">
+                            @if($row['status'] === 'FAILED')
+                                <span class="inline-flex rounded-full border border-rose-300 bg-rose-100 px-3 py-1 text-xs font-bold text-rose-800">Trượt môn (&gt;20%)</span>
+                            @elseif($row['status'] === 'WARNING')
+                                <span class="inline-flex rounded-full border border-amber-300 bg-amber-100 px-3 py-1 text-xs font-bold text-amber-800">Sắp trượt (15%–20%)</span>
+                            @else
+                                <span class="inline-flex rounded-full border border-emerald-300 bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-800">Đạt chuyên cần</span>
+                            @endif
                         </td>
-                        <td class="px-6 py-4 text-right">
-                            <a href="{{ route('admin.risk.show', $st) }}" class="inline-flex items-center gap-1 rounded-md bg-[#1e4f8f] hover:bg-[#163c6d] px-3 py-1.5 text-xs font-bold !text-white shadow-sm transition">
-                                <svg class="w-3.5 h-3.5 text-white inline-block filter" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                                <span>Xem hồ sơ</span>
+                        <td class="px-5 py-3.5 text-right">
+                            <a href="{{ route('admin.risk.show', $row['user_id']) }}" class="inline-flex items-center rounded-md bg-[#1e4f8f] hover:bg-[#163c6d] px-3 py-1.5 text-xs font-semibold text-white transition">
+                                Xem chi tiết
                             </a>
                         </td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="6" class="px-6 py-8 text-center !text-slate-500">Không có dữ liệu sinh viên nào phù hợp bộ lọc.</td>
+                        <td colspan="8" class="px-6 py-8 text-center text-slate-500">Không có dữ liệu phù hợp bộ lọc.</td>
                     </tr>
                 @endforelse
             </tbody>

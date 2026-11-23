@@ -1,9 +1,22 @@
-fastapi>=0.100.0,<1.0.0
-uvicorn[standard]>=0.23.0,<1.0.0
-pydantic>=2.0.0,<3.0.0
-scikit-learn>=1.3.0,<1.6.0
-pandas>=2.0.0,<3.0.0
-numpy>=1.24.0,<2.2.0
-joblib>=1.3.0,<1.5.0
-shap>=0.44.0,<1.0.0
+# =========================================================================
+# DANH SÁCH THƯ VIỆN PYTHON CHO MICROSERVICE AI & HYBRID RAG (ml_service)
+# =========================================================================
+fastapi>=0.100.0,<1.0.0              # Web framework bất đồng bộ hiệu năng cao cung cấp REST API (/predict, /explain, /embed)
+uvicorn[standard]>=0.23.0,<1.0.0     # ASGI Server để chạy ứng dụng FastAPI ở cổng 8001
+pydantic>=2.0.0,<3.0.0               # Kiểm tra kiểu dữ liệu (Data Validation) và định nghĩa Schema JSON đầu vào/đầu ra
+scikit-learn>=1.3.0,<1.6.0           # Thư viện Machine Learning: huấn luyện & suy luận mô hình Random Forest / Logistic Regression
+pandas>=2.0.0,<3.0.0                 # Xử lý dữ liệu dạng bảng (DataFrame) cho tập đặc trưng sinh viên
+numpy>=1.24.0,<2.2.0                 # Tính toán ma trận, mảng đa chiều và đại số tuyến tính cho vector
+joblib>=1.3.0,<1.5.0                 # Đóng gói (serialize) và nạp nhanh file mô hình (.joblib) từ ổ cứng vào RAM
+shap>=0.44.0,<1.0.0                  # SHAP (SHapley Additive exPlanations): Giải thích AI (XAI) qua TreeExplainer cho từng dự đoán
+sentence-transformers>=2.7.0         # Thư viện HuggingFace chạy model nhúng tiếng Việt AITeamVN/Vietnamese_Embedding_v2 cho Hybrid RAG
+transformers>=4.40.0                 # Thư viện HuggingFace chạy model tóm tắt tiếng Việt VietAI/vit5-base-vietnews-summarization
+sentencepiece>=0.2.0                 # Bộ tách từ (Tokenizer) bắt buộc cho họ mô hình T5 / ViT5 tiếng Việt
+pymupdf>=1.24.0                      # Thư viện PyMuPDF (fitz): bóc tách văn bản từ file PDF giáo trình giữ nguyên bố cục
+python-docx>=1.1.0                   # Đọc nội dung văn bản & bảng biểu từ file Word (.docx)
+python-pptx>=0.6.23                  # Đọc nội dung từng slide bài giảng PowerPoint (.pptx)
+llmlingua>=0.2.2                     # Microsoft LLMLingua-2: nén token ngữ cảnh hội thoại dài giảm 3x-6x token trước khi gửi LLM
+
+
+
 

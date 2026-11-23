@@ -15,15 +15,27 @@ class Assignment extends Model
     public const TYPE_QUIZ = 'quiz';
 
     // ( Đăng sửa ) Thêm cột attachment_path vào mảng fillable để cho phép gán dữ liệu
-    protected $fillable = ['class_id', 'title', 'type', 'description', 'due_date', 'max_score', 'show_answers', 'attachment_path'];
+    protected $fillable = ['class_id', 'title', 'type', 'description', 'due_date', 'max_score', 'show_answers', 'attachment_path', 'grades_published_at'];
 
     protected function casts(): array
     {
         return [
             'due_date' => 'datetime',
             'created_at' => 'datetime',
+            'grades_published_at' => 'datetime',
             'show_answers' => 'boolean',
         ];
+    }
+
+    public function isEssay(): bool
+    {
+        return $this->type === self::TYPE_ESSAY;
+    }
+
+    /** Quiz tự chấm xem điểm ngay; Tự luận cần giảng viên bấm "Công bố điểm của lớp" */
+    public function isGradesPublished(): bool
+    {
+        return $this->isQuiz() || $this->grades_published_at !== null;
     }
 
     /** Giáo viên có cho phép sinh viên xem đáp án sau khi nộp không? */

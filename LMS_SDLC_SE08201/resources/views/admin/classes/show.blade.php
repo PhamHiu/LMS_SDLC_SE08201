@@ -187,11 +187,15 @@
                         <td class="px-5 py-3.5 text-right">
                             <a href="#" class="inline-flex items-center gap-1 rounded-lg bg-blue-600 hover:bg-blue-700 px-3 py-1.5 text-xs font-semibold !text-white shadow-sm transition edit-session-btn" 
                                data-session-id="{{ $session->session_id }}"
+                               data-session-num="{{ $i + 1 }}"
                                data-date="{{ $session->session_date->format('Y-m-d') }}"
+                               data-date-display="{{ $session->session_date->format('d/m/Y') }}"
                                data-slot="{{ $session->slot_id }}"
-                               data-room="{{ $session->room_id }}">
-                                <svg class="h-3.5 w-3.5 text-white inline-block filter" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                                <span>Sửa</span>
+                               data-slot-label="{{ $session->slot?->label ?? 'Chưa xếp ca' }}"
+                               data-room="{{ $session->room_id }}"
+                               data-room-name="{{ $session->room?->room_name ?? 'Chưa xếp phòng' }}">
+                                <svg class="h-3.5 w-3.5 text-white inline-block filter" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                <span>Đổi lịch</span>
                             </a>
                         </td>
                     </tr>
@@ -201,48 +205,65 @@
     </div>
 </div>
 
-<!-- Modal Sửa Buổi Học -->
-<div id="editSessionModal" class="fixed inset-0 z-50 hidden bg-slate-50 transition-opacity items-center justify-center flex p-4">
-    <div class="w-full max-w-md rounded-lg bg-white border border-slate-200 p-6 shadow-sm relative !text-slate-900">
+<!-- Modal Thay Đổi Lịch Buổi Học (Tự động gửi thông báo cho lớp) -->
+<div id="editSessionModal" class="fixed inset-0 z-50 hidden bg-black/50 backdrop-blur-[1px] transition-opacity items-center justify-center flex p-4">
+    <div class="w-full max-w-md rounded-lg bg-white border border-slate-200 p-6 shadow-xl relative !text-slate-900">
         <button type="button" class="absolute top-4 right-4 text-slate-500 hover:text-[#163c6d] modal-close">
             <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
         </button>
-        <h3 class="text-lg font-bold !text-slate-900 mb-4 flex items-center gap-2">
-            <svg class="w-5 h-5 text-[#1e4f8f] filter" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-            <span>Cập nhật buổi học</span>
+        <h3 class="text-lg font-bold !text-slate-900 mb-1 flex items-center gap-2">
+            <svg class="w-5 h-5 text-[#1e4f8f] filter" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            <span id="modal_session_title">Thay đổi lịch buổi học</span>
         </h3>
+        <p id="modal_old_schedule" class="text-xs text-slate-500 mb-4"></p>
         
         <div id="conflict_alert" class="mb-4 hidden rounded-md bg-rose-50 p-3 text-sm text-rose-700 border border-rose-200">
             <!-- Conflict message -->
         </div>
 
-        <form id="editSessionForm" class="space-y-4">
+        <form id="editSessionForm" class="space-y-3.5">
             <input type="hidden" id="edit_session_id">
             <input type="hidden" id="class_teacher_id" value="{{ $class->user_id }}">
             
             <div>
-                <label class="block text-sm font-medium !text-slate-700 mb-1">Ngày học</label>
+                <label class="block text-sm font-medium !text-slate-700 mb-1">Ngày học mới *</label>
                 <input type="date" id="edit_date" required class="w-full rounded-md border border-slate-200 bg-white px-3.5 py-2 text-sm !text-slate-900 focus:border-[#1e4f8f] outline-none">
             </div>
             
             <div>
-                <label class="block text-sm font-medium !text-slate-700 mb-1">Ca học</label>
+                <label class="block text-sm font-medium !text-slate-700 mb-1">Ca học mới *</label>
                 <select id="edit_slot" required class="w-full rounded-md border border-slate-200 bg-white px-3.5 py-2 text-sm !text-slate-900 focus:border-[#1e4f8f] outline-none">
                     <!-- Sẽ load qua JS -->
                 </select>
             </div>
             
             <div>
-                <label class="block text-sm font-medium !text-slate-700 mb-1">Phòng học</label>
+                <label class="block text-sm font-medium !text-slate-700 mb-1">Phòng học mới *</label>
                 <select id="edit_room" required class="w-full rounded-md border border-slate-200 bg-white px-3.5 py-2 text-sm !text-slate-900 focus:border-[#1e4f8f] outline-none">
                     <!-- Load qua JS -->
                 </select>
             </div>
+
+            <div>
+                <label class="block text-sm font-medium !text-slate-700 mb-1">Lý do thay đổi lịch học *</label>
+                <select id="edit_reason_preset" class="w-full rounded-md border border-slate-200 bg-white px-3.5 py-2 text-sm !text-slate-900 focus:border-[#1e4f8f] outline-none">
+                    <option value="Giảng viên bận công tác / có việc đột xuất">Giảng viên bận công tác / có việc đột xuất</option>
+                    <option value="Thời tiết khắc nghiệt / mưa bão">Thời tiết khắc nghiệt / mưa bão</option>
+                    <option value="Bảo trì / điều chuyển phòng học">Bảo trì / điều chuyển phòng học</option>
+                    <option value="Điều chỉnh theo kế hoạch đào tạo của nhà trường">Điều chỉnh theo kế hoạch đào tạo của nhà trường</option>
+                    <option value="OTHER">Lý do khác (tự nhập)...</option>
+                </select>
+                <input type="text" id="edit_reason_custom" placeholder="Nhập lý do chi tiết..." class="hidden mt-2 w-full rounded-md border border-slate-200 bg-white px-3.5 py-2 text-sm !text-slate-900 focus:border-[#1e4f8f] outline-none">
+            </div>
+
+            <div class="rounded-md bg-blue-50 border border-blue-200 px-3 py-2 text-xs text-blue-800">
+                Hệ thống sẽ <strong>tự động gửi thông báo đổi lịch</strong> tới toàn bộ <strong>{{ $class->students->count() }} sinh viên</strong> và giảng viên của lớp <strong>{{ $class->class_name }}</strong>.
+            </div>
             
             <div class="pt-2 flex justify-end gap-2">
-                <button type="button" class="rounded-md bg-slate-50 px-4 py-2 text-sm font-medium !text-slate-900 hover:bg-slate-100 modal-close transition">Hủy</button>
+                <button type="button" class="rounded-md bg-slate-100 px-4 py-2 text-sm font-medium !text-slate-700 hover:bg-slate-200 modal-close transition">Hủy</button>
                 <button type="submit" class="rounded-md bg-[#1e4f8f] hover:bg-[#163c6d] px-4 py-2 text-sm font-semibold !text-white shadow-sm flex items-center gap-2 transition">
-                    <span id="btn_text">Lưu thay đổi</span>
+                    <span id="btn_text">Lưu &amp; Gửi thông báo</span>
                     <svg id="btn_loader" class="h-4 w-4 animate-spin hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path></svg>
                 </button>
             </div>
@@ -281,11 +302,31 @@
         }
         loadOptions();
 
+        const reasonPreset = document.getElementById('edit_reason_preset');
+        const reasonCustom = document.getElementById('edit_reason_custom');
+        if (reasonPreset && reasonCustom) {
+            reasonPreset.addEventListener('change', () => {
+                if (reasonPreset.value === 'OTHER') {
+                    reasonCustom.classList.remove('hidden');
+                    reasonCustom.focus();
+                } else {
+                    reasonCustom.classList.add('hidden');
+                }
+            });
+        }
+
         document.querySelectorAll('.edit-session-btn').forEach(btn => {
             btn.addEventListener('click', function(e) {
                 e.preventDefault();
                 document.getElementById('edit_session_id').value = this.dataset.sessionId;
                 document.getElementById('edit_date').value = this.dataset.date;
+                document.getElementById('modal_session_title').textContent = `Thay đổi lịch Buổi ${this.dataset.sessionNum || ''}`;
+                document.getElementById('modal_old_schedule').textContent = `Lịch hiện tại: ${this.dataset.dateDisplay} · ${this.dataset.slotLabel} · Phòng ${this.dataset.roomName}`;
+                if (reasonPreset) reasonPreset.value = 'Giảng viên bận công tác / có việc đột xuất';
+                if (reasonCustom) {
+                    reasonCustom.value = '';
+                    reasonCustom.classList.add('hidden');
+                }
                 
                 setTimeout(() => {
                     document.getElementById('edit_slot').value = this.dataset.slot;
@@ -304,14 +345,19 @@
         form.addEventListener('submit', async function(e) {
             e.preventDefault();
             btnLoader.classList.remove('hidden');
-            btnText.textContent = 'Đang lưu...';
+            btnText.textContent = 'Đang lưu & gửi TB...';
             
             const sessionId = document.getElementById('edit_session_id').value;
+            const reasonVal = reasonPreset && reasonPreset.value === 'OTHER'
+                ? (reasonCustom?.value.trim() || 'Điều chỉnh lịch học từ Phòng Đào tạo')
+                : (reasonPreset?.value || 'Điều chỉnh lịch học từ Phòng Đào tạo');
+
             const data = {
                 session_date: document.getElementById('edit_date').value,
                 slot_id: document.getElementById('edit_slot').value,
                 room_id: document.getElementById('edit_room').value,
                 teacher_id: document.getElementById('class_teacher_id').value,
+                reason: reasonVal,
                 _token: '{{ csrf_token() }}'
             };
             
@@ -335,6 +381,9 @@
                         alertBox.innerHTML = result.messages.join('<br>');
                         alertBox.classList.remove('hidden');
                     } else {
+                        if (result.message) {
+                            alert(result.message);
+                        }
                         window.location.reload();
                     }
                 }
@@ -343,7 +392,7 @@
                 alertBox.classList.remove('hidden');
             } finally {
                 btnLoader.classList.add('hidden');
-                btnText.textContent = 'Lưu thay đổi';
+                btnText.textContent = 'Lưu & Gửi thông báo';
             }
         });
 

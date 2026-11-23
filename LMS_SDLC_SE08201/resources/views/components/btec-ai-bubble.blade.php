@@ -2,167 +2,86 @@
 <div id="btec-ai-widget-container" class="fixed bottom-4 right-4 z-50 font-sans select-none touch-none">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    {{-- 1. FLOATING BUBBLE BUTTON (COMPACT BY DEFAULT, EXPANDS ON HOVER / OPEN) --}}
+    {{-- 1. FLOATING TRIGGER BUTTON (HIGH-TECH MINIMAL) --}}
     <div id="btec-ai-trigger" class="relative group cursor-grab active:cursor-grabbing">
-        {{-- High-tech Multi-layer Glow (Subtle & Compact) --}}
-        <div class="absolute -inset-1 bg-[#1e4f8f] rounded-full blur opacity-50 group-hover:opacity-90 transition duration-300"></div>
-        
-        {{-- Nút [✕] Tắt hoàn toàn bong bóng nổi khi bị vướng --}}
-        <button type="button" 
-                id="btec-ai-dismiss-btn" 
-                title="Tắt trợ lý AI (không hiển thị nữa)" 
-                class="absolute -top-1.5 -left-1.5 z-30 w-4 h-4 rounded-full bg-white border border-slate-200 hover:border-rose-500 text-slate-500 hover:text-[#163c6d] hover:bg-rose-600 flex items-center justify-center text-[9px] font-bold transition-all shadow-sm opacity-0 group-hover:opacity-100">
+        <button type="button"
+                id="btec-ai-dismiss-btn"
+                title="Ẩn trợ lý AI"
+                class="absolute -top-1.5 -left-1.5 z-30 w-4 h-4 rounded-full bg-white border border-zinc-300 hover:border-zinc-900 text-zinc-500 hover:text-zinc-950 flex items-center justify-center text-[9px] font-bold transition opacity-0 group-hover:opacity-100">
             ✕
         </button>
 
-        {{-- Nút bấm chính: Mặc định thu nhỏ gọn thành nút tròn 44x44px, rê chuột vào mới trượt nhẹ nhãn nhỏ --}}
-        <div id="btec-ai-open-btn" 
-             class="relative flex items-center bg-white hover:bg-slate-50 text-slate-900 p-1.5 rounded-full shadow-sm border border-[#1e4f8f]/30 transition-all duration-300 transform">
+        <div id="btec-ai-open-btn"
+             class="relative flex items-center bg-zinc-950 hover:bg-zinc-900 text-white p-1.5 rounded-full border border-zinc-800 shadow-[0_4px_16px_rgba(9,9,11,0.18)] transition-all duration-200">
 
-            {{-- Avatar Mascot BTEC - Compact Cute Robot SVG --}}
-            <div class="relative flex items-center justify-center w-9 h-9 rounded-full bg-[#1e4f8f] p-0.5 shadow-sm shrink-0 pointer-events-none">
-                <div class="w-full h-full rounded-full bg-white overflow-hidden flex items-center justify-center border border-slate-200">
-                    {{-- Cute Robot AI Avatar SVG --}}
-                    <svg viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-7 h-7">
-                        <!-- Antenna -->
-                        <line x1="22" y1="4" x2="22" y2="10" stroke="#f2c94c" stroke-width="1.5" stroke-linecap="round"/>
-                        <circle cx="22" cy="3.5" r="2" fill="#f2c94c" opacity="0.95"/>
-                        <!-- Robot head -->
-                        <rect x="10" y="10" width="24" height="20" rx="5" fill="#1e4f8f" stroke="#f2c94c" stroke-width="0.8" opacity="0.95"/>
-                        <!-- Eyes - glowing cute -->
-                        <rect x="13.5" y="15" width="6" height="5" rx="2.5" fill="#f2c94c" opacity="0.95"/>
-                        <rect x="24.5" y="15" width="6" height="5" rx="2.5" fill="#f2c94c" opacity="0.95"/>
-                        <circle cx="16.5" cy="17.5" r="1.5" fill="white"/>
-                        <circle cx="27.5" cy="17.5" r="1.5" fill="white"/>
-                        <circle cx="17.2" cy="16.9" r="0.5" fill="#030407"/>
-                        <circle cx="28.2" cy="16.9" r="0.5" fill="#030407"/>
-                        <!-- Mouth - cute smile display -->
-                        <rect x="15" y="22.5" width="14" height="4" rx="2" fill="#030407" fill-opacity="0.8" stroke="#f2c94c" stroke-width="0.6" opacity="0.6"/>
-                        <path d="M16.5 24.5 L18.5 24.5 M20 24.5 L22 24.5 M23.5 24.5 L25.5 24.5 M27 24.5 L27 24.5" stroke="#f2c94c" stroke-width="1" stroke-linecap="round" opacity="0.9"/>
-                        <!-- Ears/sides -->
-                        <rect x="7" y="15" width="3" height="7" rx="1.5" fill="#1e4f8f" stroke="#f2c94c" stroke-width="0.5"/>
-                        <rect x="34" y="15" width="3" height="7" rx="1.5" fill="#1e4f8f" stroke="#f2c94c" stroke-width="0.5"/>
-                        <!-- Body -->
-                        <rect x="14" y="30" width="16" height="10" rx="3" fill="#1e4f8f" stroke="#f2c94c" stroke-width="0.6" opacity="0.85"/>
-                        <!-- Heart/power icon on body -->
-                        <path d="M20 34.5 Q22 32 24 34.5 Q22 37 20 34.5Z" fill="#f2c94c" opacity="0.8"/>
-                        <!-- Star sparkle top right -->
-                        <path d="M38 7 L38.5 8.8 L40.3 8.8 L38.9 9.8 L39.4 11.5 L38 10.5 L36.6 11.5 L37.1 9.8 L35.7 8.8 L37.5 8.8 Z" fill="#f2c94c" opacity="0.8"/>
-                    </svg>
-                </div>
-
-                {{-- Status Online Dot --}}
-                <span class="absolute -top-0.5 -right-0.5 flex h-2.5 w-2.5 z-20">
-                    <span class="absolute inline-flex h-full w-full rounded-full bg-[#1e4f8f] opacity-75"></span>
-                    <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#1e4f8f] border border-slate-200"></span>
-                </span>
+            <div class="relative flex items-center justify-center w-10 h-10 rounded-full bg-white border border-zinc-700 shrink-0 pointer-events-none">
+                <img src="{{ asset('images/btec_support_logo.png') }}" alt="Trợ lý Học vụ AI" class="w-full h-full rounded-full object-cover">
+                <span class="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-500 border-2 border-zinc-950"></span>
             </div>
 
-            {{-- Nhãn chữ thu ẩn hoàn toàn khi bình thường, chỉ trượt nhẹ ra khi di chuột vào --}}
-            <div class="text-left max-w-0 opacity-0 overflow-hidden group-hover:max-w-[165px] group-hover:opacity-100 group-hover:pl-2 group-hover:pr-2.5 transition-all duration-300 whitespace-nowrap pointer-events-none">
-                <div class="text-[9px] uppercase tracking-wider text-[#1e4f8f] font-bold leading-tight">
-                    BTEC AI · 24/7
+            <div class="text-left max-w-0 opacity-0 overflow-hidden group-hover:max-w-[155px] group-hover:opacity-100 group-hover:pl-2.5 group-hover:pr-3 transition-all duration-200 whitespace-nowrap pointer-events-none">
+                <div class="text-[9px] font-mono uppercase tracking-widest text-zinc-400 leading-tight">
+                    AI SUPPORT · 24/7
                 </div>
-                <div class="text-xs font-semibold text-slate-900 leading-tight flex items-center gap-1">
-                    <span>Trợ lý Học vụ</span>
-                    <svg class="w-3 h-3 text-[#1e4f8f] fill-current shrink-0" viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                <div class="text-xs font-semibold text-white leading-tight">
+                    Trợ lý Học vụ
                 </div>
             </div>
         </div>
     </div>
 
-    {{-- 2. CHAT WINDOW / MODAL (MỞ RA MỚI HIỂN THỊ ĐẦY ĐỦ + CÓ NÚT PHÓNG TO / THU NHỎ) --}}
-    <div id="btec-ai-window" class="hidden fixed bottom-4 right-4 sm:right-5 w-[92vw] sm:w-[380px] max-w-[94vw] h-[520px] max-h-[85vh] bg-white rounded-lg shadow-sm border border-slate-200 flex flex-col overflow-hidden transition-all duration-300 z-50 ring-1 ring-[#1e4f8f]/30">
-        
-        {{-- Header --}}
-        <div class="relative bg-white text-slate-900 p-4.5 flex items-center justify-between border-b border-slate-200 overflow-hidden cursor-move" id="btec-window-header">
-            <div class="absolute -top-10 -right-10 w-32 h-32 bg-[#1e4f8f]/10 rounded-full hidden"></div>
-            <div class="absolute -bottom-10 -left-10 w-32 h-32 bg-[#1e4f8f]/5 rounded-full hidden"></div>
+    {{-- 2. CHAT WINDOW --}}
+    <div id="btec-ai-window" class="hidden fixed bottom-4 right-4 sm:right-5 w-[92vw] sm:w-[400px] max-w-[94vw] h-[540px] max-h-[85vh] bg-white rounded-lg shadow-[0_12px_40px_rgba(9,9,11,0.14)] border border-zinc-200 flex flex-col overflow-hidden transition-all duration-200 z-50">
 
-            <div class="relative z-10 flex items-center gap-3.5">
-                <div class="w-11 h-11 rounded-lg bg-[#1e4f8f] p-0.5 shadow-sm shrink-0">
-                    <div class="w-full h-full rounded-[14px] bg-white overflow-hidden flex items-center justify-center border border-slate-200">
-                        {{-- Chat Header Robot Avatar --}}
-                        <svg viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-10 h-10">
-                            <line x1="22" y1="4" x2="22" y2="10" stroke="#f2c94c" stroke-width="1.5" stroke-linecap="round"/>
-                            <circle cx="22" cy="3.5" r="2" fill="#f2c94c" opacity="0.95"/>
-                            <rect x="10" y="10" width="24" height="20" rx="5" fill="#1e4f8f" stroke="#f2c94c" stroke-width="0.8" opacity="0.95"/>
-                            <rect x="13.5" y="15" width="6" height="5" rx="2.5" fill="#f2c94c" opacity="0.95"/>
-                            <rect x="24.5" y="15" width="6" height="5" rx="2.5" fill="#f2c94c" opacity="0.95"/>
-                            <circle cx="16.5" cy="17.5" r="1.5" fill="white"/>
-                            <circle cx="27.5" cy="17.5" r="1.5" fill="white"/>
-                            <circle cx="17.2" cy="16.9" r="0.5" fill="#030407"/>
-                            <circle cx="28.2" cy="16.9" r="0.5" fill="#030407"/>
-                            <rect x="15" y="22.5" width="14" height="4" rx="2" fill="#030407" fill-opacity="0.8" stroke="#f2c94c" stroke-width="0.6" opacity="0.6"/>
-                            <path d="M16.5 24.5 L18.5 24.5 M20 24.5 L22 24.5 M23.5 24.5 L25.5 24.5" stroke="#f2c94c" stroke-width="1" stroke-linecap="round" opacity="0.9"/>
-                            <rect x="7" y="15" width="3" height="7" rx="1.5" fill="#1e4f8f" stroke="#f2c94c" stroke-width="0.5"/>
-                            <rect x="34" y="15" width="3" height="7" rx="1.5" fill="#1e4f8f" stroke="#f2c94c" stroke-width="0.5"/>
-                            <rect x="14" y="30" width="16" height="10" rx="3" fill="#1e4f8f" stroke="#f2c94c" stroke-width="0.6" opacity="0.85"/>
-                            <path d="M20 34.5 Q22 32 24 34.5 Q22 37 20 34.5Z" fill="#f2c94c" opacity="0.8"/>
-                        </svg>
-                    </div>
+        {{-- Header --}}
+        <div class="bg-zinc-950 text-white px-4 py-3 flex items-center justify-between border-b border-zinc-800 cursor-move" id="btec-window-header">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-white border border-zinc-700 overflow-hidden flex items-center justify-center shrink-0">
+                    <img src="{{ asset('images/btec_support_logo.png') }}" alt="Trợ lý Học vụ AI" class="w-full h-full object-cover">
                 </div>
                 <div>
                     <div class="flex items-center gap-2">
-                        <h3 class="font-bold text-sm sm:text-base tracking-wide text-slate-900">BTEC AI Student Support</h3>
-                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-semibold bg-[#1e4f8f]/5 border border-[#1e4f8f]/30 text-[#1e4f8f]">Active</span>
+                        <h3 class="font-semibold text-sm tracking-tight text-white">Trợ lý Học vụ LMS</h3>
+                        <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-mono uppercase bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">Online</span>
                     </div>
-                    <p class="text-xs text-slate-500">Quy chế BTEC FPT & Định vị tính năng LMS</p>
+                    <p class="text-[11px] text-zinc-400">Tra cứu lịch, điểm, chuyên cần & quy chế</p>
                 </div>
             </div>
-            <div class="relative z-10 flex items-center gap-1 text-slate-500">
-                <button type="button" id="btec-ai-expand-btn" title="Phóng to / Thu gọn cửa sổ" class="p-2 hover:text-[#163c6d] hover:bg-slate-100 rounded-md transition">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
+            <div class="flex items-center gap-1 text-zinc-400">
+                <button type="button" id="btec-ai-expand-btn" title="Phóng to / Thu gọn" class="p-1.5 hover:text-white hover:bg-zinc-800 rounded transition">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
                 </button>
-                <button type="button" id="btec-ai-clear-btn" title="Làm mới cuộc trò chuyện" class="p-2 hover:text-[#163c6d] hover:bg-slate-100 rounded-md transition">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                <button type="button" id="btec-ai-clear-btn" title="Phiên mới" class="p-1.5 hover:text-white hover:bg-zinc-800 rounded transition">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                 </button>
-                <button type="button" id="btec-ai-close-btn" title="Thu nhỏ" class="p-2 hover:text-[#163c6d] hover:bg-slate-100 rounded-md transition text-base font-bold">
+                <button type="button" id="btec-ai-close-btn" title="Đóng" class="p-1.5 hover:text-white hover:bg-zinc-800 rounded transition text-sm">
                     ✕
                 </button>
             </div>
         </div>
 
         {{-- Notice Banner --}}
-        <div class="bg-[#1e4f8f]/10 border-b border-[#1e4f8f]/30 px-3.5 py-1.5 flex items-center gap-2 text-[11px] text-[#1e4f8f]">
-            <svg class="w-4 h-4 text-[#1e4f8f] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-            <span>Đối soát trực tiếp từ Sổ tay sinh viên & Khung đào tạo BTEC FPT.</span>
+        <div class="bg-zinc-50 border-b border-zinc-200 px-3.5 py-1.5 flex items-center gap-2 text-[11px] text-zinc-600">
+            <svg class="w-3.5 h-3.5 text-zinc-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+            <span>Dữ liệu đối soát trực tiếp từ LMS & Sổ tay đào tạo.</span>
         </div>
 
         {{-- Messages Container --}}
         <div id="btec-ai-messages" class="flex-1 overflow-y-auto p-4 space-y-4 bg-white text-sm">
             {{-- Welcome Bot Message --}}
             <div class="flex items-start gap-2.5">
-                <div class="w-9 h-9 rounded-md bg-[#1e4f8f] p-0.5 shrink-0 shadow-sm">
-                    <div class="w-full h-full rounded-[10px] bg-white overflow-hidden flex items-center justify-center">
-                        <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-9 h-9">
-                            <line x1="18" y1="3" x2="18" y2="8" stroke="#f2c94c" stroke-width="1.3" stroke-linecap="round"/>
-                            <circle cx="18" cy="2.5" r="1.6" fill="#f2c94c"/>
-                            <rect x="8" y="8" width="20" height="17" rx="4" fill="#1e4f8f" stroke="#f2c94c" stroke-width="0.7"/>
-                            <rect x="11" y="12.5" width="4.5" height="4" rx="2" fill="#f2c94c" opacity="0.95"/>
-                            <rect x="20.5" y="12.5" width="4.5" height="4" rx="2" fill="#f2c94c" opacity="0.95"/>
-                            <circle cx="13.3" cy="14.5" r="1.2" fill="white"/>
-                            <circle cx="22.8" cy="14.5" r="1.2" fill="white"/>
-                            <path d="M12.5 19.5 Q18 22 23.5 19.5" stroke="#f2c94c" stroke-width="0.8" stroke-linecap="round" fill="none" opacity="0.9"/>
-                            <rect x="5.5" y="12" width="2.5" height="6" rx="1.2" fill="#1e4f8f" stroke="#f2c94c" stroke-width="0.4"/>
-                            <rect x="28" y="12" width="2.5" height="6" rx="1.2" fill="#1e4f8f" stroke="#f2c94c" stroke-width="0.4"/>
-                            <rect x="11" y="25" width="14" height="8" rx="2.5" fill="#1e4f8f" stroke="#f2c94c" stroke-width="0.6" opacity="0.8"/>
-                            <circle cx="18" cy="29" r="2" fill="#f2c94c" opacity="0.8"/>
-                        </svg>
-                    </div>
+                <div class="w-7 h-7 rounded-full bg-white border border-zinc-200 overflow-hidden flex items-center justify-center shrink-0 mt-0.5">
+                    <img src="{{ asset('images/btec_support_logo.png') }}" alt="Trợ lý Học vụ AI" class="w-full h-full object-cover">
                 </div>
-                <div class="max-w-[85%] bg-slate-50 p-4 rounded-lg rounded-tl-none border border-slate-200 shadow-sm text-slate-700 space-y-2">
-                    <p class="font-bold text-[#1e4f8f] flex items-center gap-1.5">
-                        Xin chào {{ auth()->user()->full_name }}!
+                <div class="max-w-[88%] bg-zinc-50 p-3.5 rounded-lg rounded-tl-none border border-zinc-200 text-zinc-800 space-y-2">
+                    <p class="font-semibold text-zinc-950">Xin chào {{ auth()->user()->full_name }}!</p>
+                    <p class="text-sm leading-relaxed text-zinc-700">
+                        Mình là <strong class="font-semibold text-zinc-950">Trợ lý Học vụ LMS</strong>, hỗ trợ tra cứu 24/7:
                     </p>
-                    <p class="text-xs leading-relaxed text-slate-600">
-                        Tôi là **BTEC FPT AI Student Support Assistant**. Tôi sẵn sàng hỗ trợ bạn 24/7:
-                    </p>
-                    <ul class="text-xs space-y-1 text-slate-500 list-disc list-inside">
-                        <li>Quy chế điểm danh (ngưỡng nghỉ 20% cấm thi).</li>
-                        <li>Quy định Assignment, nộp lại (Resubmission), đạo văn.</li>
-                        <li>Học phí, gia hạn, thủ tục bảo lưu.</li>
-                        <li>Dẫn link trực tiếp đến mọi chức năng trên Smart LMS.</li>
+                    <ul class="text-sm space-y-1 text-zinc-600 list-disc list-inside leading-relaxed">
+                        <li>Thời khóa biểu, phòng học, giảng viên phụ trách.</li>
+                        <li>Bảng điểm, trạng thái chấm bài & chuyên cần (ngưỡng <strong class="font-semibold text-zinc-900">20%</strong>).</li>
+                        <li>Quy chế đào tạo, thủ tục học vụ & gửi phiếu hỗ trợ.</li>
                     </ul>
                 </div>
             </div>
@@ -172,7 +91,7 @@
                 <p class="text-[10px] font-bold uppercase tracking-wider text-slate-500 px-1">Gợi ý nhanh:</p>
                 <div class="flex flex-wrap gap-1.5">
                     <button type="button" class="btec-chip text-left text-xs bg-slate-50 hover:bg-slate-100 hover:border-[#1e4f8f] text-slate-600 hover:text-[#163c6d] px-3 py-1.5 rounded-md border border-slate-200 transition">
-                        Nghỉ bao nhiêu buổi thì bị cấm thi?
+                        Nghỉ bao nhiêu buổi thì bị trượt môn?
                     </button>
                     <button type="button" class="btec-chip text-left text-xs bg-slate-50 hover:bg-slate-100 hover:border-[#1e4f8f] text-slate-600 hover:text-[#163c6d] px-3 py-1.5 rounded-md border border-slate-200 transition">
                         Quy định nộp trễ Assignment thế nào?
@@ -209,8 +128,8 @@
                     type="submit" 
                     id="btec-ai-send-btn"
                     class="bg-[#1e4f8f] hover:bg-[#163c6d] text-white font-bold p-2.5 rounded-md shadow-sm transition transform disabled:opacity-50 shrink-0">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5"></path>
                     </svg>
                 </button>
             </form>
@@ -234,21 +153,39 @@
                 </h4>
                 <button type="button" id="btec-ticket-close" class="text-slate-500 hover:text-[#163c6d] text-lg">✕</button>
             </div>
+            @php
+                $ticketUser = auth()->user();
+                $ticketClasses = ($ticketUser && $ticketUser->isStudent())
+                    ? $ticketUser->enrolledClasses()->with('subject')->orderBy('class_name')->get()
+                    : collect();
+            @endphp
             <form id="btec-ticket-form" class="space-y-3.5">
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1">Loại yêu cầu</label>
-                    <select id="ticket-category" class="w-full text-xs p-2.5 rounded-md bg-slate-50 border border-slate-200 text-slate-900 focus:ring-2 focus:ring-orange-500">
-                        <option value="attendance_dispute">Khiếu nại điểm danh / Vắng mặt</option>
-                        <option value="grade_appeal">Phúc khảo điểm Assignment / Thi cử</option>
-                        <option value="tuition_issue">Thắc mắc học phí & gia hạn nộp</option>
-                        <option value="leave_suspension">Thủ tục bảo lưu / Xin thôi học</option>
-                        <option value="app_bug">Báo cáo sự cố ứng dụng LMS</option>
-                        <option value="other">Hỗ trợ học vụ khác</option>
+                    <select id="ticket-category" class="w-full text-xs p-2.5 rounded-md bg-white border border-slate-200 text-slate-900 focus:ring-2 focus:ring-orange-500">
+                        <option value="Khiếu nại điểm danh / Vắng mặt">Khiếu nại điểm danh / Vắng mặt</option>
+                        <option value="Xin khôi phục điểm danh (đến muộn - tối đa 1 lần/môn)">Xin khôi phục điểm danh (đến muộn - tối đa 1 lần/môn)</option>
+                        <option value="Phúc khảo điểm Assignment / Thi cử">Phúc khảo điểm Assignment / Thi cử</option>
+                        <option value="Thắc mắc học phí & gia hạn nộp">Thắc mắc học phí & gia hạn nộp</option>
+                        <option value="Thủ tục bảo lưu / Xin thôi học">Thủ tục bảo lưu / Xin thôi học</option>
+                        <option value="Báo cáo sự cố ứng dụng LMS">Báo cáo sự cố ứng dụng LMS</option>
+                        <option value="Hỗ trợ học vụ khác">Hỗ trợ học vụ khác</option>
                     </select>
                 </div>
+                @if ($ticketClasses->isNotEmpty())
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Lớp / Môn học liên quan (nếu có)</label>
+                        <select id="ticket-class-id" class="w-full text-xs p-2.5 rounded-md bg-white border border-slate-200 text-slate-900 focus:ring-2 focus:ring-orange-500">
+                            <option value="">— Không chọn lớp cụ thể —</option>
+                            @foreach ($ticketClasses as $tc)
+                                <option value="{{ $tc->class_id }}">{{ $tc->class_name }} — {{ $tc->subject->subject_name ?? '' }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                @endif
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1">Mô tả chi tiết vấn đề</label>
-                    <textarea id="ticket-desc" rows="3" required placeholder="Ghi rõ môn học, mã lớp, ngày học và tình huống bạn gặp phải..." class="w-full text-xs p-2.5 rounded-md bg-slate-50 border border-slate-200 text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-orange-500"></textarea>
+                    <textarea id="ticket-desc" rows="3" required placeholder="Ghi rõ môn học, mã lớp, ngày học và tình huống bạn gặp phải..." class="w-full text-xs p-2.5 rounded-md bg-white border border-slate-200 text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-orange-500"></textarea>
                 </div>
                 <div class="flex justify-end gap-2.5 pt-2">
                     <button type="button" id="btec-ticket-cancel" class="px-4 py-2 text-xs font-semibold text-slate-500 hover:text-[#163c6d] rounded-md">Hủy</button>
@@ -451,29 +388,13 @@
             currentConversationId = null;
             messagesBox.innerHTML = `
                 <div class="flex items-start gap-2.5">
-                    <div class="w-9 h-9 rounded-md bg-[#1e4f8f] p-0.5 shrink-0 shadow-sm">
-                        <div class="w-full h-full rounded-[10px] bg-white overflow-hidden flex items-center justify-center">
-                            <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" width="36" height="36">
-                                <line x1="18" y1="3" x2="18" y2="8" stroke="#f2c94c" stroke-width="1.3" stroke-linecap="round"/>
-                                <circle cx="18" cy="2.5" r="1.6" fill="#f2c94c"/>
-                                <rect x="8" y="8" width="20" height="17" rx="4" fill="#1e4f8f" stroke="#f2c94c" stroke-width="0.7"/>
-                                <rect x="11" y="12.5" width="4.5" height="4" rx="2" fill="#f2c94c"/>
-                                <rect x="20.5" y="12.5" width="4.5" height="4" rx="2" fill="#f2c94c"/>
-                                <circle cx="13.3" cy="14.5" r="1.2" fill="white"/>
-                                <circle cx="22.8" cy="14.5" r="1.2" fill="white"/>
-                                <path d="M12.5 19.5 Q18 22 23.5 19.5" stroke="#f2c94c" stroke-width="0.8" stroke-linecap="round" fill="none"/>
-                                <rect x="11" y="25" width="14" height="8" rx="2.5" fill="#1e4f8f" stroke="#f2c94c" stroke-width="0.6"/>
-                                <circle cx="18" cy="29" r="2" fill="#f2c94c"/>
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="max-w-[85%] bg-slate-50 p-4 rounded-lg rounded-tl-none border border-slate-200 shadow-sm text-slate-700 space-y-2">
-                        <p class="font-bold text-[#1e4f8f]">Đã làm mới phiên hỗ trợ!</p>
-                        <p class="text-xs text-slate-600 leading-relaxed">Mời bạn đặt câu hỏi về quy chế BTEC FPT hoặc thao tác ứng dụng.</p>
+                    <div class="w-7 h-7 rounded-full bg-white border border-zinc-200 overflow-hidden flex items-center justify-center shrink-0 mt-0.5"><img src="{{ asset('images/btec_support_logo.png') }}" alt="Trợ lý Học vụ AI" class="w-full h-full object-cover"></div>
+                    <div class="max-w-[88%] bg-zinc-50 p-3.5 rounded-lg rounded-tl-none border border-zinc-200 text-zinc-700 space-y-1">
+                        <p class="font-semibold text-zinc-950">Đã tạo phiên hỗ trợ mới</p>
+                        <p class="text-xs text-zinc-600 leading-relaxed">Mời bạn đặt câu hỏi về lịch học, điểm số, chuyên cần hoặc quy chế.</p>
                     </div>
                 </div>
             `;
-            await initSession();
         }
     });
 
@@ -483,14 +404,22 @@
         }, 50);
     }
 
+    function scrollToReplyTop(el) {
+        if (!el) return;
+        setTimeout(() => {
+            const targetTop = Math.max(0, el.offsetTop - messagesBox.offsetTop - 12);
+            messagesBox.scrollTop = targetTop;
+        }, 40);
+    }
+
     // Submit Chat - ULTRA FAST SSE STREAMING & INSTANT PREVIEW
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
         const text = input.value.trim();
         if (!text) return;
 
-        // 1. Render User Message ngay lập tức
-        appendMessage('user', text);
+        // 1. Render User Message ngay lập tức (lưu lại tham chiếu để làm mờ tức thì nếu vi phạm ngôn từ)
+        const userBubbleEl = appendMessage('user', text);
         input.value = '';
         input.style.height = 'auto';
 
@@ -499,29 +428,14 @@
         const aiWrap = document.createElement('div');
         aiWrap.className = 'flex items-start gap-2.5';
         aiWrap.innerHTML = `
-            <div class="w-9 h-9 rounded-md bg-[#1e4f8f] p-0.5 shrink-0 shadow-sm">
-                <div class="w-full h-full rounded-[10px] bg-white overflow-hidden flex items-center justify-center">
-                    <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" width="36" height="36">
-                        <line x1="18" y1="3" x2="18" y2="8" stroke="#f2c94c" stroke-width="1.3" stroke-linecap="round"/>
-                        <circle cx="18" cy="2.5" r="1.6" fill="#f2c94c"/>
-                        <rect x="8" y="8" width="20" height="17" rx="4" fill="#1e4f8f" stroke="#f2c94c" stroke-width="0.7"/>
-                        <rect x="11" y="12.5" width="4.5" height="4" rx="2" fill="#f2c94c"/>
-                        <rect x="20.5" y="12.5" width="4.5" height="4" rx="2" fill="#f2c94c"/>
-                        <circle cx="13.3" cy="14.5" r="1.2" fill="white"/>
-                        <circle cx="22.8" cy="14.5" r="1.2" fill="white"/>
-                        <path d="M12.5 19.5 Q18 22 23.5 19.5" stroke="#f2c94c" stroke-width="0.8" stroke-linecap="round" fill="none"/>
-                        <rect x="11" y="25" width="14" height="8" rx="2.5" fill="#1e4f8f" stroke="#f2c94c" stroke-width="0.6"/>
-                        <circle cx="18" cy="29" r="2" fill="#f2c94c"/>
-                    </svg>
-                </div>
-            </div>
-            <div class="max-w-[85%] bg-slate-50 p-4 rounded-lg rounded-tl-none border border-slate-200 shadow-sm text-slate-700 text-xs leading-relaxed space-y-1">
-                <div class="btec-ai-content" id="${bubbleId}"><span class="inline-block w-1.5 h-3.5 bg-[#1e4f8f] ml-0.5 align-middle"></span></div>
+            <div class="w-7 h-7 rounded-full bg-white border border-zinc-200 overflow-hidden flex items-center justify-center shrink-0 mt-0.5"><img src="{{ asset('images/btec_support_logo.png') }}" alt="Trợ lý Học vụ AI" class="w-full h-full object-cover"></div>
+            <div class="max-w-[88%] bg-zinc-50 p-3.5 rounded-lg rounded-tl-none border border-zinc-200 text-zinc-800 text-sm leading-relaxed space-y-1.5">
+                <div class="btec-ai-content" id="${bubbleId}"><span class="inline-block w-1.5 h-3.5 bg-zinc-900 ml-0.5 align-middle"></span></div>
                 <div id="${bubbleId}-meta" class="hidden"></div>
             </div>
         `;
         messagesBox.appendChild(aiWrap);
-        scrollToBottom();
+        scrollToReplyTop(aiWrap);
 
         const contentEl = document.getElementById(bubbleId);
         const metaEl = document.getElementById(bubbleId + '-meta');
@@ -565,11 +479,14 @@
                                 if (json.chunk) {
                                     fullText += json.chunk;
                                     contentEl.innerHTML = formatMarkdown(fullText) + '<span class="inline-block w-1.5 h-3.5 bg-amber-600 ml-0.5 align-middle"></span>';
-                                    scrollToBottom();
                                 }
                                 if (json.done) {
                                     currentConversationId = json.conversation_id;
+                                    if (json.masked_user_message && userBubbleEl) {
+                                        userBubbleEl.innerHTML = renderUserText(json.masked_user_message);
+                                    }
                                     contentEl.innerHTML = formatMarkdown(fullText);
+                                    if (window.renderMermaidDiagrams) window.renderMermaidDiagrams(contentEl);
 
                                     let metaHtml = '';
                                     if (json.sources && json.sources.length > 0) {
@@ -613,7 +530,7 @@
                                         metaEl.innerHTML = metaHtml;
                                         metaEl.classList.remove('hidden');
                                     }
-                                    scrollToBottom();
+                                    scrollToReplyTop(aiWrap);
                                 }
                             } catch (e) {}
                         }
@@ -641,12 +558,15 @@
                 const data = await res.json();
                 if (data.status === 'ok' || data.success) {
                     currentConversationId = data.conversation_id;
+                    if (data.masked_user_message && userBubbleEl) {
+                        userBubbleEl.innerHTML = renderUserText(data.masked_user_message);
+                    }
                     contentEl.innerHTML = formatMarkdown(data.answer || data.message);
                 } else {
                     contentEl.innerHTML = '⚠️ ' + escapeHtml(data.message || 'Hệ thống đang bận, vui lòng thử lại sau giây lát.');
                 }
             } catch (fallbackErr) {
-                contentEl.innerHTML = '⚠️ Không thể kết nối đến máy chủ BTEC AI Support.';
+                contentEl.innerHTML = '<span class="text-rose-600 font-semibold">Không thể kết nối với Server. Vui lòng kiểm tra lại mạng!</span>';
             }
         }
     });
@@ -654,17 +574,20 @@
     // Render Append Message
     function appendMessage(role, content, sources = [], actions = [], confidence = null, suggestTicket = false, animate = false) {
         const wrap = document.createElement('div');
-        wrap.className = 'flex items-start gap-2.5' + (role === 'user' ? 'justify-end' : '');
+        wrap.className = 'flex items-start gap-2.5' + (role === 'user' ? ' justify-end' : '');
 
         if (role === 'user') {
             wrap.innerHTML = `
-                <div class="max-w-[85%] bg-orange-600 text-white p-3.5 rounded-lg rounded-tr-none shadow-sm text-xs leading-relaxed border border-white/10">
-                    ${escapeHtml(content).replace(/\n/g, '<br>')}
+                <div class="btec-user-bubble max-w-[85%] bg-zinc-900 text-white px-3.5 py-2.5 rounded-lg rounded-tr-none text-sm leading-relaxed">
+                    ${renderUserText(content)}
                 </div>
-                <div class="w-8 h-8 rounded-md bg-slate-50 text-slate-600 border border-slate-200 flex items-center justify-center shrink-0 shadow-sm">
-                    <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                <div class="w-7 h-7 rounded-md bg-zinc-100 text-zinc-600 border border-zinc-200 flex items-center justify-center shrink-0 mt-0.5">
+                    <svg class="w-3.5 h-3.5 text-zinc-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
                 </div>
             `;
+            messagesBox.appendChild(wrap);
+            scrollToBottom();
+            return wrap.querySelector('.btec-user-bubble');
         } else {
             let sourcesHtml = '';
             if (sources && sources.length > 0) {
@@ -714,24 +637,9 @@
 
             const contentId = 'bubble-msg-' + Date.now();
             wrap.innerHTML = `
-                <div class="w-9 h-9 rounded-md bg-[#1e4f8f] p-0.5 shrink-0 shadow-sm">
-                    <div class="w-full h-full rounded-[10px] bg-white overflow-hidden flex items-center justify-center">
-                        <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" width="36" height="36">
-                            <line x1="18" y1="3" x2="18" y2="8" stroke="#f2c94c" stroke-width="1.3" stroke-linecap="round"/>
-                            <circle cx="18" cy="2.5" r="1.6" fill="#f2c94c"/>
-                            <rect x="8" y="8" width="20" height="17" rx="4" fill="#1e4f8f" stroke="#f2c94c" stroke-width="0.7"/>
-                            <rect x="11" y="12.5" width="4.5" height="4" rx="2" fill="#f2c94c"/>
-                            <rect x="20.5" y="12.5" width="4.5" height="4" rx="2" fill="#f2c94c"/>
-                            <circle cx="13.3" cy="14.5" r="1.2" fill="white"/>
-                            <circle cx="22.8" cy="14.5" r="1.2" fill="white"/>
-                            <path d="M12.5 19.5 Q18 22 23.5 19.5" stroke="#f2c94c" stroke-width="0.8" stroke-linecap="round" fill="none"/>
-                            <rect x="11" y="25" width="14" height="8" rx="2.5" fill="#1e4f8f" stroke="#f2c94c" stroke-width="0.6"/>
-                            <circle cx="18" cy="29" r="2" fill="#f2c94c"/>
-                        </svg>
-                    </div>
-                </div>
-                <div class="max-w-[85%] bg-slate-50 p-4 rounded-lg rounded-tl-none border border-slate-200 shadow-sm text-slate-700 text-xs leading-relaxed space-y-1">
-                    <div class="btec-ai-content" id="${contentId}">${animate ? '<span class="inline-block w-1.5 h-3.5 bg-[#1e4f8f] ml-0.5 align-middle"></span>' : formatMarkdown(content)}</div>
+                <div class="w-7 h-7 rounded-full bg-white border border-zinc-200 overflow-hidden flex items-center justify-center shrink-0 mt-0.5"><img src="{{ asset('images/btec_support_logo.png') }}" alt="Trợ lý Học vụ AI" class="w-full h-full object-cover"></div>
+                <div class="max-w-[88%] bg-zinc-50 p-3.5 rounded-lg rounded-tl-none border border-zinc-200 text-zinc-800 text-sm leading-relaxed space-y-1.5">
+                    <div class="btec-ai-content" id="${contentId}">${animate ? '<span class="inline-block w-1.5 h-3.5 bg-zinc-900 ml-0.5 align-middle"></span>' : formatMarkdown(content)}</div>
                     <div id="${contentId}-meta" class="${animate ? 'hidden' : ''}">
                         ${sourcesHtml}
                         ${actionsHtml}
@@ -750,12 +658,13 @@
                             i += stepSize;
                             const slice = content.substr(0, i);
                             if (el) el.innerHTML = formatMarkdown(slice) + '<span class="inline-block w-1.5 h-3.5 bg-amber-600 ml-0.5 align-middle"></span>';
-                            scrollToBottom();
                             setTimeout(typeNext, 12);
                         } else {
-                            if (el) el.innerHTML = formatMarkdown(content);
+                            if (el) {
+                                el.innerHTML = formatMarkdown(content);
+                                if (window.renderMermaidDiagrams) window.renderMermaidDiagrams(el);
+                            }
                             if (metaEl) metaEl.classList.remove('hidden');
-                            scrollToBottom();
                         }
                     }
                     typeNext();
@@ -764,7 +673,14 @@
         }
 
         messagesBox.appendChild(wrap);
-        scrollToBottom();
+        if (!animate && window.renderMermaidDiagrams) {
+            window.renderMermaidDiagrams(wrap);
+        }
+        if (role === 'assistant') {
+            scrollToReplyTop(wrap);
+        } else {
+            scrollToBottom();
+        }
     }
 
     function renderHistory(msgs) {
@@ -779,14 +695,45 @@
         return div.innerHTML;
     }
 
+    function renderUserText(text) {
+        return escapeHtml(text || '')
+            .replace(/\[\[BLUR\]\]([\s\S]*?)\[\[\/BLUR\]\]/g, '<span title="Nội dung đã bị làm mờ do ngôn từ không phù hợp" style="filter: blur(5px); user-select: none; -webkit-user-select: none; pointer-events: none; display: inline-block; padding: 0 3px;">$1</span>')
+            .replace(/\n/g, '<br>');
+    }
+
     function formatMarkdown(text) {
         if (!text) return '';
-        let formatted = escapeHtml(text)
-            .replace(/\*\*(.*?)\*\*/g, '<strong class="text-slate-900 font-bold">$1</strong>')
+        const blocks = [];
+        let work = text.replace(/```([a-zA-Z0-9_-]*)\r?\n([\s\S]*?)```/g, function(m, lang, code) {
+            const key = `___BTEC_BLK_${blocks.length}___`;
+            const normLang = (lang || '').trim().toLowerCase();
+            if (normLang === 'mermaid' && typeof window.buildMermaidCardHtml === 'function') {
+                blocks.push(window.buildMermaidCardHtml(code.trim()));
+            } else if (typeof window.buildVsCodeBlockHtml === 'function') {
+                blocks.push(window.buildVsCodeBlockHtml(normLang || 'code', code.trim()));
+            } else {
+                blocks.push(`<pre class="my-2 bg-slate-900 text-slate-100 p-2.5 rounded text-[11px] overflow-x-auto"><code>${escapeHtml(code.trim())}</code></pre>`);
+            }
+            return key;
+        });
+
+        work = work.replace(/```mermaid\r?\n[\s\S]*$/i, function() {
+            const key = `___BTEC_BLK_${blocks.length}___`;
+            blocks.push('<div class="my-2 rounded border border-blue-200 bg-blue-50/70 px-2.5 py-2 text-[11px] font-semibold text-[#1e4f8f]">Đang vẽ sơ đồ quy trình...</div>');
+            return key;
+        });
+
+        let formatted = escapeHtml(work)
+            .replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold text-slate-900">$1</strong>')
             .replace(/\*(.*?)\*/g, '<em>$1</em>')
-            .replace(/`([^`]+)`/g, '<code class="bg-slate-50 px-1.5 py-0.5 rounded text-amber-700 font-mono text-[11px] border border-slate-200">$1</code>')
-            .replace(/\n\n/g, '<div class="h-2"></div>')
+            .replace(/`([^`]+)`/g, '<span class="inline-block rounded bg-slate-100 border border-slate-200 px-1.5 py-0.5 font-mono text-[12px] font-semibold text-slate-800">$1</span>')
+            .replace(/(Lưu ý quan trọng\s*:|Lưu ý\s*:|Chú ý\s*:|Quan trọng\s*:|Cảnh báo\s*:)/gi, '<strong class="font-bold text-amber-900 bg-amber-100 px-1.5 py-0.5 rounded">$1</strong>')
+            .replace(/\n\n/g, '<div class="h-2.5"></div>')
             .replace(/\n/g, '<br>');
+
+        blocks.forEach((html, idx) => {
+            formatted = formatted.replace(`___BTEC_BLK_${idx}___`, html);
+        });
         return formatted;
     }
 
@@ -798,6 +745,8 @@
     ticketForm.addEventListener('submit', async function(e) {
         e.preventDefault();
         const cat = document.getElementById('ticket-category').value;
+        const classSelect = document.getElementById('ticket-class-id');
+        const classId = classSelect && classSelect.value ? parseInt(classSelect.value, 10) : null;
         const desc = document.getElementById('ticket-desc').value.trim();
         if (!desc) return;
 
@@ -811,6 +760,7 @@
                 body: JSON.stringify({
                     conversation_id: currentConversationId,
                     topic: cat,
+                    class_id: classId,
                     description: desc
                 })
             });
@@ -818,13 +768,14 @@
             if (d.success || d.status === 'ok') {
                 ticketModal.classList.add('hidden');
                 document.getElementById('ticket-desc').value = '';
+                if (classSelect) classSelect.value = '';
                 const code = d.ticket_code || (d.ticket ? d.ticket.ticket_code : 'ĐÃ GỬI');
-                appendMessage('assistant', `✓ Đã tiếp nhận **Ticket hỗ trợ #${code}**! Bộ phận Đào tạo / CTSV sẽ xử lý và phản hồi cho bạn qua email hoặc hệ thống.`);
+                appendMessage('assistant', `✓ Đã tiếp nhận **Ticket hỗ trợ #${code}**! Quản trị viên đã nhận thông báo và sẽ xử lý hoặc chuyển tiếp cho Giảng viên phụ trách. Bạn có thể theo dõi kết quả tại mục **Phiếu hỗ trợ**.`);
             } else {
                 alert(d.message || 'Không thể tạo ticket');
             }
         } catch (err) {
-            alert('Lỗi gửi phiếu hỗ trợ');
+            alert('Không thể kết nối với SV, vui lòng kiểm tra lại mạng.');
         }
     });
 

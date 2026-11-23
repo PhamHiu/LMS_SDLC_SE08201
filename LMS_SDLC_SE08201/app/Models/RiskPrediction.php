@@ -58,9 +58,9 @@ class RiskPrediction extends Model
     {
         return match ($this->risk_level) {
             self::LEVEL_SAFE => 'An toàn',
-            self::LEVEL_MEDIUM => 'Trung bình',
-            self::LEVEL_HIGH => 'Nguy cơ cao',
-            self::LEVEL_VERY_HIGH => 'Nguy cơ rất cao',
+            self::LEVEL_MEDIUM => 'Cần theo dõi',
+            self::LEVEL_HIGH => 'Vượt ngưỡng / Trượt môn',
+            self::LEVEL_VERY_HIGH => 'Nghỉ rất cao / Trượt môn',
             default => 'Chưa xác định',
         };
     }

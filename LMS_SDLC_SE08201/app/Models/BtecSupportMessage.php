@@ -15,6 +15,8 @@ class BtecSupportMessage extends Model
         'role',
         'message',
         'intent',
+        'is_private',
+        'private_refs',
         'citations',
         'actions',
         'feedback',
@@ -23,6 +25,8 @@ class BtecSupportMessage extends Model
     protected function casts(): array
     {
         return [
+            'is_private' => 'boolean',
+            'private_refs' => 'array',
             'citations' => 'array',
             'actions' => 'array',
         ];

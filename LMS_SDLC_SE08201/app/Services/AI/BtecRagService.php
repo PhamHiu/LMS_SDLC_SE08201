@@ -2,8 +2,11 @@
 
 namespace App\Services\AI;
 
-use App\Models\BtecKbEmbedding;
-use App\Models\User;
+// =========================================================================
+// KHAI BÁO THƯ VIỆN & MODEL PHỤC VỤ HYBRID RAG
+// =========================================================================
+use App\Models\BtecKbEmbedding; // Model Eloquent kết nối bảng `btec_kb_embeddings` trong MySQL lưu trữ vector 1024/3072 chiều của 35 chunks quy chế
+use App\Models\User;            // Model Eloquent người dùng (sinh viên) để cá nhân hóa ngữ cảnh truy vấn theo lịch học/điểm danh thực tế
 
 /**
  * BTEC FPT RAG SERVICE
@@ -21,6 +24,8 @@ class BtecRagService
 
     /** Cách truy xuất dùng ở lần search gần nhất: VECTOR_HYBRID hoặc LEXICAL. */
     private string $lastRetrievalMethod = 'LEXICAL';
+    private float $lastTopScore = 0.0;
+    private bool $lastIsConfident = false;
 
     public function __construct(
         private readonly ?GeminiEmbeddingService $embeddingService = null
@@ -29,6 +34,14 @@ class BtecRagService
         $this->initAppFeatures();
     }
 
+    /**
+     * PHẦN 1 TRONG PIPELINE RAG: NẠP TẦNG DỮ LIỆU TRI THỨC (KNOWLEDGE BASE)
+     * Đọc 4 cấu trúc dữ liệu từ thư mục storage/btec_ai_kb/:
+     *  1) sources.json: Danh mục 16 văn bản pháp lý/quyết định gốc (S01..S16) để trích dẫn nguồn.
+     *  2) kb_chunks.jsonl: 35 đoạn văn bản quy chế (chunks) đã được cắt nhỏ theo từng điều khoản.
+     *  3) procedures.json: Các bước hướng dẫn thủ tục hành chính (bảo lưu, phúc tra, khôi phục điểm danh).
+     *  4) faq_seed.json: Bộ câu hỏi thường gặp (FAQ).
+     */
     private function loadKnowledgeBase(): void
     {
         $kbDir = storage_path('btec_ai_kb');
@@ -90,7 +103,7 @@ class BtecRagService
                 'name' => 'Lịch sử Điểm danh & Chuyên cần',
                 'route' => '/student/attendance',
                 'icon' => '✅',
-                'keywords' => ['điểm danh', 'vắng', 'chuyên cần', 'nghỉ học', 'vắng mặt', 'muộn', 'tỷ lệ chuyên cần', 'cấm thi'],
+                'keywords' => ['điểm danh', 'chuyên cần', 'nghỉ học', 'vắng mặt', 'đi học muộn', 'đến lớp muộn', 'tỷ lệ chuyên cần', 'cấm thi'],
                 'description' => 'Xem lịch sử điểm danh chi tiết từng buổi học, thống kê Có mặt (P), Vắng (A), Muộn (L) và tỷ lệ chuyên cần tổng hợp.',
                 'steps' => [
                     'Bấm vào mục "✅ Lịch sử điểm danh" trên thanh menu bên trái.',
@@ -242,22 +255,28 @@ class BtecRagService
         $cleanQuery = mb_strtolower(trim($query));
         $terms = array_filter(explode(' ', preg_replace('/[^\p{L}\p{N}\s]/u', ' ', $cleanQuery)));
 
-        // 1. Tìm trong App Features
+        // 1. Tìm trong App Features — CHỈ khớp khi câu hỏi không phải về Học phí, Tuyển sinh, Bảo lưu hay Khiếu nại hành chính
+        $nonAppIntents = ['FINANCIAL_SUPPORT', 'ADMISSION_SUPPORT', 'STUDENT_SERVICE', 'HUMAN_SUPPORT'];
+        $isNonAppTopic = in_array($intent, $nonAppIntents, true)
+            || (bool) preg_match('/(học phí|tiền học|đóng tiền|nộp tiền|công nợ|bảo lưu|thôi học|tuyển sinh|nhập học|phúc khảo|phúc tra)/u', $cleanQuery);
+
         $matchedAppFeatures = [];
-        foreach ($this->appFeatures as $feat) {
-            $score = 0;
-            foreach ($feat['keywords'] as $kw) {
-                if (str_contains($cleanQuery, $kw)) {
-                    $score += 15;
+        if (! $isNonAppTopic) {
+            foreach ($this->appFeatures as $feat) {
+                $score = 0;
+                foreach ($feat['keywords'] as $kw) {
+                    if (str_contains($cleanQuery, $kw)) {
+                        $score += 15;
+                    }
+                }
+                if ($score > 0) {
+                    $matchedAppFeatures[] = ['feature' => $feat, 'score' => $score];
                 }
             }
-            if ($score > 0) {
-                $matchedAppFeatures[] = ['feature' => $feat, 'score' => $score];
-            }
+            usort($matchedAppFeatures, fn ($a, $b) => $b['score'] <=> $a['score']);
         }
-        usort($matchedAppFeatures, fn ($a, $b) => $b['score'] <=> $a['score']);
 
-        // 2. Truy xuất Knowledge Chunks: ưu tiên embedding vector (cosine), fallback từ khóa
+        // 2. Truy xuất Knowledge Chunks: chỉ lấy tối đa 2 đoạn sát nhất để tránh nhiễu ngữ cảnh và nguồn trích dẫn rác
         $topChunks = $this->retrieveChunks($query, $cleanQuery, $intent, $terms);
 
         // 3. Tìm trong Procedures
@@ -275,14 +294,15 @@ class BtecRagService
             }
         }
         usort($matchedProcedures, fn ($a, $b) => $b['score'] <=> $a['score']);
-        $topProcedures = array_slice(array_column($matchedProcedures, 'proc'), 0, 2);
+        $topProcedures = array_slice(array_column($matchedProcedures, 'proc'), 0, 1);
 
-        // 4. Thu thập nguồn trích dẫn (Citations)
+        // 4. Thu thập nguồn trích dẫn (Citations) — CHỈ lấy từ đoạn khớp số 1 (tối đa 2 nguồn sát nhất, không gom nguồn rác)
         $citations = [];
         $collectedSourceIds = [];
-        foreach ($topChunks as $c) {
-            foreach ($c['source_refs'] ?? [] as $sId) {
-                if (!in_array($sId, $collectedSourceIds) && isset($this->sources[$sId])) {
+        $primaryChunk = $topChunks[0] ?? null;
+        if ($primaryChunk) {
+            foreach (array_slice($primaryChunk['source_refs'] ?? [], 0, 2) as $sId) {
+                if (! in_array($sId, $collectedSourceIds, true) && isset($this->sources[$sId])) {
                     $collectedSourceIds[] = $sId;
                     $src = $this->sources[$sId];
                     $citations[] = [
@@ -295,9 +315,9 @@ class BtecRagService
             }
         }
 
-        // 5. Chuẩn bị các nút hành động (App Navigation Actions)
+        // 5. Chuẩn bị nút điều hướng màn hình — CHỈ gắn khi thực sự liên quan đến tính năng có trên LMS
         $actions = [];
-        if (!empty($matchedAppFeatures)) {
+        if (! empty($matchedAppFeatures)) {
             $bestFeature = $matchedAppFeatures[0]['feature'];
             $actions[] = [
                 'label' => 'Mở màn hình ' . $bestFeature['name'],
@@ -306,29 +326,49 @@ class BtecRagService
             ];
         }
 
+        $needsTicket = ! $this->lastIsConfident
+            || in_array($intent, ['HUMAN_SUPPORT', 'FINANCIAL_SUPPORT', 'STUDENT_SERVICE'], true)
+            || (bool) preg_match('/(khiếu nại|phúc tra|phúc khảo|bảo lưu|thôi học|học phí|tiền học|gia hạn|khôi phục điểm danh)/u', $cleanQuery);
+
         return [
             'intent' => $intent,
             'retrieval_method' => $this->lastRetrievalMethod,
+            'top_score' => round($this->lastTopScore, 2),
+            'is_confident' => $this->lastIsConfident,
             'top_chunks' => $topChunks,
             'top_procedures' => $topProcedures,
-            'top_app_feature' => !empty($matchedAppFeatures) ? $matchedAppFeatures[0]['feature'] : null,
-            'citations' => $citations,
+            'top_app_feature' => ! empty($matchedAppFeatures) ? $matchedAppFeatures[0]['feature'] : null,
+            'citations' => $this->lastIsConfident ? $citations : [],
             'actions' => $actions,
-            'needs_escalation' => in_array($intent, ['HUMAN_SUPPORT']) || str_contains($cleanQuery, 'khiếu nại') || str_contains($cleanQuery, 'phúc tra'),
+            'needs_escalation' => $needsTicket,
         ];
     }
 
     /**
-     * Truy xuất top-k đoạn tri thức liên quan nhất.
-     * Chiến lược hybrid: nếu đã có chỉ mục embedding và gọi được Gemini Embedding,
-     * xếp hạng theo độ tương đồng cosine (cộng điểm từ khóa nhẹ + boost theo intent);
-     * ngược lại dùng hoàn toàn khớp từ khóa như trước (fallback an toàn).
+     * PHẦN 4 TRONG PIPELINE RAG: TẦNG TRUY XUẤT LAI (HYBRID RETRIEVAL)
+     * Kết hợp 3 bộ chấm điểm song song trên 35 chunks quy chế:
+     *  - Bộ 1 (Lexical Matching): Khớp nguyên cụm câu hỏi (+40đ) và khớp từng từ khóa đơn >= 2 ký tự (+5đ/từ).
+     *  - Bộ 2 (Intent Boosting): Cộng +20đ nếu topic_id của chunk khớp với nhóm ý định câu hỏi (classifyIntent).
+     *  - Bộ 3 (Dense Vector Cosine Similarity): Nhúng câu hỏi thành vector qua AITeamVN/Vietnamese_Embedding_v2
+     *    (hoặc Gemini fallback) rồi đo độ tương đồng Cosine [-1, 1] với vector lưu sẵn trong bảng MySQL `btec_kb_embeddings`.
+     *  - Công thức hợp nhất Hybrid: CombinedScore = 100 * max(0, CosineSim) + 0.5 * LexicalScore.
      */
     private function retrieveChunks(string $rawQuery, string $cleanQuery, string $intent, array $terms): array
     {
-        // 2a. Điểm từ khóa (lexical) — luôn tính, làm nền.
+        // Bước 2a: Tính điểm từ khóa (Lexical Score) đã lọc stopword tiếng Việt + Điểm cộng chủ đề
+        $stopWords = [
+            'em', 'anh', 'chị', 'mình', 'tôi', 'bạn', 'có', 'không', 'là', 'của', 'cho', 'với', 'và', 'hay',
+            'hoặc', 'như', 'thế', 'nào', 'sao', 'được', 'chưa', 'rồi', 'ạ', 'nhé', 'ơi', 'vậy', 'này', 'đó',
+            'kia', 'bị', 'ở', 'tại', 'khi', 'nếu', 'thì', 'về', 'các', 'những', 'một', 'hai', 'ba', 'gì', 'ai',
+        ];
+        $meaningfulTerms = array_values(array_filter(
+            $terms,
+            fn ($t) => mb_strlen($t) >= 2 && ! in_array($t, $stopWords, true)
+        ));
+
         $byId = [];
         $lexical = [];
+        $pureLexical = [];
         foreach ($this->chunks as $c) {
             $id = $c['chunk_id'] ?? null;
             if ($id === null) {
@@ -336,29 +376,31 @@ class BtecRagService
             }
             $byId[$id] = $c;
 
-            $score = 0;
+            $kwScore = 0;
             $text = mb_strtolower(($c['title'] ?? '') . ' ' . ($c['text'] ?? ''));
-            if ($cleanQuery !== '' && str_contains($text, $cleanQuery)) {
-                $score += 40;
+            if ($cleanQuery !== '' && mb_strlen($cleanQuery) >= 6 && str_contains($text, $cleanQuery)) {
+                $kwScore += 40; // Khớp chính xác cả cụm câu hỏi
             }
-            foreach ($terms as $term) {
-                if (mb_strlen($term) >= 2 && str_contains($text, $term)) {
-                    $score += 5;
+            foreach ($meaningfulTerms as $term) {
+                if (str_contains($text, $term)) {
+                    $kwScore += 6; // Khớp từng từ có nghĩa
                 }
             }
-            $score += $this->intentBoost($intent, (string) ($c['topic_id'] ?? ''));
-            $lexical[$id] = $score;
+            $pureLexical[$id] = $kwScore;
+            $lexical[$id] = $kwScore + ($kwScore > 0 ? $this->intentBoost($intent, (string) ($c['topic_id'] ?? '')) : 0);
         }
 
-        // 2b. Thử xếp hạng bằng embedding vector (cosine).
+        // Bước 2b: Chỉ gọi Vector Embedding mạng khi điểm từ khóa (Lexical) chưa đủ rõ (< 18đ) -> cắt ngay 1.5-4s cho 90% câu hỏi quy chế
+        $maxPureLexical = ! empty($pureLexical) ? max($pureLexical) : 0;
         $vecSim = [];
         $useVector = false;
-        $queryVector = $this->embeddingService?->isConfigured()
+        $queryVector = ($maxPureLexical < 18 && $this->embeddingService?->isConfigured())
             ? $this->embeddingService->embed($rawQuery, 'RETRIEVAL_QUERY')
             : null;
 
         if ($queryVector !== null) {
             try {
+                // Lấy các vector đã được đánh chỉ mục trước bởi lệnh `php artisan btec:index-kb`
                 $rows = BtecKbEmbedding::all(['chunk_id', 'embedding']);
                 if ($rows->isNotEmpty()) {
                     foreach ($rows as $row) {
@@ -367,18 +409,18 @@ class BtecRagService
                     $useVector = true;
                 }
             } catch (\Throwable $e) {
-                $useVector = false; // bảng chưa migrate hoặc lỗi DB -> fallback từ khóa
+                $useVector = false; // Bảng chưa migrate hoặc lỗi kết nối DB -> tự động fallback về thuần Lexical
             }
         }
 
         $this->lastRetrievalMethod = $useVector ? 'VECTOR_HYBRID' : 'LEXICAL';
 
-        // 2c. Tổng hợp điểm và chọn top 4.
+        // Bước 2c: Hợp nhất điểm Hybrid (100 * CosineSim + 0.5 * LexicalScore) và lấy Top 4 chunks cao nhất
         $combined = [];
         foreach ($byId as $id => $chunk) {
             $kw = (float) ($lexical[$id] ?? 0);
             if ($useVector && isset($vecSim[$id])) {
-                // Vector là chính (cosine [0..1] * 100), từ khóa + intent là phụ.
+                // Vector ngữ nghĩa chiếm trọng số chính (thang 0..100), từ khóa + intent bổ trợ chính xác thuật ngữ
                 $combined[$id] = 100.0 * max(0.0, $vecSim[$id]) + 0.5 * $kw;
             } else {
                 $combined[$id] = $kw;
@@ -386,13 +428,28 @@ class BtecRagService
         }
         arsort($combined);
 
+        $topId = array_key_first($combined);
+        $this->lastTopScore = $topId !== null ? (float) $combined[$topId] : 0.0;
+        if ($topId === null) {
+            $this->lastIsConfident = false;
+        } elseif ($useVector && isset($vecSim[$topId])) {
+            $this->lastIsConfident = ($vecSim[$topId] >= 0.48) || (($pureLexical[$topId] ?? 0) >= 18);
+        } else {
+            $this->lastIsConfident = ($pureLexical[$topId] ?? 0) >= 18;
+        }
+
         $topChunks = [];
+        $bestScore = $this->lastTopScore;
         foreach (array_keys($combined) as $id) {
             if ($combined[$id] <= 0.0) {
                 continue;
             }
+            // Chỉ giữ đoạn thứ 2 nếu điểm >= 65% đoạn số 1 (tránh kéo theo các đoạn không liên quan)
+            if (! empty($topChunks) && $combined[$id] < ($bestScore * 0.65)) {
+                break;
+            }
             $topChunks[] = $byId[$id];
-            if (count($topChunks) >= 4) {
+            if (count($topChunks) >= 2) {
                 break;
             }
         }

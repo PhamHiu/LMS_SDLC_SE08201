@@ -50,6 +50,12 @@
         <!-- THÔNG BÁO CỬA SỔ THỜI GIAN ĐIỂM DANH & PHÂN QUYỀN GIÁO VIÊN / ADMIN       -->
         <!-- ========================================================================= -->
         <div class="mt-4">
+            @if (session('success'))
+                <div class="mb-3 rounded-md border border-emerald-300 bg-emerald-50 p-3.5 text-xs font-semibold text-emerald-800 shadow-sm">
+                    ✓ {{ session('success') }}
+                </div>
+            @endif
+
             @if ($errors->any())
                 <div class="mb-3 rounded-md border border-rose-300 bg-rose-50 p-4 text-xs font-semibold text-rose-800 shadow-sm">
                     <p class="font-bold text-sm flex items-center gap-1.5 mb-1.5">
@@ -120,11 +126,11 @@
                 <p class="text-lg font-bold text-slate-800 mt-0.5">{{ $total_students ?? $students->count() }} SV</p>
             </div>
             <div class="rounded-md border border-rose-200 bg-rose-50/80 p-3 text-center">
-                <span class="text-[11px] font-bold uppercase tracking-wider text-rose-600">Nguy cơ cao & Cấm thi</span>
+                <span class="text-[11px] font-bold uppercase tracking-wider text-rose-600">Trượt môn (Vắng &gt; 20%)</span>
                 <p class="text-lg font-bold text-rose-700 mt-0.5">{{ $high_risk_count ?? 0 }} SV</p>
             </div>
             <div class="rounded-md border border-amber-200 bg-amber-50/80 p-3 text-center">
-                <span class="text-[11px] font-bold uppercase tracking-wider text-amber-700">Cảnh báo sớm (Tiệm cận 20%)</span>
+                <span class="text-[11px] font-bold uppercase tracking-wider text-amber-700">Sắp trượt môn (15%–20%)</span>
                 <p class="text-lg font-bold text-amber-800 mt-0.5">{{ $warning_count ?? 0 }} SV</p>
             </div>
             <div class="rounded-md border border-emerald-200 bg-emerald-50/80 p-3 text-center">
@@ -195,7 +201,7 @@
                 @endif
 
                 <button type="button" onclick="toggleHighlightWarning()" id="btnHighlight" class="rounded-lg border border-amber-300 bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-800 hover:bg-amber-100 transition shadow-sm flex items-center gap-1.5">
-                    Làm nổi bật SV Cảnh báo / Nguy hiểm
+                    Làm nổi bật HS Sắp trượt / Trượt môn
                 </button>
             </div>
         </div>
@@ -238,49 +244,52 @@
                                     <span class="text-base font-semibold text-slate-900">{{ $sv->full_name }}</span>
                                     <span class="rounded-md bg-slate-100 px-2.5 py-0.5 text-xs font-mono font-bold text-slate-700">{{ $sv->student_code ?? ('SV' . $sv->user_id) }}</span>
                                     <span class="text-xs text-slate-500">({{ $sv->email }})</span>
+                                    @if ($item['is_restored'])
+                                        <span class="rounded-md bg-blue-50 border border-blue-200 px-2 py-0.5 text-[11px] font-semibold text-blue-700" title="Lý do: {{ $item['restore_reason'] }}">
+                                            ✓ Đã khôi phục ĐD buổi này (1/1 môn)
+                                        </span>
+                                    @elseif ($item['restorations_used'] >= $item['max_restorations'])
+                                        <span class="rounded-md bg-slate-100 border border-slate-200 px-2 py-0.5 text-[11px] font-semibold text-slate-500">
+                                            Hết lượt khôi phục ĐD ({{ $item['restorations_used'] }}/{{ $item['max_restorations'] }} môn)
+                                        </span>
+                                    @else
+                                        <span class="rounded-md bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
+                                            Lượt khôi phục ĐD: {{ $item['restorations_used'] }}/{{ $item['max_restorations'] }}
+                                        </span>
+                                    @endif
                                 </div>
 
-                                <!-- CẢNH BÁO NGUY CƠ BỎ HỌC CỦA HỌC SINH -->
+                                <!-- TỶ LỆ NGHỈ HỌC THEO MÔN (QUY CHẾ > 20% = TRƯỢT MÔN) -->
                                 <div class="mt-2">
-                                    @if ($riskLevel === 'VERY_HIGH')
+                                    @if ($item['attendance_failed'])
                                         <div class="inline-flex flex-col sm:flex-row sm:items-center gap-2 rounded-md border border-rose-300 bg-rose-50 px-3.5 py-2 text-xs text-rose-950 shadow-sm">
-                                            <span class="font-bold text-rose-700 flex items-center gap-1.5 uppercase tracking-wide">
-                                                [CỰC KỲ NGUY HIỂM — NGUY CƠ RẤT CAO]
+                                            <span class="font-bold text-rose-700 uppercase tracking-wide">
+                                                [TRƯỢT MÔN — NGHỈ QUÁ 20%]
                                             </span>
                                             <span class="hidden sm:inline text-rose-700">|</span>
-                                            <span>Đã vắng môn này: <strong class="text-rose-700 font-semibold">{{ $item['absent_count'] }}/{{ $item['total_sessions'] }} buổi ({{ $item['absence_rate'] }}% > 20%)</strong></span>
+                                            <span>Đã nghỉ môn này: <strong class="text-rose-700 font-semibold">{{ $item['absent_count'] }}/{{ $item['total_sessions'] }} buổi ({{ $item['absence_rate'] }}%)</strong></span>
                                             <span class="hidden sm:inline text-rose-700">|</span>
-                                            <span class="font-bold text-rose-700">Cần gặp khẩn cấp sinh viên & phụ huynh để can thiệp!</span>
+                                            <span class="font-semibold text-rose-700">Theo quy chế, nghỉ quá 20% số buổi là trượt môn.</span>
                                         </div>
-                                    @elseif ($riskLevel === 'HIGH' || $item['attendance_failed'])
-                                        <div class="inline-flex flex-col sm:flex-row sm:items-center gap-2 rounded-md border border-orange-300 bg-orange-50 px-3.5 py-2 text-xs text-orange-950 shadow-sm">
-                                            <span class="font-bold text-orange-700 flex items-center gap-1.5 uppercase tracking-wide">
-                                                [NGUY HIỂM — CẤM THI VÌ VẮNG > 20%]
-                                            </span>
-                                            <span class="hidden sm:inline text-orange-700">|</span>
-                                            <span>Đã vắng môn này: <strong class="text-orange-700 font-semibold">{{ $item['absent_count'] }}/{{ $item['total_sessions'] }} buổi ({{ $item['absence_rate'] }}%)</strong></span>
-                                            <span class="hidden sm:inline text-orange-700">|</span>
-                                            <span class="font-bold text-orange-700">Nhắc nhở: Đã vượt ngưỡng 20%, thông báo cấm thi và giao bài tập bù qua AI Tutor!</span>
-                                        </div>
-                                    @elseif ($riskLevel === 'MEDIUM' || $item['attendance_warning'])
+                                    @elseif ($item['attendance_warning'])
                                         <div class="inline-flex flex-col sm:flex-row sm:items-center gap-2 rounded-md border border-amber-300 bg-amber-50 px-3.5 py-2 text-xs text-amber-950 shadow-sm">
-                                            <span class="font-bold text-amber-800 flex items-center gap-1.5 uppercase tracking-wide">
-                                                <span>⚠️</span> [CẢNH BÁO SỚM — TIỆM CẬN 20%]
+                                            <span class="font-bold text-amber-800 uppercase tracking-wide">
+                                                [SẮP TRƯỢT MÔN — 15% ĐẾN 20%]
                                             </span>
                                             <span class="hidden sm:inline text-amber-700">|</span>
-                                            <span>Đã vắng môn này: <strong class="text-amber-800 font-semibold">{{ $item['absent_count'] }}/{{ $item['total_sessions'] }} buổi ({{ $item['absence_rate'] }}%)</strong></span>
+                                            <span>Đã nghỉ môn này: <strong class="text-amber-800 font-semibold">{{ $item['absent_count'] }}/{{ $item['total_sessions'] }} buổi ({{ $item['absence_rate'] }}%)</strong></span>
                                             <span class="hidden sm:inline text-amber-700">|</span>
-                                            <span class="font-bold text-amber-800">Nhắc nhở: Sinh viên tuyệt đối không được nghỉ thêm buổi nào để tránh bị cấm thi!</span>
+                                            <span class="font-semibold text-amber-800">Không được nghỉ thêm để tránh vượt 20% (trượt môn).</span>
                                         </div>
                                     @else
                                         <div class="inline-flex items-center gap-2 rounded-md bg-emerald-50 border border-emerald-200 px-3 py-1.5 text-xs text-emerald-900 shadow-sm">
-                                            <span class="font-bold text-emerald-700 flex items-center gap-1">
-                                                [AN TOÀN — CHUYÊN CẦN TỐT]
+                                            <span class="font-bold text-emerald-700">
+                                                [ĐẠT CHUYÊN CẦN]
                                             </span>
                                             <span class="text-emerald-700">|</span>
-                                            <span>Đã vắng: <strong>{{ $item['absent_count'] }}/{{ $item['total_sessions'] }} buổi ({{ $item['absence_rate'] }}%)</strong></span>
+                                            <span>Đã nghỉ: <strong>{{ $item['absent_count'] }}/{{ $item['total_sessions'] }} buổi ({{ $item['absence_rate'] }}%)</strong></span>
                                             <span class="text-emerald-700">|</span>
-                                            <span class="text-slate-500">Học tập và chuyên cần ổn định</span>
+                                            <span class="text-slate-500">Tối đa được nghỉ {{ $item['max_allowed_absences'] ?? (int) floor($item['total_sessions'] * 0.2) }} buổi</span>
                                         </div>
                                     @endif
                                 </div>
@@ -341,6 +350,25 @@
                                    value="{{ $item['existing_note'] }}"
                                    placeholder="Lý do vắng / Ghi chú (Ốm, Gia đình, Đến muộn...)"
                                    class="w-full sm:w-56 rounded-md border border-slate-200 px-3.5 py-2 text-xs text-slate-700 placeholder-slate-400 focus:border-[#1e4f8f] focus:ring-2 focus:ring-blue-100 outline-none transition">
+
+                            <!-- Nút Khôi phục điểm danh (tối đa 1 lần / 1 môn) -->
+                            @if ($item['can_restore'])
+                                <button type="button"
+                                        onclick="openRestoreModal('{{ route('teacher.attendance.restore', [$class, $session, $sv]) }}', '{{ addslashes($sv->full_name) }}')"
+                                        class="shrink-0 rounded-md border border-blue-300 bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-700 hover:bg-blue-100 transition"
+                                        title="Khôi phục điểm danh sang Có mặt (chỉ 1 lần duy nhất cho môn này)">
+                                    Khôi phục ĐD (1/1)
+                                </button>
+                            @elseif ($item['is_restored'])
+                                <span class="shrink-0 rounded-md border border-emerald-200 bg-emerald-50 px-2.5 py-2 text-[11px] font-semibold text-emerald-700">
+                                    ✓ Đã khôi phục
+                                </span>
+                            @elseif (in_array($current, ['A', 'L'], true))
+                                <span class="shrink-0 rounded-md border border-slate-200 bg-slate-100 px-2.5 py-2 text-[11px] font-medium text-slate-400 cursor-not-allowed"
+                                      title="Sinh viên đã dùng hết 1/1 lượt khôi phục điểm danh cho môn học này">
+                                    Đã hết lượt (1/1)
+                                </span>
+                            @endif
                         </div>
                     </div>
                 @empty
@@ -362,11 +390,11 @@
                             <span>💾</span> Xác nhận kết quả điểm danh buổi học
                         </p>
                         <p class="text-xs text-slate-300 mt-0.5">
-                            Sau khi lưu, hệ thống AI sẽ tự động đồng bộ và tính toán lại nguy cơ bỏ học thời gian thực.
+                            Sau khi lưu, hệ thống sẽ tự động đồng bộ và cập nhật lại tỷ lệ nghỉ học của học sinh theo thời gian thực.
                         </p>
                     </div>
                     <button type="submit" class="rounded-md bg-emerald-500 hover:bg-emerald-600 px-6 py-3 text-sm font-bold text-white transition shadow-md flex items-center justify-center gap-2">
-                        <span>Lưu Điểm Danh & Đồng Bộ AI</span>
+                        <span>Lưu Điểm Danh & Cập Nhật Tỷ Lệ Nghỉ Học</span>
                     </button>
                 </div>
             @endif
@@ -378,7 +406,7 @@
             <option value="Ngủ quên / Trễ ca sáng sớm"></option>
             <option value="Chưa làm bài tập / Hổng kiến thức"></option>
             <option value="Bận đi làm thêm / Trùng lịch cá nhân"></option>
-            <option value="Buông xuôi sau vượt ngưỡng cấm thi >20%"></option>
+            <option value="Nghỉ quá 20% (trượt môn)"></option>
             <option value="Vắng không phép"></option>
         </datalist>
     </div>
@@ -498,7 +526,7 @@ function applyFilters() {
     }
 }
 
-// Bật / Tắt làm nổi bật sinh viên nguy cơ
+// Bật / Tắt làm nổi bật học sinh sắp trượt / trượt môn
 function toggleHighlightWarning() {
     isHighlighted = !isHighlighted;
     const btn = document.getElementById('btnHighlight');
@@ -506,11 +534,11 @@ function toggleHighlightWarning() {
     if (isHighlighted) {
         btn.classList.add('bg-amber-600', 'text-white');
         btn.classList.remove('bg-amber-50', 'text-amber-800');
-        btn.innerHTML = '<span>✕</span> Bỏ làm nổi bật nguy cơ';
+        btn.innerHTML = '<span>✕</span> Bỏ làm nổi bật HS nghỉ nhiều';
     } else {
         btn.classList.remove('bg-amber-600', 'text-white');
         btn.classList.add('bg-amber-50', 'text-amber-800');
-        btn.innerHTML = 'Làm nổi bật SV Cảnh báo / Nguy hiểm';
+        btn.innerHTML = 'Làm nổi bật HS Sắp trượt / Trượt môn';
     }
 
     applyFilters();
@@ -564,5 +592,53 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+
+function openRestoreModal(actionUrl, studentName) {
+    const modal = document.getElementById('restoreAttendanceModal');
+    const form = document.getElementById('restoreAttendanceForm');
+    const nameEl = document.getElementById('restoreStudentName');
+    const reasonEl = document.getElementById('restoreReasonInput');
+    if (!modal || !form) return;
+    form.action = actionUrl;
+    if (nameEl) nameEl.textContent = studentName;
+    if (reasonEl) reasonEl.value = 'Đến muộn, giảng viên cho phép khôi phục điểm danh';
+    modal.classList.remove('hidden');
+}
+
+function closeRestoreModal() {
+    const modal = document.getElementById('restoreAttendanceModal');
+    if (modal) modal.classList.add('hidden');
+}
 </script>
+
+<!-- Modal xác nhận Khôi phục điểm danh (1 lần / 1 môn) -->
+<div id="restoreAttendanceModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4">
+    <div class="w-full max-w-md rounded-lg border border-slate-200 bg-white p-5 shadow-lg">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+            <h3 class="text-base font-bold text-slate-900">Khôi phục điểm danh (1 lần / môn)</h3>
+            <button type="button" onclick="closeRestoreModal()" class="text-slate-400 hover:text-slate-600 text-lg leading-none">&times;</button>
+        </div>
+        <form id="restoreAttendanceForm" method="POST" action="" class="mt-4 space-y-4">
+            @csrf
+            <div class="rounded-md border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
+                Sinh viên <strong id="restoreStudentName"></strong> sẽ được chuyển sang <strong>Có mặt (P)</strong> cho buổi học này.
+                Mỗi sinh viên chỉ được khôi phục điểm danh <strong>tối đa 1 lần duy nhất</strong> cho môn <strong>{{ $class->subject->subject_name ?? $class->class_name }}</strong>.
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Lý do khôi phục điểm danh</label>
+                <input type="text" name="restore_reason" id="restoreReasonInput" maxlength="255" required
+                       class="w-full rounded-md border border-slate-300 px-3 py-2 text-xs text-slate-800"
+                       placeholder="Ví dụ: Đến muộn 20 phút, đã vào học đầy đủ phần còn lại">
+            </div>
+            <div class="flex justify-end gap-2 pt-2">
+                <button type="button" onclick="closeRestoreModal()" class="rounded-md border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50">
+                    Hủy
+                </button>
+                <button type="submit" class="rounded-md bg-[#1e4f8f] px-4 py-2 text-xs font-semibold text-white hover:bg-[#163c6d]">
+                    Xác nhận khôi phục
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
 @endsection

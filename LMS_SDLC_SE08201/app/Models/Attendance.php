@@ -14,11 +14,30 @@ class Attendance extends Model
     public const ABSENT = 'A';
     public const LATE = 'L';
 
-    protected $fillable = ['user_id', 'session_id', 'attendance_time', 'status', 'note'];
+    protected $fillable = [
+        'user_id',
+        'session_id',
+        'attendance_time',
+        'status',
+        'note',
+        'is_restored',
+        'restored_at',
+        'restored_by',
+        'restore_reason',
+    ];
 
     protected function casts(): array
     {
-        return ['attendance_time' => 'datetime'];
+        return [
+            'attendance_time' => 'datetime',
+            'is_restored' => 'boolean',
+            'restored_at' => 'datetime',
+        ];
+    }
+
+    public function restoredByUser()
+    {
+        return $this->belongsTo(User::class, 'restored_by', 'user_id');
     }
 
     public function statusLabel(): string

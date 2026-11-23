@@ -513,173 +513,214 @@
 document.addEventListener('DOMContentLoaded', function() {
     Chart.register(ChartDataLabels);
 
-    const pieDatalabelsConfig = {
-        anchor: 'center',
-        align: 'center',
-        color: '#fff',
-        font: { weight: 'bold', size: 10 },
-        formatter: (value, ctx) => {
-            if (!value) return ''; 
-            let sum = 0;
-            let dataArr = ctx.chart.data.datasets[0].data;
-            dataArr.map(data => { sum += Number(data); });
-            if (sum === 0) return value;
-            return (value * 100 / sum).toFixed(1) + "%";
+    const htFontMono = "'JetBrains Mono', monospace";
+    const htFontSans = "'Inter', 'Be Vietnam Pro', sans-serif";
+    const htTooltip = {
+        backgroundColor: '#09090b',
+        borderColor: '#27272a',
+        borderWidth: 1,
+        titleColor: '#fafafa',
+        bodyColor: '#d4d4d8',
+        titleFont: { family: htFontSans, size: 12, weight: '600' },
+        bodyFont: { family: htFontMono, size: 11 },
+        padding: { top: 8, bottom: 8, left: 11, right: 11 },
+        cornerRadius: 6,
+        displayColors: true,
+        boxWidth: 8,
+        boxHeight: 8,
+        boxPadding: 5,
+    };
+
+    const doughnutPctCallback = {
+        label: (ctx) => {
+            const val = Number(ctx.raw || 0);
+            const sum = (ctx.dataset.data || []).reduce((a, b) => a + Number(b || 0), 0);
+            const pct = sum > 0 ? ((val * 100) / sum).toFixed(1) : '0.0';
+            return ` ${ctx.label}: ${new Intl.NumberFormat().format(val)} (${pct}%)`;
         }
     };
 
     // === 1. Line Chart: Xu hướng điểm TB ===
-    const scoreTrendCtx = document.getElementById('scoreTrendChart');
-    let scoreTrendChart = new Chart(scoreTrendCtx, {
+    const scoreTrendEl = document.getElementById('scoreTrendChart');
+    const scoreTrend2d = scoreTrendEl.getContext('2d');
+    const trendGradient = scoreTrend2d.createLinearGradient(0, 0, 0, 240);
+    trendGradient.addColorStop(0, 'rgba(37, 99, 235, 0.14)');
+    trendGradient.addColorStop(1, 'rgba(37, 99, 235, 0.00)');
+
+    let scoreTrendChart = new Chart(scoreTrendEl, {
         type: 'line',
         data: {
             labels: [],
             datasets: [{
                 label: 'Điểm TB',
                 data: [],
-                borderColor: '#1e4f8f',
-                backgroundColor: 'rgba(30, 79, 143, 0.15)',
-                borderWidth: 3,
-                pointBackgroundColor: '#1e4f8f',
-                pointBorderColor: '#ffffff',
+                borderColor: '#2563eb',
+                backgroundColor: trendGradient,
+                borderWidth: 2,
+                pointBackgroundColor: '#ffffff',
+                pointBorderColor: '#2563eb',
                 pointBorderWidth: 2,
-                pointRadius: 5,
+                pointRadius: 3.5,
+                pointHoverRadius: 5.5,
+                pointHoverBackgroundColor: '#2563eb',
                 fill: true,
-                tension: 0.4
+                tension: 0.3
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
             plugins: {
                 legend: { display: false },
-                tooltip: { 
-                    backgroundColor: '#0f172a', 
-                    borderColor: 'rgba(30, 79, 143, 0.4)',
-                    borderWidth: 1,
-                    titleColor: '#f8fafc',
-                    bodyColor: '#cbd5e1',
-                    padding: 10, 
-                    cornerRadius: 8 
-                },
+                tooltip: htTooltip,
                 datalabels: { display: false }
             },
             scales: {
-                x: { 
-                    grid: { color: 'rgba(15, 23, 42, 0.08)' }, 
-                    ticks: { font: { size: 11 }, color: '#94a3b8' } 
+                x: {
+                    border: { display: false },
+                    grid: { display: false },
+                    ticks: { font: { family: htFontMono, size: 11 }, color: '#71717a' }
                 },
-                y: { 
-                    beginAtZero: true, 
-                    max: 10, 
-                    grid: { color: 'rgba(15, 23, 42, 0.08)' }, 
-                    ticks: { font: { size: 11 }, color: '#94a3b8' } 
+                y: {
+                    beginAtZero: true,
+                    max: 10,
+                    border: { display: false },
+                    grid: { color: '#f4f4f5' },
+                    ticks: { stepSize: 2, font: { family: htFontMono, size: 11 }, color: '#71717a', padding: 6 }
                 }
             }
         }
     });
 
     const dashboardForm = document.getElementById('globalDashboardFilterForm');
-
-    // === Khởi tạo 4 biểu đồ rỗng ===
     const legendPos = window.innerWidth < 1024 ? 'bottom' : 'right';
+
+    // === 2. Doughnut: Phân bố điểm ===
     const scoreDistChart = new Chart(document.getElementById('scoreDistChart'), {
         type: 'doughnut',
-        data: { 
-            labels: [], 
-            datasets: [{ 
-                data: [], 
-                backgroundColor: ['#ef4444', '#f97316', '#eab308', '#22c55e', '#1e4f8f'], 
-                borderWidth: 2, 
-                borderColor: '#0f172a' 
-            }] 
+        data: {
+            labels: [],
+            datasets: [{
+                data: [],
+                backgroundColor: ['#e11d48', '#d97706', '#94a3b8', '#2563eb', '#09090b'],
+                borderWidth: 2,
+                borderColor: '#ffffff',
+                hoverOffset: 4
+            }]
         },
-        options: { 
-            responsive: true, 
-            maintainAspectRatio: false, 
-            layout: { padding: 10 }, 
-            plugins: { 
-                legend: { 
-                    position: legendPos, 
-                    labels: { padding: 10, usePointStyle: true, pointStyle: 'circle', font: { size: 10 }, color: '#cbd5e1' } 
-                }, 
-                tooltip: { backgroundColor: '#0f172a', borderColor: '#ffffff', borderWidth: 1, padding: 10, cornerRadius: 8 }, 
-                datalabels: pieDatalabelsConfig 
-            }, 
-            cutout: '55%' 
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            layout: { padding: 6 },
+            plugins: {
+                legend: {
+                    position: legendPos,
+                    labels: { padding: 12, usePointStyle: true, pointStyle: 'circle', boxWidth: 7, font: { family: htFontSans, size: 11, weight: '500' }, color: '#52525b' }
+                },
+                tooltip: { ...htTooltip, callbacks: doughnutPctCallback },
+                datalabels: { display: false }
+            },
+            cutout: '76%'
         }
     });
 
-    const majorColors = ['#1e4f8f', '#06b6d4', '#1e4f8f', '#ec4899', '#f97316', '#14b8a6', '#ef4444', '#84cc16'];
+    // === 3. Doughnut: Sinh viên theo chuyên ngành ===
+    const majorColors = ['#09090b', '#2563eb', '#0d9488', '#64748b', '#4f46e5', '#0284c7', '#71717a', '#334155'];
     const studentMajorChart = new Chart(document.getElementById('studentMajorChart'), {
         type: 'doughnut',
-        data: { 
-            labels: [], 
-            datasets: [{ 
-                data: [], 
-                backgroundColor: majorColors, 
-                borderWidth: 2, 
-                borderColor: '#0f172a' 
-            }] 
+        data: {
+            labels: [],
+            datasets: [{
+                data: [],
+                backgroundColor: majorColors,
+                borderWidth: 2,
+                borderColor: '#ffffff',
+                hoverOffset: 4
+            }]
         },
-        options: { 
-            responsive: true, 
-            maintainAspectRatio: false, 
-            layout: { padding: 10 }, 
-            plugins: { 
-                legend: { 
-                    position: legendPos, 
-                    labels: { padding: 10, usePointStyle: true, pointStyle: 'circle', font: { size: 10 }, color: '#cbd5e1' } 
-                }, 
-                tooltip: { backgroundColor: '#0f172a', borderColor: '#ffffff', borderWidth: 1, padding: 10, cornerRadius: 8 }, 
-                datalabels: pieDatalabelsConfig 
-            }, 
-            cutout: '55%' 
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            layout: { padding: 6 },
+            plugins: {
+                legend: {
+                    position: legendPos,
+                    labels: { padding: 12, usePointStyle: true, pointStyle: 'circle', boxWidth: 7, font: { family: htFontSans, size: 11, weight: '500' }, color: '#52525b' }
+                },
+                tooltip: { ...htTooltip, callbacks: doughnutPctCallback },
+                datalabels: { display: false }
+            },
+            cutout: '76%'
         }
     });
 
+    // === 4. Horizontal Bar: Top môn học ===
     const topSubjectsChart = new Chart(document.getElementById('topSubjectsChart'), {
         type: 'bar',
-        data: { labels: [], datasets: [{ label: 'Điểm TB', data: [], backgroundColor: [], borderRadius: 8, barThickness: 22 }] },
-        options: { 
-            indexAxis: 'y', 
-            responsive: true, 
-            maintainAspectRatio: false, 
-            plugins: { 
-                legend: { display: false }, 
-                tooltip: { backgroundColor: '#0f172a', borderColor: '#ffffff', borderWidth: 1, padding: 10, cornerRadius: 8 }, 
-                datalabels: { display: false } 
-            }, 
-            scales: { 
-                x: { beginAtZero: true, max: 10, grid: { color: 'rgba(15, 23, 42, 0.08)' }, ticks: { color: '#6b7280' } }, 
-                y: { grid: { display: false }, ticks: { font: { size: 11 }, color: '#cbd5e1' } } 
-            } 
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Điểm TB',
+                data: [],
+                backgroundColor: '#18181b',
+                hoverBackgroundColor: '#2563eb',
+                borderRadius: 4,
+                maxBarThickness: 18
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: htTooltip,
+                datalabels: { display: false }
+            },
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    max: 10,
+                    border: { display: false },
+                    grid: { color: '#f4f4f5' },
+                    ticks: { stepSize: 2, font: { family: htFontMono, size: 11 }, color: '#71717a' }
+                },
+                y: {
+                    border: { display: false },
+                    grid: { display: false },
+                    ticks: { font: { family: htFontSans, size: 11, weight: '500' }, color: '#27272a' }
+                }
+            }
         }
     });
 
+    // === 5. Doughnut: Chuyên cần toàn trường ===
     const attendanceChart = new Chart(document.getElementById('attendanceChart'), {
-        type: 'pie',
-        data: { 
-            labels: ['Có mặt (P)', 'Vắng (A)', 'Muộn (L)'], 
-            datasets: [{ 
-                data: [0, 0, 0], 
-                backgroundColor: ['#10b981', '#ef4444', '#f59e0b'], 
-                borderWidth: 2, 
-                borderColor: '#0f172a' 
-            }] 
+        type: 'doughnut',
+        data: {
+            labels: ['Có mặt (P)', 'Vắng (A)', 'Muộn (L)'],
+            datasets: [{
+                data: [0, 0, 0],
+                backgroundColor: ['#10b981', '#e11d48', '#d97706'],
+                borderWidth: 2,
+                borderColor: '#ffffff',
+                hoverOffset: 4
+            }]
         },
-        options: { 
-            responsive: true, 
-            maintainAspectRatio: false, 
-            layout: { padding: 10 }, 
-            plugins: { 
-                legend: { 
-                    position: legendPos, 
-                    labels: { padding: 10, usePointStyle: true, pointStyle: 'circle', font: { size: 10 }, color: '#cbd5e1' } 
-                }, 
-                tooltip: { backgroundColor: '#0f172a', borderColor: '#ffffff', borderWidth: 1, padding: 10, cornerRadius: 8 }, 
-                datalabels: pieDatalabelsConfig 
-            } 
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            layout: { padding: 6 },
+            plugins: {
+                legend: {
+                    position: legendPos,
+                    labels: { padding: 12, usePointStyle: true, pointStyle: 'circle', boxWidth: 7, font: { family: htFontSans, size: 11, weight: '500' }, color: '#52525b' }
+                },
+                tooltip: { ...htTooltip, callbacks: doughnutPctCallback },
+                datalabels: { display: false }
+            },
+            cutout: '76%'
         }
     });
 
@@ -704,10 +745,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 studentMajorChart.data.datasets[0].backgroundColor = majorColors.slice(0, data.studentsMajor.labels.length);
                 studentMajorChart.update();
 
-                // 4. Top Subjects
+                // 4. Top Subjects (Obsidian đơn sắc sắc nét)
                 topSubjectsChart.data.labels = data.topSubjects.labels;
                 topSubjectsChart.data.datasets[0].data = data.topSubjects.scores;
-                topSubjectsChart.data.datasets[0].backgroundColor = data.topSubjects.scores.map((_, i) => majorColors[i % majorColors.length]);
+                topSubjectsChart.data.datasets[0].backgroundColor = '#18181b';
                 topSubjectsChart.update();
 
                 // 5. Attendance

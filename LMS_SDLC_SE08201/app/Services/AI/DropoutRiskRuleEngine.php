@@ -272,7 +272,7 @@ class DropoutRiskRuleEngine
                 'factor_type' => RiskFactor::TYPE_RETAKE,
                 'title' => sprintf('Trượt môn & Học lại (Trọng số %.0f%%) — Đóng góp %.1f điểm (%.1f%%)', $wRetake * 100, $retakePoints, $retakeContribPct),
                 'description' => sprintf(
-                    'Sinh viên có %d môn chưa đạt/trượt chuyên cần và %d môn học lại trên tổng %d môn. Chỉ số chuẩn hóa R = %.2f. Đóng góp %.1f/%.1f điểm rủi ro.',
+                    'Sinh viên có %d môn chưa đạt/trượt môn (vắng > 20%%) và %d môn học lại trên tổng %d môn. Chỉ số chuẩn hóa R = %.2f. Đóng góp %.1f/%.1f điểm đánh giá.',
                     $failedSubjectsCount,
                     $retakeCount,
                     $distinctEvaluatedSubjects,
@@ -291,8 +291,8 @@ class DropoutRiskRuleEngine
                 $factors[] = [
                     'subject_id' => $sub['subject_id'],
                     'factor_type' => RiskFactor::TYPE_ATTENDANCE,
-                    'title' => 'Trượt chuyên cần môn ' . $sub['subject_name'],
-                    'description' => sprintf('Học sinh vắng %d/%d buổi (%.1f%%), vượt giới hạn 20%% theo quy chế đào tạo.', $sub['absent_sessions'], $sub['total_sessions'], $sub['absence_rate']),
+                    'title' => 'Trượt môn do vắng > 20%: ' . $sub['subject_name'],
+                    'description' => sprintf('Học sinh vắng %d/%d buổi (%.1f%%), vượt quá 20%% nên bị trượt môn theo quy chế đào tạo.', $sub['absent_sessions'], $sub['total_sessions'], $sub['absence_rate']),
                     'severity' => 'CRITICAL',
                     'impact_weight' => 20.0,
                 ];
@@ -300,8 +300,8 @@ class DropoutRiskRuleEngine
                 $factors[] = [
                     'subject_id' => $sub['subject_id'],
                     'factor_type' => RiskFactor::TYPE_ATTENDANCE,
-                    'title' => 'Chuyên cần tiệm cận mốc cấm thi: ' . $sub['subject_name'],
-                    'description' => sprintf('Học sinh vắng %d/%d buổi (%.1f%%). Nếu nghỉ thêm sẽ vượt giới hạn 20%%.', $sub['absent_sessions'], $sub['total_sessions'], $sub['absence_rate']),
+                    'title' => 'Sắp chạm ngưỡng trượt môn (20%): ' . $sub['subject_name'],
+                    'description' => sprintf('Học sinh vắng %d/%d buổi (%.1f%%). Nếu nghỉ quá 20%% sẽ bị trượt môn theo quy chế.', $sub['absent_sessions'], $sub['total_sessions'], $sub['absence_rate']),
                     'severity' => 'WARNING',
                     'impact_weight' => 10.0,
                 ];
@@ -323,8 +323,8 @@ class DropoutRiskRuleEngine
         // 7. SINH TỔNG HỢP GIẢI THÍCH VÀ KHUYẾN NGHỊ SƯ PHẠM (Explainable AI)
         // ---------------------------------------------------------------------
         $summaryExplanation = sprintf(
-            'Điểm nguy cơ tổng hợp: %.1f/100 (Mức %s). Điểm thành phần: Chuyên cần %.1fđ (%.1f%%), Điểm số %.1fđ (%.1f%%), Nợ môn %.1fđ (%.1f%%). ' .
-            'Lưu ý khoa học: Điểm số này là công cụ sắp xếp thứ tự ưu tiên cảnh báo học vụ, không đồng nghĩa sinh viên có %.1f%% xác suất bỏ học.',
+            'Điểm đánh giá tổng hợp: %.1f/100 (Mức %s). Điểm thành phần: Tỷ lệ nghỉ học %.1fđ (%.1f%%), Điểm số %.1fđ (%.1f%%), Trượt/Nợ môn %.1fđ (%.1f%%). ' .
+            'Lưu ý: Theo quy chế đào tạo, nghỉ quá 20%% số buổi sẽ bị trượt môn (điểm %.1f/100 dùng để xếp thứ tự ưu tiên hỗ trợ học vụ).',
             $riskScore,
             $riskLevel,
             $attendancePoints,

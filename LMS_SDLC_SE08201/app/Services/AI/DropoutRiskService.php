@@ -158,15 +158,29 @@ class DropoutRiskService
             RiskPrediction::LEVEL_VERY_HIGH => 0,
         ];
 
+        $attendanceStats = DB::table('attendances')
+            ->selectRaw('user_id, COUNT(*) as total_marked, SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as absent_count', [\App\Models\Attendance::ABSENT])
+            ->groupBy('user_id')
+            ->get()
+            ->keyBy('user_id');
+
         $studentSummaries = [];
 
         foreach ($students as $student) {
             $prediction = $this->getLatestOrAnalyze($student);
             $levelCounts[$prediction->risk_level] = ($levelCounts[$prediction->risk_level] ?? 0) + 1;
 
+            $attStat = $attendanceStats->get($student->user_id);
+            $totalMarked = (int) ($attStat->total_marked ?? 0);
+            $absentCount = (int) ($attStat->absent_count ?? 0);
+            $absenceRate = $totalMarked > 0 ? round(($absentCount / $totalMarked) * 100, 1) : 0.0;
+
             $studentSummaries[] = [
                 'student' => $student,
                 'prediction' => $prediction,
+                'absence_rate' => $absenceRate,
+                'absent_sessions' => $absentCount,
+                'total_marked_sessions' => $totalMarked,
             ];
         }
 

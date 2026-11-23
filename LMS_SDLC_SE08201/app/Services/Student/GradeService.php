@@ -48,11 +48,14 @@ class GradeService
         }
 
         $byClass = $submissions->groupBy(fn ($s) => $s->assignment->class_id)
-            ->map(fn ($group) => [
-                'class' => $group->first()->assignment->classRoom,
-                'submissions' => $group->sortByDesc('submitted_at'),
-                'avg' => round((float) $group->whereNotNull('score')->avg('score'), 2),
-            ])->values();
+            ->map(function ($group) {
+                $visibleGraded = $group->filter(fn ($s) => $s->score !== null && ($s->assignment?->isGradesPublished() ?? true));
+                return [
+                    'class' => $group->first()->assignment->classRoom,
+                    'submissions' => $group->sortByDesc('submitted_at'),
+                    'avg' => $visibleGraded->isNotEmpty() ? round((float) $visibleGraded->avg('score'), 2) : null,
+                ];
+            })->values();
 
         return [
             'byClass' => $byClass,

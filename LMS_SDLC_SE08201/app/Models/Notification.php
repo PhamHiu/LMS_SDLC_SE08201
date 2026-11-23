@@ -9,12 +9,23 @@ class Notification extends Model
     protected $table = 'notifications';
     protected $primaryKey = 'notification_id';
 
-    protected $fillable = ['user_id', 'class_id', 'assignment_id', 'title', 'body', 'target_url'];
+    protected $fillable = ['user_id', 'recipient_user_id', 'class_id', 'assignment_id', 'title', 'body', 'target_url'];
 
-    /** Thông báo toàn hệ thống (không gắn lớp cụ thể) */
+    /** Thông báo cá nhân gửi đích danh 1 người dùng */
+    public function isDirect(): bool
+    {
+        return $this->recipient_user_id !== null;
+    }
+
+    /** Thông báo toàn hệ thống (không gắn lớp cụ thể và không phải thông báo cá nhân) */
     public function isSystemWide(): bool
     {
-        return $this->class_id === null;
+        return $this->class_id === null && $this->recipient_user_id === null;
+    }
+
+    public function recipient()
+    {
+        return $this->belongsTo(User::class, 'recipient_user_id', 'user_id');
     }
 
     /** Thông báo nhắc hạn bài tập (được sinh tự động) */

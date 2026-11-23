@@ -415,43 +415,61 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // === Line Chart: Trend điểm số ===
+    const htFontMono = "'JetBrains Mono', monospace";
+    const htFontSans = "'Inter', 'Be Vietnam Pro', sans-serif";
+    const htTooltip = {
+        backgroundColor: '#09090b',
+        borderColor: '#27272a',
+        borderWidth: 1,
+        titleColor: '#fafafa',
+        bodyColor: '#d4d4d8',
+        titleFont: { family: htFontSans, size: 12, weight: '600' },
+        bodyFont: { family: htFontMono, size: 11 },
+        padding: { top: 8, bottom: 8, left: 11, right: 11 },
+        cornerRadius: 6,
+        displayColors: true,
+        boxWidth: 8,
+        boxHeight: 8,
+        boxPadding: 5,
+    };
+
+    // === Line Chart: Tiến trình điểm số ===
     const scoreData = @json($score_history);
-    new Chart(document.getElementById('scoreTrendChart'), {
+    const trendEl = document.getElementById('scoreTrendChart');
+    const trend2d = trendEl.getContext('2d');
+    const trendGrad = trend2d.createLinearGradient(0, 0, 0, 220);
+    trendGrad.addColorStop(0, 'rgba(37, 99, 235, 0.14)');
+    trendGrad.addColorStop(1, 'rgba(37, 99, 235, 0.00)');
+
+    new Chart(trendEl, {
         type: 'line',
         data: {
             labels: scoreData.map(d => d.date),
             datasets: [{
                 label: 'Điểm',
                 data: scoreData.map(d => d.score),
-                borderColor: '#1e4f8f',
-                backgroundColor: 'rgba(30, 79, 143, 0.15)',
+                borderColor: '#2563eb',
+                backgroundColor: trendGrad,
                 fill: true,
-                tension: 0.4,
-                pointBackgroundColor: scoreData.map(d => {
-                    const pct = d.max_score > 0 ? d.score / d.max_score * 100 : 0;
-                    return pct >= 80 ? '#10b981' : pct >= 50 ? '#f59e0b' : '#ef4444';
-                }),
-                pointBorderColor: '#ffffff',
-                pointBorderWidth: 1.5,
-                pointRadius: 6,
-                pointHoverRadius: 8,
-                borderWidth: 3
+                tension: 0.3,
+                pointBackgroundColor: '#ffffff',
+                pointBorderColor: '#2563eb',
+                pointBorderWidth: 2,
+                pointRadius: 3.5,
+                pointHoverRadius: 5.5,
+                pointHoverBackgroundColor: '#2563eb',
+                borderWidth: 2
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
             plugins: {
                 legend: { display: false },
+                datalabels: { display: false },
                 tooltip: {
-                    backgroundColor: '#0f172a',
-                    borderColor: 'rgba(30, 79, 143, 0.4)',
-                    borderWidth: 1,
-                    titleColor: '#f8fafc',
-                    bodyColor: '#cbd5e1',
-                    padding: 12,
-                    cornerRadius: 8,
+                    ...htTooltip,
                     callbacks: {
                         title: (items) => scoreData[items[0].dataIndex]?.title || '',
                         label: (item) => {
@@ -462,15 +480,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             },
             scales: {
-                y: { 
-                    beginAtZero: true, 
-                    max: 10, 
-                    grid: { color: 'rgba(15, 23, 42, 0.08)' },
-                    ticks: { color: '#6b7280' }
+                y: {
+                    beginAtZero: true,
+                    max: 10,
+                    border: { display: false },
+                    grid: { color: '#f4f4f5' },
+                    ticks: { stepSize: 2, font: { family: htFontMono, size: 11 }, color: '#71717a', padding: 6 }
                 },
-                x: { 
-                    grid: { display: false }, 
-                    ticks: { maxRotation: 45, color: '#6b7280' } 
+                x: {
+                    border: { display: false },
+                    grid: { display: false },
+                    ticks: { maxRotation: 30, font: { family: htFontMono, size: 11 }, color: '#71717a' }
                 }
             }
         }
@@ -484,9 +504,10 @@ document.addEventListener('DOMContentLoaded', function() {
             labels: ['Có mặt', 'Vắng', 'Muộn'],
             datasets: [{
                 data: [att.present, att.absent, att.late],
-                backgroundColor: ['#10b981', '#ef4444', '#f59e0b'],
+                backgroundColor: ['#10b981', '#e11d48', '#d97706'],
                 borderWidth: 2,
-                borderColor: '#0f172a'
+                borderColor: '#ffffff',
+                hoverOffset: 3
             }]
         },
         options: {
@@ -494,17 +515,20 @@ document.addEventListener('DOMContentLoaded', function() {
             maintainAspectRatio: true,
             plugins: {
                 legend: { display: false },
-                tooltip: { 
-                    backgroundColor: '#0f172a',
-                    borderColor: '#ffffff',
-                    borderWidth: 1,
-                    titleColor: '#f8fafc',
-                    bodyColor: '#cbd5e1',
-                    padding: 10, 
-                    cornerRadius: 8 
+                datalabels: { display: false },
+                tooltip: {
+                    ...htTooltip,
+                    callbacks: {
+                        label: (ctx) => {
+                            const val = Number(ctx.raw || 0);
+                            const sum = (ctx.dataset.data || []).reduce((a, b) => a + Number(b || 0), 0);
+                            const pct = sum > 0 ? ((val * 100) / sum).toFixed(1) : '0.0';
+                            return ` ${ctx.label}: ${val} buổi (${pct}%)`;
+                        }
+                    }
                 }
             },
-            cutout: '68%'
+            cutout: '76%'
         }
     });
 });

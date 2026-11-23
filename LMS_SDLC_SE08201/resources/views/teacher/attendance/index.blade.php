@@ -17,12 +17,12 @@
                 <h1 class="text-2xl font-bold tracking-tight text-slate-800">Quản lý Điểm danh theo Lớp & Buổi học</h1>
             </div>
             <p class="text-sm text-slate-500 mt-1">
-                Xác định thời gian thực chuẩn xác, tự động nhận diện ca học và liên kết với <span class="font-semibold text-[#1e4f8f]">Hệ thống AI Cảnh báo nguy cơ bỏ học</span>.
+                Xác định thời gian thực chuẩn xác, tự động nhận diện ca học và liên kết với <span class="font-semibold text-[#1e4f8f]">Hệ thống theo dõi Tỷ lệ nghỉ học của học sinh</span>.
             </p>
         </div>
         <div class="flex items-center gap-3">
             <a href="{{ route('teacher.risk.index') }}" class="inline-flex items-center gap-2 rounded-md border border-amber-300 bg-amber-50 px-4 py-2.5 text-xs font-semibold text-amber-800 hover:bg-amber-100 transition shadow-sm">
-                ⚠️ Xem Dashboard Cảnh báo AI
+                Xem Tỷ lệ nghỉ học của học sinh
             </a>
             <a href="{{ route('teacher.classes.index') }}" class="inline-flex items-center gap-2 rounded-md border border-slate-200 bg-white px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition shadow-sm">
                 Quản lý Lớp học

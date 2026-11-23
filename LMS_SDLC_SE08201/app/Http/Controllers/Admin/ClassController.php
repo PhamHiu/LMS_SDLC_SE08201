@@ -107,7 +107,7 @@ class ClassController extends Controller
             return response()->json([]);
         }
 
-        return response()->json($major->subjects()->orderBy('subject_name')->get(['subjects.subject_id', 'subject_name']));
+        return response()->json($major->subjects()->orderBy('subject_name')->get(['subjects.subject_id', 'subjects.subject_code', 'subjects.subject_name']));
     }
 
     public function teachersByMajor(Request $request)
@@ -180,6 +180,7 @@ class ClassController extends Controller
             'slot_id' => 'required|exists:slots,slot_id',
             'room_id' => 'required|exists:rooms,room_id',
             'teacher_id' => 'required|exists:users,user_id',
+            'reason' => 'nullable|string|max:500',
         ]);
 
         $conflictResult = $this->classService->checkConflicts(
@@ -194,19 +195,58 @@ class ClassController extends Controller
             return response()->json($conflictResult);
         }
 
+        // Lưu thông tin lịch cũ trước khi cập nhật để ghi rõ trong thông báo tự động
+        $session->loadMissing(['slot', 'room', 'classRoom.subject', 'classRoom.teacher']);
+        $oldDate = $session->session_date ? $session->session_date->format('d/m/Y') : '—';
+        $oldSlot = $session->slot ? $session->slot->label : 'Chưa xếp ca';
+        $oldRoom = $session->room ? $session->room->room_name : 'Chưa xếp phòng';
+
         $session->update([
             'session_date' => $validated['session_date'],
             'slot_id' => $validated['slot_id'],
             'room_id' => $validated['room_id'],
         ]);
-        
+
+        $session->refresh()->load(['slot', 'room']);
+        $newDate = $session->session_date ? $session->session_date->format('d/m/Y') : $validated['session_date'];
+        $newSlot = $session->slot
+            ? $session->slot->label . ' (' . \Carbon\Carbon::parse($session->slot->start_time)->format('H:i') . '–' . \Carbon\Carbon::parse($session->slot->end_time)->format('H:i') . ')'
+            : 'Chưa xếp ca';
+        $newRoom = $session->room ? $session->room->room_name : 'Chưa xếp phòng';
+
         $class = $session->classRoom;
         $maxDate = $class->sessions()->max('session_date');
         if ($maxDate) {
             $class->update(['end_date' => $maxDate]);
         }
 
-        return response()->json(['success' => true]);
+        // Tự động gửi thông báo đổi lịch học tới toàn bộ sinh viên và giảng viên của lớp
+        $reason = trim((string) ($validated['reason'] ?? ''));
+        if ($reason === '') {
+            $reason = 'Điều chỉnh lịch học từ Phòng Đào tạo';
+        }
+
+        $subjectName = $class->subject?->subject_name ?? '';
+        $title = "[Thay đổi lịch học] Lớp {$class->class_name}" . ($subjectName ? " — {$subjectName}" : '');
+        $body = "Phòng Đào tạo thông báo điều chỉnh lịch buổi học của lớp {$class->class_name}:\n"
+            . "• Lịch cũ: ngày {$oldDate}, {$oldSlot}, phòng {$oldRoom}\n"
+            . "• Lịch mới: ngày {$newDate}, {$newSlot}, phòng {$newRoom}\n"
+            . "• Lý do: {$reason}\n"
+            . "Sinh viên và giảng viên vui lòng cập nhật lại thời khóa biểu để tham gia đầy đủ.";
+
+        app(\App\Services\NotificationService::class)->create($request->user(), [
+            'class_id' => $class->class_id,
+            'title' => $title,
+            'body' => $body,
+        ]);
+
+        $studentCount = $class->students()->count();
+
+        return response()->json([
+            'success' => true,
+            'notified_students' => $studentCount,
+            'message' => "Đã thay đổi lịch buổi học và gửi thông báo tự động tới {$studentCount} sinh viên của lớp {$class->class_name}.",
+        ]);
     }
 
     public function enrollStudents(EnrollStudentsRequest $request, ClassRoom $class): RedirectResponse

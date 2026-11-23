@@ -94,6 +94,34 @@ Route::middleware(['auth', 'role:ADMIN'])->prefix('admin')->name('admin.')->grou
     // AI Early Warning System: Quản lý nguy cơ bỏ học
     Route::get('risk', [Admin\RiskManagementController::class, 'index'])->name('risk.index');
     Route::get('risk/{student}', [Admin\RiskManagementController::class, 'show'])->name('risk.show');
+
+    // Quản lý & cập nhật kho tri thức RAG cho BTEC AI Student Support
+    Route::prefix('rag-kb')->name('rag.')->group(function () {
+        Route::get('/', [Admin\RagKnowledgeController::class, 'index'])->name('index');
+        Route::post('/', [Admin\RagKnowledgeController::class, 'store'])->name('store');
+        Route::post('/import', [Admin\RagKnowledgeController::class, 'import'])->name('import');
+        Route::post('/reindex', [Admin\RagKnowledgeController::class, 'reindex'])->name('reindex');
+        Route::put('/{chunkId}', [Admin\RagKnowledgeController::class, 'update'])->name('update');
+        Route::delete('/{chunkId}', [Admin\RagKnowledgeController::class, 'destroy'])->name('destroy');
+    });
+
+    // Quản lý Phiên bản Nội quy & Quy chế có kiểm tra kiểu (Draft -> Simulate -> Approve -> Publish)
+    Route::prefix('policies')->name('policies.')->group(function () {
+        Route::get('/', [Admin\PolicyRuleController::class, 'index'])->name('index');
+        Route::post('/', [Admin\PolicyRuleController::class, 'store'])->name('store');
+        Route::post('/propose', [Admin\PolicyRuleController::class, 'proposeFromText'])->name('propose');
+        Route::post('/{policy}/simulate', [Admin\PolicyRuleController::class, 'simulate'])->name('simulate');
+        Route::post('/{policy}/approve', [Admin\PolicyRuleController::class, 'approve'])->name('approve');
+        Route::post('/{policy}/publish', [Admin\PolicyRuleController::class, 'publish'])->name('publish');
+        Route::post('/{policy}/archive', [Admin\PolicyRuleController::class, 'archive'])->name('archive');
+    });
+
+    // Quản lý & Chuyển tiếp Ticket Hỗ trợ Học vụ
+    Route::prefix('tickets')->name('tickets.')->group(function () {
+        Route::get('/', [Admin\TicketController::class, 'index'])->name('index');
+        Route::post('/{ticket}/forward', [Admin\TicketController::class, 'forward'])->name('forward');
+        Route::post('/{ticket}/reply', [Admin\TicketController::class, 'reply'])->name('reply');
+    });
 });
 
 // ===== NHÓM 2: TEACHER =====
@@ -114,6 +142,7 @@ Route::middleware(['auth', 'role:TEACHER'])->prefix('teacher')->name('teacher.')
     Route::get('attendance', [Teacher\AttendanceController::class, 'index'])->name('attendance.index');
     Route::get('classes/{class}/sessions/{session}/attendance', [Teacher\AttendanceController::class, 'edit'])->name('attendance.edit');
     Route::post('classes/{class}/sessions/{session}/attendance', [Teacher\AttendanceController::class, 'update'])->name('attendance.update');
+    Route::post('classes/{class}/sessions/{session}/attendance/restore/{student}', [Teacher\AttendanceController::class, 'restore'])->name('attendance.restore');
 
     // Bài tập / Quiz
     Route::get('assignments', [Teacher\AssignmentController::class, 'index'])->name('assignments.index');
@@ -136,6 +165,7 @@ Route::middleware(['auth', 'role:TEACHER'])->prefix('teacher')->name('teacher.')
     Route::get('submissions/{submission}/grade', [Teacher\GradingController::class, 'show'])->name('grading.show');
     Route::get('submissions/{submission}/download', [Teacher\GradingController::class, 'download'])->name('grading.download');
     Route::post('submissions/{submission}/grade', [Teacher\GradingController::class, 'grade'])->name('grading.grade');
+    Route::post('assignments/{assignment}/publish-grades', [Teacher\GradingController::class, 'publishGrades'])->name('grading.publish-grades');
     Route::post('assignments/{assignment}/remind', [Teacher\GradingController::class, 'remind'])->name('grading.remind');
     Route::post('assignments/{assignment}/remind/{student}', [Teacher\GradingController::class, 'remindStudent'])->name('grading.remind.student');
 
@@ -162,6 +192,12 @@ Route::middleware(['auth', 'role:TEACHER'])->prefix('teacher')->name('teacher.')
     Route::get('risk', [Teacher\RiskDashboardController::class, 'index'])->name('risk.index');
     Route::get('risk/{student}', [Teacher\RiskDashboardController::class, 'show'])->name('risk.show');
     Route::post('risk/{student}/intervene', [Teacher\RiskDashboardController::class, 'recordIntervention'])->name('risk.intervene');
+
+    // Ticket Hỗ trợ được Admin chuyển tiếp
+    Route::prefix('tickets')->name('tickets.')->group(function () {
+        Route::get('/', [Teacher\TicketController::class, 'index'])->name('index');
+        Route::post('/{ticket}/reply', [Teacher\TicketController::class, 'reply'])->name('reply');
+    });
 });
 
 // ===== NHÓM 3: STUDENT =====
@@ -172,9 +208,11 @@ Route::middleware(['auth', 'role:STUDENT'])->prefix('student')->name('student.')
     Route::get('schedule', [Student\ScheduleController::class, 'index'])->name('schedule.index');
     Route::get('attendance', [Student\ScheduleController::class, 'attendance'])->name('attendance.index');
 
-    // Học liệu
+    // Học liệu & Tóm tắt AI tiếng Việt (ViT5)
     Route::get('materials', [Student\MaterialController::class, 'index'])->name('materials.index');
     Route::get('materials/{material}/download', [Student\MaterialController::class, 'download'])->name('materials.download');
+    Route::post('materials/{material}/summarize', [Student\MaterialController::class, 'summarize'])->name('materials.summarize');
+    Route::post('materials/subject/{subject}/summarize', [Student\MaterialController::class, 'summarizeSubject'])->name('materials.summarize-subject');
 
     // Bài tập: xem, làm quiz, nộp tự luận
     Route::get('assignments', [Student\AssignmentController::class, 'index'])->name('assignments.index');
@@ -186,28 +224,30 @@ Route::middleware(['auth', 'role:STUDENT'])->prefix('student')->name('student.')
     // Điểm số
     Route::get('grades', [Student\GradeController::class, 'index'])->name('grades.index');
 
-    // Thông báo + thảo luận
+    // Thông báo + thảo luận + phiếu hỗ trợ
     Route::get('notifications', [Student\NotificationController::class, 'index'])->name('notifications.index');
     Route::get('notifications/{notification}/read', [Student\NotificationController::class, 'read'])->name('notifications.read');
     Route::post('notifications/mark-all-read', [Student\NotificationController::class, 'markAllRead'])->name('notifications.mark-all-read');
+    Route::get('tickets', [Student\TicketController::class, 'index'])->name('tickets.index');
     Route::post('assignments/{assignment}/discussions', [Student\DiscussionController::class, 'store'])->name('discussions.store');
 
     // AI Learning Tutor (Mr. Biết Tuốt): Chỉ dành riêng cho Sinh viên (STUDENT)
     Route::prefix('ai-tutor')->name('ai-tutor.')->group(function () {
         Route::get('/', [Student\AiTutorController::class, 'index'])->name('index');
         Route::post('/', [Student\AiTutorController::class, 'store'])->name('store');
+        Route::post('/messages/{message}/generate-image', [Student\AiTutorController::class, 'generateImage'])->name('generate-image');
         Route::get('/{conversation}', [Student\AiTutorController::class, 'show'])->name('show');
         Route::post('/{conversation}/message', [Student\AiTutorController::class, 'sendMessage'])->name('message');
         Route::post('/{conversation}/stream', [Student\AiTutorController::class, 'stream'])->name('stream');
         Route::delete('/{conversation}', [Student\AiTutorController::class, 'destroy'])->name('destroy');
     });
+});
 
-    // BTEC FPT AI Student Support Assistant (Floating Bubble Widget & API): Chỉ dành riêng cho Sinh viên (STUDENT)
-    Route::prefix('btec-ai')->name('btec-ai.')->group(function () {
-        Route::match(['get', 'post'], '/init', [Student\BtecSupportController::class, 'init'])->name('init');
-        Route::post('/chat', [Student\BtecSupportController::class, 'chat'])->name('chat');
-        Route::post('/stream', [Student\BtecSupportController::class, 'stream'])->name('stream');
-        Route::post('/ticket', [Student\BtecSupportController::class, 'submitTicket'])->name('ticket');
-        Route::post('/feedback', [Student\BtecSupportController::class, 'feedback'])->name('feedback');
-    });
+// ===== BTEC AI SUPPORT ASSISTANT (Dùng chung cho STUDENT, TEACHER, ADMIN — Backend kiểm tra quyền chặt chẽ theo từng role) =====
+Route::middleware(['auth', 'role:STUDENT,TEACHER,ADMIN'])->prefix('student/btec-ai')->name('student.btec-ai.')->group(function () {
+    Route::match(['get', 'post'], '/init', [Student\BtecSupportController::class, 'init'])->name('init');
+    Route::post('/chat', [Student\BtecSupportController::class, 'chat'])->name('chat');
+    Route::post('/stream', [Student\BtecSupportController::class, 'stream'])->name('stream');
+    Route::post('/ticket', [Student\BtecSupportController::class, 'submitTicket'])->name('ticket');
+    Route::post('/feedback', [Student\BtecSupportController::class, 'feedback'])->name('feedback');
 });

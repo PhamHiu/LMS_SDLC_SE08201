@@ -1,23 +1,20 @@
 @extends('layouts.app')
 
-@section('title', 'MR. BIẾT TUỐT — Thầy Giáo Sư AI Thông Thái')
+@section('title', 'MR. BIẾT TUỐT — Trợ giảng AI Học tập')
 
 @push('styles')
 <style>
     .chat-bubble-user {
-        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-        color: white;
+        background: #09090b;
+        color: #ffffff;
+        border: 1px solid #18181b;
         border-bottom-right-radius: 4px;
-        box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.4);
     }
     .chat-bubble-ai {
-        background: rgba(255, 255, 255, 0.88);
-        backdrop-filter: blur(16px);
-        -webkit-backdrop-filter: blur(16px);
-        color: #0f172a;
-        border: 1px solid rgba(255, 255, 255, 0.8);
+        background: #ffffff;
+        color: #09090b;
+        border: 1px solid #e4e4e7;
         border-bottom-left-radius: 4px;
-        box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.05), 0 0 0 1px rgba(226, 232, 240, 0.8);
     }
     .chat-container {
         height: calc(100vh - 210px);
@@ -49,10 +46,6 @@
     .keyword-highlight {
         font-weight: 700;
         color: #0f172a;
-        background-color: #fef3c7;
-        padding: 1px 5px;
-        border-radius: 4px;
-        border: 1px solid #fde68a;
     }
 </style>
 @endpush
@@ -61,24 +54,8 @@
 <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
     <div>
         <div class="flex items-center gap-2.5">
-            <div class="w-12 h-12 rounded-lg overflow-hidden border border-slate-200 shrink-0 p-0.5 bg-[#2b4a75]">
-                <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full h-full">
-                    <rect x="8" y="6" width="20" height="4" rx="2" fill="#f2c94c" opacity="0.95"/>
-                    <rect x="13" y="2" width="10" height="6" rx="2" fill="#f2c94c" opacity="0.9"/>
-                    <rect x="14" y="2" width="8" height="2" rx="1" fill="#e0b43a"/>
-                    <circle cx="18" cy="20" r="9" fill="#FFD6A5" stroke="#f2c94c" stroke-width="0.8"/>
-                    <ellipse cx="14" cy="19" rx="2.2" ry="2.5" fill="#1e4f8f"/>
-                    <ellipse cx="22" cy="19" rx="2.2" ry="2.5" fill="#1e4f8f"/>
-                    <circle cx="14.9" cy="18.2" r="0.9" fill="white"/>
-                    <circle cx="22.9" cy="18.2" r="0.9" fill="white"/>
-                    <ellipse cx="11" cy="22.5" rx="2" ry="1.1" fill="#ff9eb5" opacity="0.5"/>
-                    <ellipse cx="25" cy="22.5" rx="2" ry="1.1" fill="#ff9eb5" opacity="0.5"/>
-                    <path d="M14.5 23.5 Q18 26.5 21.5 23.5" stroke="#c0763a" stroke-width="1.3" stroke-linecap="round" fill="none"/>
-                    <rect x="11.5" y="17.5" width="5" height="3.5" rx="1.8" fill="none" stroke="#f2c94c" stroke-width="1" opacity="0.9"/>
-                    <rect x="19.5" y="17.5" width="5" height="3.5" rx="1.8" fill="none" stroke="#f2c94c" stroke-width="1" opacity="0.9"/>
-                    <line x1="16.5" y1="19.3" x2="19.5" y2="19.3" stroke="#f2c94c" stroke-width="0.8" opacity="0.8"/>
-                    <path d="M29 10 L29.6 12 L31.5 12 L30 13.2 L30.6 15 L29 13.9 L27.4 15 L28 13.2 L26.5 12 L28.4 12 Z" fill="#f2c94c" opacity="0.9"/>
-                </svg>
+            <div class="w-12 h-12 rounded-lg overflow-hidden border border-slate-200 shrink-0 p-0.5 bg-white shadow-sm">
+                <img src="{{ asset('images/mr_biet_tuot.png') }}" alt="Mr. Biết Tuốt" class="w-full h-full object-contain">
             </div>
             <div>
                 <div class="flex items-center gap-2">
@@ -95,10 +72,14 @@
         </div>
     </div>
     
-    <button type="button" onclick="openNewChatModal()" class="inline-flex items-center gap-2 rounded-md bg-[#1e4f8f] px-4 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-[#163c6d] transition">
-        <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-        <span>Cuộc trò chuyện mới</span>
-    </button>
+    <form action="{{ route('student.ai-tutor.store') }}" method="POST">
+        @csrf
+        <input type="hidden" name="mode" value="EXPLAIN">
+        <button type="submit" class="inline-flex items-center gap-2 rounded-md bg-[#1e4f8f] px-4 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-[#163c6d] transition">
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+            <span>Cuộc trò chuyện mới</span>
+        </button>
+    </form>
 </div>
 
 <div class="grid grid-cols-1 gap-6 lg:grid-cols-4 chat-container">
@@ -121,9 +102,6 @@
                             {{ $c->title }}
                         </p>
                         <div class="flex items-center gap-2 mt-1 text-[11px] text-slate-500">
-                            @if($c->subject)
-                                <span class="rounded bg-blue-100/70 px-1.5 py-0.5 font-bold text-[#1e4f8f]">{{ $c->subject->subject_code }}</span>
-                            @endif
                             <span>{{ $c->updated_at->diffForHumans() }}</span>
                         </div>
                     </a>
@@ -137,31 +115,28 @@
                     </form>
                 </div>
             @empty
-                <div class="flex flex-col items-center justify-center h-48 text-center text-slate-500">
-                    <div class="w-12 h-12 rounded-md overflow-hidden border border-amber-200 shadow-sm mb-2 shrink-0"><img src="/images/mr_biet_tuot.jpg" class="w-full h-full object-cover" alt="Thầy Biết Tuốt"></div>
-                    <p class="text-xs">Chưa có cuộc trò chuyện nào.<br>Bấm nút trên để bắt đầu hỏi thầy!</p>
+                <div class="flex flex-col items-center justify-center h-48 text-center text-zinc-500">
+                    <div class="w-12 h-12 rounded-md bg-white border border-zinc-200 p-1 flex items-center justify-center mb-2.5 shrink-0"><img src="{{ asset('images/mr_biet_tuot.png') }}" alt="Mr. Biết Tuốt" class="w-full h-full object-contain"></div>
+                    <p class="text-xs">Chưa có cuộc trò chuyện nào.<br>Bấm nút trên để bắt đầu hỏi Thầy!</p>
                 </div>
             @endforelse
         </div>
     </div>
 
-    {{-- CỘT PHẢI: KHUNG TRÒ CHUYỆN VỚI THẦY BIẾT TUỐT --}}
-    <div class="lg:col-span-3 flex flex-col rounded-lg border border-slate-200 bg-slate-50 shadow-sm overflow-hidden">
+    {{-- CỘT PHẢI: KHUNG TRÒ CHUYỆN TRỢ GIẢNG AI --}}
+    <div class="lg:col-span-3 flex flex-col rounded-lg border border-zinc-200 bg-white overflow-hidden">
         @if($activeConversation)
             {{-- Header hội thoại --}}
-            <div class="flex items-center justify-between border-b border-slate-200 bg-slate-900/60/70 px-5 py-3.5">
+            <div class="flex items-center justify-between border-b border-zinc-200 bg-white px-5 py-3.5">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-md overflow-hidden border border-amber-200 shadow-sm shrink-0"><img src="/images/mr_biet_tuot.jpg" alt="MR. BIẾT TUỐT" class="w-full h-full object-cover"></div>
+                    <div class="w-10 h-10 rounded-md bg-white border border-zinc-200 p-1 flex items-center justify-center shrink-0"><img src="{{ asset('images/mr_biet_tuot.png') }}" alt="Mr. Biết Tuốt" class="w-full h-full object-contain"></div>
                     <div>
-                        <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-2 flex-wrap">
                             <h2 class="text-base font-bold text-slate-800">{{ $activeConversation->title }}</h2>
-                            <span class="rounded bg-blue-100 px-2 py-0.5 text-[11px] font-bold text-[#1e4f8f]">{{ $activeConversation->modeLabel() }}</span>
+                            <span id="activeModeBadge" class="rounded bg-blue-100 px-2 py-0.5 text-[11px] font-bold text-[#1e4f8f]">{{ $activeConversation->modeLabel() }}</span>
                         </div>
                         <div class="flex items-center gap-2 mt-0.5 text-xs text-slate-500">
                             <span>Gia sư: <strong>MR. BIẾT TUỐT</strong></span>
-                            @if($activeConversation->subject)
-                                <span>· Môn: <strong class="text-slate-700">{{ $activeConversation->subject->subject_name }}</strong></span>
-                            @endif
                         </div>
                     </div>
                 </div>
@@ -175,11 +150,11 @@
             </div>
 
             {{-- Danh sách tin nhắn --}}
-            <div id="messagesContainer" class="flex-1 overflow-y-auto p-5 space-y-4 bg-slate-900/60/40">
+            <div id="messagesContainer" class="flex-1 overflow-y-auto p-5 space-y-4 bg-zinc-50/70">
                 @forelse($activeConversation->messages as $msg)
                     <div class="flex gap-3 {{ $msg->isUser() ? 'justify-end' : 'justify-start' }}">
                         @if($msg->isAssistant())
-                            <div class="w-9 h-9 rounded-md overflow-hidden border border-amber-200 shadow shrink-0"><img src="/images/mr_biet_tuot.jpg" alt="Thầy Biết Tuốt" class="w-full h-full object-cover"></div>
+                            <div class="w-9 h-9 rounded-md bg-white border border-zinc-200 p-0.5 flex items-center justify-center shrink-0 mt-0.5"><img src="{{ asset('images/mr_biet_tuot.png') }}" alt="Mr. Biết Tuốt" class="w-full h-full object-contain"></div>
                         @endif
                         
                         <div class="max-w-[85%] rounded-lg px-4 py-3 text-sm leading-relaxed {{ $msg->isUser() ? 'chat-bubble-user' : 'chat-bubble-ai' }}">
@@ -210,7 +185,7 @@
                                 @if($msg->isAssistant())
                                     {!! App\Services\AI\AiTutorViewHelper::renderMarkdown($msg->content) !!}
                                 @else
-                                    {!! nl2br(e($msg->content)) !!}
+                                    {!! nl2br(\App\Services\ContentModerationService::renderHtml($msg->content)) !!}
                                 @endif
                             </div>
 
@@ -224,37 +199,37 @@
                         @endif
                     </div>
                 @empty
-                    <div class="flex flex-col items-center justify-center h-full text-center text-slate-500 py-12">
-                        <div class="w-24 h-24 rounded-lg overflow-hidden border-2 border-amber-400/70 shadow-sm mb-4 p-1 bg-amber-600"><img src="/images/mr_biet_tuot.jpg" alt="Thầy Biết Tuốt" class="w-full h-full object-cover rounded-lg"></div>
-                        <h3 class="text-lg font-bold text-slate-800">Chào học trò {{ auth()->user()->full_name }}!</h3>
-                        <p class="text-sm max-w-lg mt-1 text-slate-500 leading-relaxed">
-                            Thầy là <strong>MR. BIẾT TUỐT</strong>. Thầy luôn sẵn sàng giúp em thấu hiểu bản chất bài học, gỡ lỗi code và rèn luyện tư duy lập trình 24/7.
-                            Em có thể đặt câu hỏi hoặc <strong>tải ảnh đề bài/tệp code (tối đa 5MB)</strong> lên để thầy xem nhé! 
+                    <div class="flex flex-col items-center justify-center h-full text-center text-zinc-500 py-12">
+                        <div class="w-20 h-20 rounded-xl bg-white border border-zinc-200 p-1.5 flex items-center justify-center mb-3 shadow-xs"><img src="{{ asset('images/mr_biet_tuot.png') }}" alt="Mr. Biết Tuốt" class="w-full h-full object-contain"></div>
+                        <h3 class="text-base font-semibold text-zinc-900">Xin chào {{ auth()->user()->full_name }}</h3>
+                        <p class="text-sm max-w-lg mt-1 text-zinc-500 leading-relaxed">
+                            Thầy là <strong class="text-zinc-900">MR. BIẾT TUỐT (Trợ giảng AI)</strong>, hỗ trợ giải thích kiến thức, phân tích đề bài, rà soát code và ôn luyện cho mọi môn học.
+                            Em có thể đặt câu hỏi hoặc <strong class="text-zinc-900">đính kèm ảnh / tài liệu (tối đa 5MB)</strong>.
                         </p>
-                        
+
                         {{-- Gợi ý câu hỏi nhanh --}}
                         <div class="mt-6 flex flex-wrap justify-center gap-2 max-w-xl">
-                            <button type="button" onclick="sendQuickPrompt('Thầy giải thích giúp em khái niệm 4 tính chất OOP bằng ví dụ đời thực với ạ?')" class="rounded-full border border-blue-200 bg-white px-3.5 py-2 text-xs font-semibold text-[#1e4f8f] hover:bg-blue-50 shadow-xs transition">
-                                Giải thích 4 tính chất OOP
+                            <button type="button" onclick="sendQuickPrompt('Tóm tắt giúp em các kiến thức trọng tâm của môn học này bằng sơ đồ trực quan nhé.')" class="rounded-md border border-zinc-200 bg-white px-3.5 py-2 text-xs font-medium text-zinc-700 hover:border-zinc-900 hover:text-zinc-950 transition">
+                                Tóm tắt trọng tâm môn học
                             </button>
-                            <button type="button" onclick="sendQuickPrompt('Thầy hướng dẫn từng bước cách thiết kế khóa chính và khóa ngoại trong MySQL chuẩn ạ?')" class="rounded-full border border-blue-200 bg-white px-3.5 py-2 text-xs font-semibold text-[#1e4f8f] hover:bg-blue-50 shadow-xs transition">
-                                Thiết kế Khóa chính & Khóa ngoại
+                            <button type="button" onclick="sendQuickPrompt('Hướng dẫn em từng bước cách phân tích đề và lập dàn ý cho bài tập lớn nhé.')" class="rounded-md border border-zinc-200 bg-white px-3.5 py-2 text-xs font-medium text-zinc-700 hover:border-zinc-900 hover:text-zinc-950 transition">
+                                Cách lập dàn ý bài tập lớn
                             </button>
-                            <button type="button" onclick="sendQuickPrompt('Thầy cho em 3 câu hỏi trắc nghiệm tự luyện về môn học này kèm giải thích chi tiết ạ?')" class="rounded-full border border-blue-200 bg-white px-3.5 py-2 text-xs font-semibold text-[#1e4f8f] hover:bg-blue-50 shadow-xs transition">
-                                3 câu hỏi trắc nghiệm tự luyện
+                            <button type="button" onclick="sendQuickPrompt('Cho em 3 câu hỏi trắc nghiệm ôn tập về môn học này kèm giải thích chi tiết nhé.')" class="rounded-md border border-zinc-200 bg-white px-3.5 py-2 text-xs font-medium text-zinc-700 hover:border-zinc-900 hover:text-zinc-950 transition">
+                                3 câu hỏi trắc nghiệm ôn tập
                             </button>
                         </div>
                     </div>
                 @endforelse
 
-                {{-- Khung hiển thị khi Thầy đang suy nghĩ --}}
+                {{-- Trạng thái đang xử lý --}}
                 <div id="aiTypingIndicator" class="hidden flex gap-3 justify-start">
-                    <div class="w-9 h-9 rounded-md overflow-hidden border border-amber-200 shadow shrink-0"><img src="/images/mr_biet_tuot.jpg" alt="Thầy Biết Tuốt" class="w-full h-full object-cover"></div>
+                    <div class="w-9 h-9 rounded-md bg-white border border-zinc-200 p-0.5 flex items-center justify-center shrink-0 mt-0.5"><img src="{{ asset('images/mr_biet_tuot.png') }}" alt="Mr. Biết Tuốt" class="w-full h-full object-contain"></div>
                     <div class="chat-bubble-ai rounded-lg px-4 py-3 flex items-center gap-2">
-                        <span class="h-2.5 w-2.5 rounded-full bg-amber-600 typing-dot"></span>
-                        <span class="h-2.5 w-2.5 rounded-full bg-[#1e4f8f] typing-dot"></span>
-                        <span class="h-2.5 w-2.5 rounded-full bg-cyan-600 typing-dot"></span>
-                        <span class="text-xs text-slate-600 font-semibold ml-2">Thầy BIẾT TUỐT đang suy nghĩ và chuẩn bị lời giải thích cho em... </span>
+                        <span class="h-2 w-2 rounded-full bg-zinc-400 typing-dot"></span>
+                        <span class="h-2 w-2 rounded-full bg-zinc-600 typing-dot"></span>
+                        <span class="h-2 w-2 rounded-full bg-zinc-900 typing-dot"></span>
+                        <span class="text-xs text-zinc-600 font-medium ml-1.5">Thầy Biết Tuốt đang phân tích và soạn câu trả lời...</span>
                     </div>
                 </div>
             </div>
@@ -280,20 +255,32 @@
                     {{-- Nút chọn tệp đính kèm --}}
                     <div>
                         <input type="file" id="fileAttachmentInput" class="hidden" accept="image/*,.pdf,.doc,.docx,.txt,.java,.py,.php,.js,.html,.css,.sql,.json,.c,.cpp,.cs,.ts,.zip,.rar" onchange="handleFilePicked(event)">
-                        <label for="fileAttachmentInput" class="cursor-pointer flex h-11 w-11 items-center justify-center rounded-md border border-slate-200 bg-slate-50 text-slate-600 hover:bg-[#163c6d] hover:text-[#163c6d] hover:border-blue-400 transition shadow-xs" title="Đính kèm tệp tin hoặc ảnh đề bài (tối đa 5MB)">
+                        <label for="fileAttachmentInput" class="cursor-pointer flex h-11 w-11 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-600 hover:bg-slate-100 hover:text-slate-900 hover:border-slate-300 transition shadow-xs" title="Đính kèm tệp tin hoặc ảnh đề bài (tối đa 5MB)">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
                         </label>
                     </div>
 
                     {{-- Ô nhập nội dung tin nhắn --}}
-                    <div class="flex-1">
-                        <textarea id="messageInput" rows="1" placeholder="Hỏi thầy Biết Tuốt về bài học, bài tập hoặc gửi ảnh/code cần thầy sửa... (Nhấn Enter để gửi)" class="w-full resize-none rounded-md border border-slate-200 px-4 py-2.5 text-sm focus:border-[#1e4f8f] focus:outline-none focus:ring-2 focus:ring-blue-100 max-h-32" onkeydown="handleInputKey(event)"></textarea>
+                    <div class="flex-1 min-w-0">
+                        <textarea id="messageInput" rows="1" placeholder="Hỏi Thầy Biết Tuốt về kiến thức, bài tập hoặc gửi ảnh/tài liệu... (Nhấn Enter để gửi)" class="w-full resize-none rounded-md border border-slate-200 bg-white px-4 py-2.5 text-sm focus:border-[#1e4f8f] focus:outline-none focus:ring-2 focus:ring-blue-100 max-h-32" onkeydown="handleInputKey(event)"></textarea>
                     </div>
 
-                    {{-- Nút gửi --}}
-                    <button type="submit" id="btnSend" class="flex h-11 items-center gap-2 rounded-md bg-[#1e4f8f] px-5 text-sm font-bold text-white shadow-sm hover:bg-[#163c6d] transition disabled:opacity-50">
+                    {{-- Chế độ đồng hành cùng Thầy (ngay cạnh nút Gửi đi) --}}
+                    <div class="shrink-0">
+                        <select id="tutorModeSelect" title="Chế độ đồng hành cùng Thầy" class="h-11 rounded-md border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 focus:border-[#1e4f8f] focus:outline-none focus:ring-2 focus:ring-blue-100 cursor-pointer shadow-xs">
+                            <option value="EXPLAIN" {{ $activeConversation->mode === 'EXPLAIN' ? 'selected' : '' }}>Giải thích kiến thức</option>
+                            <option value="GUIDANCE" {{ $activeConversation->mode === 'GUIDANCE' ? 'selected' : '' }}>Hướng dẫn bài tập</option>
+                            <option value="REVIEW" {{ $activeConversation->mode === 'REVIEW' ? 'selected' : '' }}>Soi lỗi bài làm</option>
+                            <option value="PRACTICE" {{ $activeConversation->mode === 'PRACTICE' ? 'selected' : '' }}>Luyện tập câu hỏi</option>
+                        </select>
+                    </div>
+
+                    {{-- Nút gửi với icon chuẩn --}}
+                    <button type="submit" id="btnSend" class="flex h-11 items-center gap-1.5 rounded-md bg-[#1e4f8f] px-4 text-sm font-bold text-white shadow-sm hover:bg-[#163c6d] transition disabled:opacity-50 shrink-0" title="Gửi tin nhắn">
                         <span>Gửi</span>
-                        <svg class="w-4 h-4 ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5"/>
+                        </svg>
                     </button>
                 </form>
 
@@ -303,86 +290,19 @@
                 </div>
             </div>
         @else
-            <div class="flex flex-col items-center justify-center h-full text-center text-slate-500 p-8">
-                <div class="w-24 h-24 rounded-lg overflow-hidden border-2 border-amber-400/70 shadow-sm mb-4 p-1 bg-amber-600"><img src="/images/mr_biet_tuot.jpg" alt="Thầy Biết Tuốt" class="w-full h-full object-cover rounded-lg"></div>
-                <h3 class="text-lg font-bold text-slate-700">Chào mừng đến với MR. BIẾT TUỐT!</h3>
-                <p class="text-sm max-w-md mt-1 text-slate-500 mb-6">Bạn chưa chọn hoặc chưa có cuộc trò chuyện nào. Hãy bắt đầu một phiên gia sư mới để nhận sự hướng dẫn tận tình từ thầy nhé!</p>
-                <button type="button" onclick="openNewChatModal()" class="rounded-md bg-[#1e4f8f] px-5 py-2.5 text-sm font-bold text-white shadow hover:bg-[#163c6d] transition">
-                    Bắt đầu cuộc trò chuyện mới với Thầy
-                </button>
+            <div class="flex flex-col items-center justify-center h-full text-center text-zinc-500 p-8">
+                <div class="w-20 h-20 rounded-xl bg-white border border-zinc-200 p-1.5 flex items-center justify-center mb-3 shadow-xs"><img src="{{ asset('images/mr_biet_tuot.png') }}" alt="Mr. Biết Tuốt" class="w-full h-full object-contain"></div>
+                <h3 class="text-base font-semibold text-zinc-900">MR. BIẾT TUỐT — Trợ giảng AI</h3>
+                <p class="text-sm max-w-md mt-1 text-zinc-500 mb-6">Chọn một phiên ở cột bên trái hoặc tạo phiên mới để bắt đầu hỏi bài cùng Thầy.</p>
+                <form action="{{ route('student.ai-tutor.store') }}" method="POST">
+                    @csrf
+                    <input type="hidden" name="mode" value="EXPLAIN">
+                    <button type="submit" class="rounded-md bg-zinc-950 px-4 py-2 text-xs font-semibold text-white hover:bg-zinc-800 transition">
+                        + Tạo phiên hỏi đáp mới
+                    </button>
+                </form>
             </div>
         @endif
-    </div>
-</div>
-
-{{-- MODAL TẠO CUỘC TRÒ CHUYỆN MỚI --}}
-<div id="newChatModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/75 p-4">
-    <div class="w-full max-w-lg rounded-lg glass-dark bg-slate-50 p-6 shadow-sm border border-slate-200 text-slate-800">
-        <div class="flex items-center justify-between border-b border-slate-200 pb-3 mb-4">
-            <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2.5">
-                <div class="w-7 h-7 rounded-lg overflow-hidden border border-amber-200 shadow-sm shrink-0"><img src="/images/mr_biet_tuot.jpg" class="w-full h-full object-cover"></div>
-                <span>Khởi tạo phiên hỏi đáp với MR. BIẾT TUỐT</span>
-            </h3>
-            <button type="button" onclick="closeNewChatModal()" class="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-[#163c6d] transition">✕</button>
-        </div>
-
-        <form action="{{ route('student.ai-tutor.store') }}" method="POST" class="space-y-4">
-            @csrf
-            <div>
-                <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">Môn học cần hỗ trợ</label>
-                <select name="subject_id" class="w-full rounded-md border border-slate-200 bg-slate-50 text-slate-900 px-3.5 py-2.5 text-sm focus:border-[#1e4f8f] focus:outline-none">
-                    <option value="" class="bg-slate-50 text-slate-600">-- Chọn môn học (Tùy chọn) --</option>
-                    @foreach($subjects as $s)
-                        <option value="{{ $s->subject_id }}" class="bg-slate-50 text-slate-900">{{ $s->subject_code }} — {{ $s->subject_name }}</option>
-                    @endforeach
-                </select>
-                <p class="text-[11px] text-slate-500 mt-1">Khi chọn môn học, thầy sẽ ưu tiên bám sát giáo trình và tài liệu của môn đó.</p>
-            </div>
-
-            <div>
-                <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">Chế độ đồng hành cùng Thầy</label>
-                <div class="grid grid-cols-2 gap-2">
-                    <label class="flex items-center gap-2.5 rounded-md border border-slate-200 bg-slate-50 p-3 cursor-pointer hover:bg-slate-100 has-[:checked]:border-[#1e4f8f] has-[:checked]:bg-blue-100 transition">
-                        <input type="radio" name="mode" value="EXPLAIN" checked class="text-[#1e4f8f]">
-                        <div class="text-xs">
-                            <strong class="block text-slate-900">Giải thích kiến thức</strong>
-                            <span class="text-slate-500">Hiểu sâu bản chất</span>
-                        </div>
-                    </label>
-                    <label class="flex items-center gap-2.5 rounded-md border border-slate-200 bg-slate-50 p-3 cursor-pointer hover:bg-slate-100 has-[:checked]:border-[#1e4f8f] has-[:checked]:bg-blue-100 transition">
-                        <input type="radio" name="mode" value="GUIDANCE" class="text-[#1e4f8f]">
-                        <div class="text-xs">
-                            <strong class="block text-slate-900">Hướng dẫn bài tập</strong>
-                            <span class="text-slate-500">Gợi mở từng bước</span>
-                        </div>
-                    </label>
-                    <label class="flex items-center gap-2.5 rounded-md border border-slate-200 bg-slate-50 p-3 cursor-pointer hover:bg-slate-100 has-[:checked]:border-[#1e4f8f] has-[:checked]:bg-blue-100 transition">
-                        <input type="radio" name="mode" value="REVIEW" class="text-[#1e4f8f]">
-                        <div class="text-xs">
-                            <strong class="block text-slate-900">Soi lỗi bài làm</strong>
-                            <span class="text-slate-500">Bắt lỗi & tối ưu</span>
-                        </div>
-                    </label>
-                    <label class="flex items-center gap-2.5 rounded-md border border-slate-200 bg-slate-50 p-3 cursor-pointer hover:bg-slate-100 has-[:checked]:border-[#1e4f8f] has-[:checked]:bg-blue-100 transition">
-                        <input type="radio" name="mode" value="PRACTICE" class="text-[#1e4f8f]">
-                        <div class="text-xs">
-                            <strong class="block text-slate-900">Luyện tập câu hỏi</strong>
-                            <span class="text-slate-500">Thử thách phản xạ</span>
-                        </div>
-                    </label>
-                </div>
-            </div>
-
-            <div>
-                <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">Lời nhắn đầu tiên gửi Thầy (Tùy chọn)</label>
-                <textarea name="initial_message" rows="2" placeholder="Ví dụ: Thầy giúp em hiểu rõ về tính Đa hình (Polymorphism) trong Java với ạ..." class="w-full rounded-md border border-slate-200 bg-slate-50 text-slate-900 px-3.5 py-2.5 text-sm focus:border-[#1e4f8f] focus:outline-none placeholder-slate-400"></textarea>
-            </div>
-
-            <div class="flex justify-end gap-2 pt-2 border-t border-slate-200">
-                <button type="button" onclick="closeNewChatModal()" class="rounded-md px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 transition">Hủy</button>
-                <button type="submit" class="rounded-md bg-[#1e4f8f] px-5 py-2 text-sm font-bold text-white shadow-sm hover:bg-[#163c6d] transition">Bắt đầu trò chuyện</button>
-            </div>
-        </form>
     </div>
 </div>
 @endsection
@@ -391,12 +311,19 @@
 <script>
     const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
-    function openNewChatModal() {
-        document.getElementById('newChatModal').classList.remove('hidden');
-    }
-    function closeNewChatModal() {
-        document.getElementById('newChatModal').classList.add('hidden');
-    }
+    // Đồng bộ nhãn chế độ trên header ngay khi người dùng đổi chế độ cạnh nút Gửi
+    document.addEventListener('DOMContentLoaded', () => {
+        const modeSelect = document.getElementById('tutorModeSelect');
+        const modeBadge = document.getElementById('activeModeBadge');
+        if (modeSelect && modeBadge) {
+            modeSelect.addEventListener('change', () => {
+                const selectedOption = modeSelect.options[modeSelect.selectedIndex];
+                if (selectedOption) {
+                    modeBadge.textContent = selectedOption.text;
+                }
+            });
+        }
+    });
 
     function scrollToBottom() {
         const container = document.getElementById('messagesContainer');
@@ -503,17 +430,19 @@
             }
         }
 
+        const userMsgId = 'user-msg-' + Date.now();
         const userHtml = `
             <div class="flex gap-3 justify-end">
                 <div class="max-w-[85%] rounded-lg px-4 py-3 text-sm leading-relaxed chat-bubble-user">
                     ${userAttachmentHtml}
-                    ${message ? escapeHtml(message).replace(/\n/g, '<br>') : ''}
+                    <div id="${userMsgId}-text">${message ? escapeHtml(message).replace(/\n/g, '<br>') : ''}</div>
                     <div class="mt-1.5 text-[10px] text-blue-700 text-right">Vừa xong</div>
                 </div>
                 <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-blue-100 text-[#1e4f8f] text-xs font-bold">{{ mb_substr(auth()->user()->full_name, 0, 1) }}</span>
             </div>
         `;
         container.insertAdjacentHTML('beforeend', userHtml);
+        const userMsgTextEl = document.getElementById(`${userMsgId}-text`);
 
         // Reset input UI
         input.value = '';
@@ -525,8 +454,10 @@
         container.appendChild(typing);
         scrollToBottom();
 
-        // Chuẩn bị FormData gửi lên server
+        // Chuẩn bị FormData gửi lên server (kèm chế độ đồng hành đang chọn)
         const formData = new FormData();
+        const modeSelect = document.getElementById('tutorModeSelect');
+        if (modeSelect && modeSelect.value) formData.append('mode', modeSelect.value);
         if (message) formData.append('message', message);
         if (file) formData.append('file', file);
 
@@ -539,10 +470,15 @@
             const aiBubbleId = 'ai-msg-' + Date.now();
             const aiHtml = `
                 <div class="flex gap-3 justify-start" id="${aiBubbleId}">
-                    <div class="w-9 h-9 rounded-md overflow-hidden border border-amber-200 shadow shrink-0"><img src="/images/mr_biet_tuot.jpg" alt="Thầy Biết Tuốt" class="w-full h-full object-cover"></div>
+                    <div class="w-9 h-9 rounded-md bg-white border border-zinc-200 p-0.5 flex items-center justify-center shrink-0 mt-0.5"><img src="{{ asset('images/mr_biet_tuot.png') }}" alt="Mr. Biết Tuốt" class="w-full h-full object-contain"></div>
                     <div class="max-w-[85%] rounded-lg px-4 py-3 text-sm leading-relaxed chat-bubble-ai">
                         <div class="prose-message" id="${aiBubbleId}-content">
-                            <span class="inline-block w-2 h-4 bg-amber-600 align-middle ml-1"></span>
+                            <span class="inline-flex items-center gap-2 text-xs text-zinc-500">
+                                <span class="h-1.5 w-1.5 rounded-full bg-zinc-400 typing-dot"></span>
+                                <span class="h-1.5 w-1.5 rounded-full bg-zinc-600 typing-dot"></span>
+                                <span class="h-1.5 w-1.5 rounded-full bg-zinc-900 typing-dot"></span>
+                                <span>Thầy Biết Tuốt đang suy nghĩ...</span>
+                            </span>
                         </div>
                         <div class="mt-2 text-[10px] text-slate-500 text-right" id="${aiBubbleId}-time">Đang phản hồi...</div>
                     </div>
@@ -554,6 +490,7 @@
 
             let fullText = '';
             let usedStreaming = false;
+            let pendingImageMessageId = null;
 
             try {
                 const response = await fetch(streamUrl, {
@@ -587,6 +524,15 @@
                                         scrollToBottom();
                                     }
                                     if (json.done) {
+                                        if (json.masked_user_message && userMsgTextEl) {
+                                            userMsgTextEl.innerHTML = escapeHtml(json.masked_user_message)
+                                                .replace(/\[\[BLUR\]\]([\s\S]*?)\[\[\/BLUR\]\]/g, '<span title="Nội dung đã bị làm mờ do ngôn từ không phù hợp" style="filter: blur(5px); user-select: none; -webkit-user-select: none; pointer-events: none; display: inline-block; padding: 0 3px;">$1</span>')
+                                                .replace(/\n/g, '<br>');
+                                        }
+                                        if (json.content) fullText = json.content;
+                                        if (json.pending_image_prompt && json.message_id) {
+                                            pendingImageMessageId = json.message_id;
+                                        }
                                         timeEl.textContent = json.created_at || 'Vừa xong';
                                     }
                                 } catch (e) {}
@@ -594,6 +540,12 @@
                         }
                     }
                     contentEl.innerHTML = formatAiResponse(fullText);
+                    if (window.renderMermaidDiagrams) window.renderMermaidDiagrams(contentEl);
+
+                    // Nếu có thẻ ảnh chờ vẽ -> gọi vẽ ngầm (Async) không khóa ô chat, tự thay vào đúng vị trí skeleton
+                    if (pendingImageMessageId) {
+                        fetchDeferredAiImage(pendingImageMessageId, contentEl);
+                    }
                 }
             } catch (streamErr) {
                 console.warn('Streaming glitch, using standard AJAX fallback:', streamErr);
@@ -610,6 +562,7 @@
                 typing.classList.add('hidden');
                 if (resData.success) {
                     contentEl.innerHTML = formatAiResponse(resData.data.content);
+                    if (window.renderMermaidDiagrams) window.renderMermaidDiagrams(contentEl);
                     timeEl.textContent = resData.data.created_at;
                 } else {
                     contentEl.innerHTML = '<span class="text-rose-600">⚠️ ' + escapeHtml(resData.message || 'Không thể kết nối') + '</span>';
@@ -618,7 +571,12 @@
             @endif
         } catch (err) {
             typing.classList.add('hidden');
-            alert('Lỗi kết nối mạng: ' + err.message);
+            if (contentEl) {
+                contentEl.innerHTML = '<span class="text-rose-600 font-semibold">Không thể kết nối với Server. Vui lòng kiểm tra lại mạng!</span>';
+            }
+            if (window.showOfflineBanner) {
+                window.showOfflineBanner('Không thể kết nối với Server. Vui lòng kiểm tra lại mạng!');
+            }
         } finally {
             cancelSelectedFile();
             input.disabled = false;
@@ -637,11 +595,37 @@
     function formatAiResponse(text) {
         if (!text) return '';
 
-        // 1. Tách và bảo vệ các khối Code Blocks ```...```
+        // 1. Tách và bảo vệ các khối Code Blocks ```...``` (và dựng card sơ đồ UML/Mermaid)
         const codeBlocks = [];
-        let formatted = text.replace(/```([a-zA-Z0-9_-]*)\n([\s\S]*?)```/g, function(match, lang, code) {
+        let formatted = text.replace(/```([a-zA-Z0-9_-]*)\r?\n([\s\S]*?)```/g, function(match, lang, code) {
             const placeholder = `___CODE_BLOCK_${codeBlocks.length}___`;
-            codeBlocks.push(`<pre><code class="language-${escapeHtml(lang || 'code')}">${escapeHtml(code)}</code></pre>`);
+            const normLang = (lang || 'code').trim().toLowerCase();
+            if (normLang === 'mermaid' && typeof window.buildMermaidCardHtml === 'function') {
+                codeBlocks.push(window.buildMermaidCardHtml(code.trim()));
+            } else if (typeof window.buildVsCodeBlockHtml === 'function') {
+                codeBlocks.push(window.buildVsCodeBlockHtml(normLang, code.replace(/^\n+|\n+$/g, '')));
+            } else {
+                codeBlocks.push(`<pre><code class="language-${escapeHtml(normLang)}">${escapeHtml(code)}</code></pre>`);
+            }
+            return placeholder;
+        });
+
+        // 1b. Khi đang stream dở khối ```mermaid chưa đóng, hiện khung chờ gọn gàng
+        formatted = formatted.replace(/```mermaid\r?\n[\s\S]*$/i, function() {
+            const placeholder = `___CODE_BLOCK_${codeBlocks.length}___`;
+            codeBlocks.push('<div class="my-3 rounded-lg border border-blue-200 bg-blue-50/60 px-3.5 py-2.5 text-xs font-semibold text-[#1e4f8f]">Đang vẽ sơ đồ minh họa (UML / Mermaid)...</div>');
+            return placeholder;
+        });
+
+        // 1c. Khi đang stream dở khối code ```sql/php/java... chưa kịp đóng ``` -> vẫn render ngay trong khung VS Code
+        formatted = formatted.replace(/```([a-zA-Z0-9_-]*)\r?\n([\s\S]+)$/, function(match, lang, code) {
+            const placeholder = `___CODE_BLOCK_${codeBlocks.length}___`;
+            const normLang = (lang || 'code').trim().toLowerCase();
+            if (typeof window.buildVsCodeBlockHtml === 'function') {
+                codeBlocks.push(window.buildVsCodeBlockHtml(normLang || 'code', code.replace(/^\n+|\n+$/g, '')));
+            } else {
+                codeBlocks.push(`<pre><code class="language-${escapeHtml(normLang)}">${escapeHtml(code)}</code></pre>`);
+            }
             return placeholder;
         });
 
@@ -702,8 +686,28 @@
         // 7. Loại bỏ dấu ### còn sót lại nếu có
         formatted = formatted.replace(/#{2,}/g, '');
 
-        // 8. Inline code: `code`
-        formatted = formatted.replace(/`([^`]+)`/g, '<code class="bg-slate-100 text-[#1e4f8f] px-1.5 py-0.5 rounded text-xs">$1</code>');
+        // 8. Inline code: `code` (font & màu kiểu VS Code)
+        formatted = formatted.replace(/`([^`]+)`/g, '<code class="vscode-inline-code">$1</code>');
+
+        // 8b. Ảnh minh họa Markdown: ![alt](url)
+        formatted = formatted.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, function(m, alt, url) {
+            const safeAlt = escapeHtml(alt || 'Hình ảnh minh họa AI');
+            const safeUrl = escapeHtml((url || '').trim());
+            return `<div class="my-3 rounded-lg border border-slate-200 bg-white p-2 shadow-xs max-w-md"><a href="${safeUrl}" target="_blank" class="block overflow-hidden rounded"><img src="${safeUrl}" alt="${safeAlt}" class="w-full h-auto rounded object-contain"></a><p class="mt-1.5 text-[11px] text-slate-500 text-center">${safeAlt} (bấm để xem kích thước gốc)</p></div>`;
+        });
+
+        // 8c. Khung chờ ảnh bất đồng bộ [IMAGE: ...] ngay tại đúng vị trí AI đặt ảnh
+        formatted = formatted.replace(/\[IMAGE:\s*[^\]]+\]/gi, function() {
+            return `<div class="ai-image-skeleton my-3 rounded-lg border border-slate-200 bg-slate-50 p-4 max-w-md flex items-center gap-3 animate-pulse">
+                <div class="h-11 w-11 rounded-md bg-slate-200 shrink-0 flex items-center justify-center text-slate-400">
+                    <svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg>
+                </div>
+                <div class="flex-1 space-y-1.5">
+                    <div class="text-xs font-semibold text-slate-700">Đang vẽ hình minh họa AI...</div>
+                    <div class="text-[11px] text-slate-500">Bạn cứ đọc nội dung phía trên, ảnh sẽ tự hiện vào đúng vị trí này.</div>
+                </div>
+            </div>`;
+        });
 
         // 9. Xuống dòng
         formatted = formatted.replace(/\n/g, '<br>');
@@ -719,6 +723,33 @@
         });
 
         return formatted;
+    }
+
+    async function fetchDeferredAiImage(messageId, contentEl) {
+        if (!messageId || !contentEl) return;
+        const url = `{{ url('/student/ai-tutor/messages') }}/${messageId}/generate-image`;
+        try {
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json',
+                },
+            });
+            const data = await res.json();
+            const slot = contentEl.querySelector('.ai-image-skeleton');
+            if (!slot) return;
+
+            if (data.success && data.image_url) {
+                const safeUrl = escapeHtml(data.image_url);
+                slot.outerHTML = `<div class="my-3 rounded-lg border border-slate-200 bg-white p-2 shadow-xs max-w-md"><a href="${safeUrl}" target="_blank" class="block overflow-hidden rounded"><img src="${safeUrl}" alt="Hình ảnh minh họa AI" class="w-full h-auto rounded object-contain"></a><p class="mt-1.5 text-[11px] text-slate-500 text-center">Hình ảnh minh họa AI (bấm để xem kích thước gốc)</p></div>`;
+            } else {
+                slot.remove();
+            }
+        } catch (err) {
+            const slot = contentEl.querySelector('.ai-image-skeleton');
+            if (slot) slot.remove();
+        }
     }
 </script>
 @endpush

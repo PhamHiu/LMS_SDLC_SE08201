@@ -128,11 +128,16 @@
                                         {{ $sub->submitted_at?->format('H:i d/m/Y') }}
                                     </td>
 
-                                    {{-- Điểm số (Huy hiệu phát sáng, chữ cực kỳ rõ) --}}
+                                    {{-- Điểm số (Chỉ hiển thị bài tự luận sau khi giảng viên bấm Công bố điểm của lớp) --}}
+                                    @php($isPublished = $sub->assignment?->isGradesPublished() ?? true)
                                     <td class="px-5 py-4 text-center">
-                                        @if ($sub->score !== null)
+                                        @if ($sub->score !== null && $isPublished)
                                             <span class="inline-block rounded-full border border-emerald-200 bg-emerald-50 px-3.5 py-1.5 text-xs font-bold text-emerald-700">
                                                 {{ $sub->score }} / {{ $sub->assignment?->max_score }}
+                                            </span>
+                                        @elseif ($sub->score !== null && ! $isPublished)
+                                            <span class="inline-block rounded-full border border-blue-200 bg-blue-50 px-3.5 py-1.5 text-xs font-bold text-blue-700">
+                                                Chưa công bố điểm
                                             </span>
                                         @else
                                             <span class="inline-block rounded-full border border-amber-200 bg-amber-50 px-3.5 py-1.5 text-xs font-bold text-amber-700">
@@ -143,7 +148,7 @@
 
                                     {{-- Nhận xét của giảng viên (Chữ sáng) --}}
                                     <td class="px-6 py-4 text-xs text-slate-600 max-w-xs">
-                                        <span class="whitespace-pre-line line-clamp-2">{{ $sub->feedback ?? '—' }}</span>
+                                        <span class="whitespace-pre-line line-clamp-2">{{ $isPublished ? ($sub->feedback ?? '—') : 'Chờ giảng viên công bố điểm' }}</span>
                                     </td>
 
                                     {{-- Nút hành động --}}

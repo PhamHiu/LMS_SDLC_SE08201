@@ -29,7 +29,7 @@
                                 @endif
                                 <span class="ml-1 text-xs text-slate-500">{{ $d->created_at?->diffForHumans() }}</span>
                             </p>
-                            <p class="mt-1 text-sm text-slate-600">{{ $d->comment }}</p>
+                            <p class="mt-1 text-sm text-slate-600">{!! \App\Services\ContentModerationService::renderHtml($d->comment) !!}</p>
 
                             {{-- Replies --}}
                             @foreach ($d->replies as $reply)
@@ -43,7 +43,7 @@
                                             @endif
                                             <span class="ml-1 text-slate-500">{{ $reply->created_at?->diffForHumans() }}</span>
                                         </p>
-                                        <p class="mt-0.5 text-sm text-slate-600">{{ $reply->comment }}</p>
+                                        <p class="mt-0.5 text-sm text-slate-600">{!! \App\Services\ContentModerationService::renderHtml($reply->comment) !!}</p>
                                     </div>
                                 </div>
                             @endforeach

@@ -15,7 +15,15 @@ class BtecSupportConversation extends Model
         'user_id',
         'session_token',
         'title',
+        'context_state',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'context_state' => 'array',
+        ];
+    }
 
     public function user(): BelongsTo
     {

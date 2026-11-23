@@ -31,7 +31,21 @@
             </div>
 
             <!-- Nút thao tác nhanh -->
-            <div class="flex items-center gap-2">
+            <div class="flex flex-wrap items-center gap-2">
+                @if ($assignment->isEssay())
+                    @if ($assignment->isGradesPublished())
+                        <span class="inline-flex items-center gap-1.5 rounded-md border border-emerald-300 bg-emerald-50 px-3.5 py-2 text-xs font-bold text-emerald-800 shadow-xs">
+                            <span>✓</span> Đã công bố điểm ({{ $assignment->grades_published_at->format('H:i d/m/Y') }})
+                        </span>
+                    @else
+                        <form method="POST" action="{{ route('teacher.grading.publish-grades', $assignment) }}" onsubmit="return confirm('Xác nhận công bố điểm bài tự luận cho toàn bộ lớp và gửi thông báo tới học sinh?')">
+                            @csrf
+                            <button type="submit" class="inline-flex items-center gap-1.5 rounded-md bg-emerald-600 hover:bg-emerald-700 px-4 py-2 text-xs font-bold text-white transition shadow-sm cursor-pointer">
+                                <span>✓</span> Công bố điểm của lớp
+                            </button>
+                        </form>
+                    @endif
+                @endif
                 @if ($notSubmittedCount > 0)
                     <form method="POST" action="{{ route('teacher.grading.remind', $assignment) }}" onsubmit="return confirm('Bạn có chắc muốn gửi thông báo nhắc nhở nộp bài đến toàn bộ {{ $notSubmittedCount }} sinh viên chưa nộp?')">
                         @csrf

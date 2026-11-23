@@ -19,7 +19,7 @@
                         Lịch sử điểm danh cá nhân
                     </h1>
                     <p class="text-xs text-slate-600 mt-0.5">
-                        Theo dõi tình trạng chuyên cần từng buổi học, bám sát điều kiện chuyên cần tối thiểu <strong class="text-amber-600">80%</strong> để đủ điều kiện thi.
+                        Theo dõi tình trạng chuyên cần từng buổi học; theo quy chế đào tạo, nghỉ quá <strong class="text-rose-600">20%</strong> số buổi sẽ bị <strong class="text-rose-600">trượt môn</strong>.
                     </p>
                 </div>
             </div>

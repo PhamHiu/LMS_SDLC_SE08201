@@ -71,6 +71,50 @@ class GradingController extends Controller
     }
 
     /**
+     * Công bố điểm bài tự luận cho toàn bộ lớp và gửi thông báo tới học sinh.
+     */
+    public function publishGrades(Request $request, Assignment $assignment): RedirectResponse
+    {
+        $this->assignmentService->authorizeAssignment($request->user(), $assignment);
+
+        if (! $assignment->isEssay()) {
+            return back()->with('info', 'Bài trắc nghiệm đã tự động hiển thị điểm ngay sau khi nộp.');
+        }
+
+        $assignment->loadMissing('classRoom.subject');
+        $gradedCount = $assignment->submissions()->whereNotNull('score')->count();
+
+        if ($gradedCount === 0) {
+            return back()->with('error', 'Chưa có bài nộp nào được chấm điểm. Vui lòng chấm ít nhất 1 bài trước khi công bố điểm của lớp.');
+        }
+
+        $assignment->update([
+            'grades_published_at' => now(),
+        ]);
+
+        $className = $assignment->classRoom?->class_name ?? '';
+        $subjectName = $assignment->classRoom?->subject?->subject_name ?? '';
+
+        Notification::create([
+            'user_id' => $request->user()->user_id,
+            'class_id' => $assignment->class_id,
+            'assignment_id' => $assignment->assignment_id,
+            'title' => 'Đã công bố điểm bài tự luận: ' . $assignment->title,
+            'body' => sprintf(
+                'Giảng viên %s đã công bố điểm bài tự luận "%s" (%s — lớp %s, %d bài đã chấm). Các em bấm vào thông báo để xem điểm số và nhận xét chi tiết.',
+                $request->user()->full_name,
+                $assignment->title,
+                $subjectName,
+                $className,
+                $gradedCount
+            ),
+            'target_url' => route('student.assignments.show', $assignment),
+        ]);
+
+        return back()->with('success', "Đã công bố điểm bài tự luận \"{$assignment->title}\" cho lớp {$className} và gửi thông báo đến học sinh!");
+    }
+
+    /**
      * Gửi thông báo nhắc nhở nộp bài đến toàn bộ sinh viên chưa nộp trong lớp.
      */
     public function remind(Request $request, Assignment $assignment): RedirectResponse

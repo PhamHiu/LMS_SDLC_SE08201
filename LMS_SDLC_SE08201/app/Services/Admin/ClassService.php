@@ -140,39 +140,65 @@ class ClassService
     public function getExistingTimetable(string $startDate, ?int $teacherId = null, ?int $roomId = null): array
     {
         $start = Carbon::parse($startDate);
-        
-        $query = ClassSession::with('classRoom')
+
+        $query = ClassSession::with(['classRoom.subject', 'classRoom.teacher', 'room'])
             ->where('session_date', '>=', $start);
 
         if ($teacherId || $roomId) {
-            $query->where(function($q) use ($teacherId, $roomId) {
+            $query->where(function ($q) use ($teacherId, $roomId) {
                 if ($roomId) {
                     $q->orWhere('room_id', $roomId);
                 }
                 if ($teacherId) {
-                    $q->orWhereHas('classRoom', function($q2) use ($teacherId) {
+                    $q->orWhereHas('classRoom', function ($q2) use ($teacherId) {
                         $q2->where('user_id', $teacherId);
                     });
                 }
             });
         }
-            
-        $sessions = $query->get();
-            
-        $result = [];
+
+        $sessions = $query->orderBy('session_date')->get();
+
+        // Gom theo (day_of_week, slot_id, class_id) để tránh lặp 12 lần cùng 1 lớp trên lưới tuần
+        $unique = [];
         foreach ($sessions as $session) {
+            if (! $session->classRoom || ! $session->slot_id) {
+                continue;
+            }
             $date = Carbon::parse($session->session_date);
-            $result[] = [
+            $day = $date->dayOfWeekIso;
+            $key = "{$day}_{$session->slot_id}_{$session->class_id}";
+
+            if (isset($unique[$key])) {
+                continue;
+            }
+
+            $isRoomConflict = $roomId !== null && (int) $session->room_id === $roomId;
+            $isTeacherConflict = $teacherId !== null && (int) $session->classRoom->user_id === $teacherId;
+
+            $reason = match (true) {
+                $isRoomConflict && $isTeacherConflict => 'Trùng GV & phòng',
+                $isTeacherConflict => 'Trùng giảng viên',
+                $isRoomConflict => 'Trùng phòng học',
+                default => 'Lớp khác đang học',
+            };
+
+            $unique[$key] = [
                 'date' => $date->format('Y-m-d'),
-                'day_of_week' => $date->dayOfWeekIso,
-                'slot_id' => $session->slot_id,
-                'room_id' => $session->room_id,
+                'day_of_week' => $day,
+                'slot_id' => (int) $session->slot_id,
+                'room_id' => $session->room_id ? (int) $session->room_id : null,
+                'room_name' => $session->room?->room_name ?? '—',
                 'class_name' => $session->classRoom->class_name,
-                'teacher_id' => $session->classRoom->user_id,
+                'subject_name' => $session->classRoom->subject?->subject_name ?? '',
+                'teacher_id' => (int) $session->classRoom->user_id,
+                'teacher_name' => $session->classRoom->teacher?->full_name ?? '—',
+                'is_hard_conflict' => $isRoomConflict || $isTeacherConflict,
+                'conflict_reason' => $reason,
             ];
         }
-        
-        return $result;
+
+        return array_values($unique);
     }
 
     /**

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
 use App\Models\AiConversation;
+use App\Models\AiMessage;
 use App\Models\Subject;
 use App\Services\AI\AiTutorService;
 use App\Services\Student\StudentAccessService;
@@ -26,36 +27,32 @@ class AiTutorController extends Controller
     public function index(Request $request): View
     {
         $user = $request->user();
-        $conversations = $user->aiConversations()->with('subject')->get();
+        $conversations = $user->aiConversations()->get();
         $activeConversation = $conversations->first();
 
-        $enrolledClassIds = $this->accessService->enrolledClassIds($user);
-        $enrolledSubjects = Subject::whereHas('classes', function ($q) use ($enrolledClassIds) {
-            $q->whereIn('class_id', $enrolledClassIds);
-        })->get();
+        $academicProfile = $this->aiTutorService->resolveStudentAcademicProfile($user);
 
         return view('student.ai_tutor.index', [
             'conversations' => $conversations,
             'activeConversation' => $activeConversation ? $activeConversation->load('messages') : null,
-            'subjects' => $enrolledSubjects,
+            'academicProfile' => $academicProfile,
         ]);
     }
 
     /**
-     * Tạo một cuộc trò chuyện mới với AI.
+     * Tạo ngay một cuộc trò chuyện mới với AI (không cần chọn môn).
      */
     public function store(Request $request): RedirectResponse
     {
         $request->validate([
-            'subject_id' => 'nullable|exists:subjects,subject_id',
-            'mode' => 'required|in:EXPLAIN,GUIDANCE,REVIEW,PRACTICE',
+            'mode' => 'nullable|in:EXPLAIN,GUIDANCE,REVIEW,PRACTICE',
             'initial_message' => 'nullable|string|max:1000',
         ]);
 
         $conversation = AiConversation::create([
             'user_id' => $request->user()->user_id,
-            'subject_id' => $request->subject_id,
-            'mode' => $request->mode,
+            'subject_id' => null,
+            'mode' => $request->input('mode', AiConversation::MODE_EXPLAIN),
             'title' => 'Cuộc trò chuyện mới',
         ]);
 
@@ -74,16 +71,14 @@ class AiTutorController extends Controller
         // Bảo mật: Học sinh chỉ xem được cuộc trò chuyện của chính mình
         abort_if($conversation->user_id !== $request->user()->user_id, 403, 'Bạn không có quyền truy cập cuộc trò chuyện này.');
 
-        $conversations = $request->user()->aiConversations()->with('subject')->get();
-        $enrolledClassIds = $this->accessService->enrolledClassIds($request->user());
-        $enrolledSubjects = Subject::whereHas('classes', function ($q) use ($enrolledClassIds) {
-            $q->whereIn('class_id', $enrolledClassIds);
-        })->get();
+        $conversations = $request->user()->aiConversations()->get();
+        $conversation->load('messages');
+        $academicProfile = $this->aiTutorService->resolveStudentAcademicProfile($request->user());
 
         return view('student.ai_tutor.index', [
             'conversations' => $conversations,
-            'activeConversation' => $conversation->load('messages', 'subject'),
-            'subjects' => $enrolledSubjects,
+            'activeConversation' => $conversation,
+            'academicProfile' => $academicProfile,
         ]);
     }
 
@@ -98,9 +93,14 @@ class AiTutorController extends Controller
         $request->validate([
             'message' => 'nullable|string|max:4000',
             'file' => 'nullable|file|max:5120', // Giới hạn tối đa 5MB
+            'mode' => 'nullable|in:EXPLAIN,GUIDANCE,REVIEW,PRACTICE',
         ], [
             'file.max' => 'Dung lượng tệp đính kèm không được vượt quá 5MB.',
         ]);
+
+        if ($request->filled('mode') && $request->input('mode') !== $conversation->mode) {
+            $conversation->update(['mode' => $request->input('mode')]);
+        }
 
         $messageText = trim((string) $request->input('message', ''));
         $hasFile = $request->hasFile('file');
@@ -138,6 +138,7 @@ class AiTutorController extends Controller
             'data' => [
                 'role' => 'assistant',
                 'content' => $assistantMessage->content,
+                'masked_user_message' => $assistantMessage->getAttribute('masked_user_message'),
                 'created_at' => $assistantMessage->created_at->format('H:i d/m/Y'),
                 'attachment' => $attachmentData,
             ]
@@ -154,6 +155,11 @@ class AiTutorController extends Controller
     public function stream(Request $request, AiConversation $conversation): \Symfony\Component\HttpFoundation\StreamedResponse
     {
         abort_if($conversation->user_id !== $request->user()->user_id, 403);
+
+        $requestedMode = (string) $request->input('mode', '');
+        if (in_array($requestedMode, ['EXPLAIN', 'GUIDANCE', 'REVIEW', 'PRACTICE'], true) && $requestedMode !== $conversation->mode) {
+            $conversation->update(['mode' => $requestedMode]);
+        }
 
         $messageText = trim((string) $request->input('message', ''));
         $attachmentData = null;
@@ -195,6 +201,9 @@ class AiTutorController extends Controller
             echo "data: " . json_encode([
                 'done' => true,
                 'message_id' => $assistantMessage->message_id,
+                'content' => $assistantMessage->content,
+                'masked_user_message' => $assistantMessage->getAttribute('masked_user_message'),
+                'pending_image_prompt' => $assistantMessage->getAttribute('pending_image_prompt'),
                 'created_at' => $assistantMessage->created_at->format('H:i d/m/Y'),
             ]) . "\n\n";
 
@@ -205,6 +214,22 @@ class AiTutorController extends Controller
             'Cache-Control' => 'no-cache',
             'X-Accel-Buffering' => 'no',
             'Connection' => 'keep-alive',
+        ]);
+    }
+
+    /**
+     * Endpoint vẽ ảnh minh họa AI bất đồng bộ (Async) sau khi text đã hiển thị xong.
+     */
+    public function generateImage(Request $request, AiMessage $message): JsonResponse
+    {
+        $conversation = $message->conversation;
+        abort_if(! $conversation || $conversation->user_id !== $request->user()->user_id, 403);
+
+        $imageUrl = $this->aiTutorService->generateDeferredImageForMessage($message);
+
+        return response()->json([
+            'success' => $imageUrl !== null,
+            'image_url' => $imageUrl,
         ]);
     }
 
