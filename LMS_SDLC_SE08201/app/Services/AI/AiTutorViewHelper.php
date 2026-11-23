@@ -119,6 +119,9 @@ class AiTutorViewHelper
             return $placeholder;
         }, $text);
 
+        // 2b. Escape toàn bộ HTML thô (vd: <section>, <main>, <article>, <div>) để không bị trình duyệt nuốt mất
+        $text = htmlspecialchars($text, ENT_QUOTES, 'UTF-8');
+
         // 3. Chuyển đổi headings '### Tiêu đề' hoặc '## Tiêu đề' thành khối tiêu đề đẹp
         $text = preg_replace('/^#{1,6}\s*(.+)$/m', '<div class="text-sm font-black text-slate-800 mt-3 mb-1.5 flex items-center gap-1.5">$1</div>', $text);
 

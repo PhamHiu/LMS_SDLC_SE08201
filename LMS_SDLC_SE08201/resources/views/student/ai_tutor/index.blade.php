@@ -459,6 +459,9 @@
         if (message) formData.append('message', message);
         if (file) formData.append('file', file);
 
+        // Ẩn thanh xem trước tệp/ảnh ngay lập tức khi vừa bấm Gửi
+        cancelSelectedFile();
+
         try {
             @if($activeConversation)
             const streamUrl = "{{ route('student.ai-tutor.stream', $activeConversation) }}";
@@ -672,6 +675,9 @@
             tableBlocks.push(tableHtml);
             return placeholder;
         });
+
+        // 2b. Escape toàn bộ HTML thô (vd: <section>, <main>, <article>, <div>) để không bị trình duyệt nuốt thành ô đen rỗng
+        formatted = escapeHtml(formatted);
 
         // 2. Chuyển đổi headings '### Tiêu đề' hoặc '## Tiêu đề' thành khối tiêu đề đẹp
         formatted = formatted.replace(/^#{1,6}\s*(.+)$/gm, '<div class="text-sm font-bold text-slate-800 mt-3 mb-1.5 flex items-center gap-1.5">$1</div>');

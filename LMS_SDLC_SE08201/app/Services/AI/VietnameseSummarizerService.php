@@ -109,63 +109,16 @@ class VietnameseSummarizerService
      */
     private function synthesizeRollingMemory(string $existingSummary, string $deltaText): string
     {
-        $prompt = "Hãy nén toàn bộ lịch sử trò chuyện học tập dưới đây thành MỘT bản trí nhớ cuốn chiếu siêu ngắn gọn (tối đa 220 từ, tiếng Việt, không rườm rà) gồm đúng 4 gạch đầu dòng:\n"
-            . "- Chủ đề đang học:\n"
-            . "- Kiến thức đã giải thích/chốt:\n"
-            . "- Điểm sinh viên còn vướng / câu hỏi đang dở:\n"
-            . "- Ý chính lượt trao đổi gần nhất:\n\n"
-            . ($existingSummary !== '' ? "[TRÍ NHỚ CŨ]:\n{$existingSummary}\n\n" : '')
-            . "[LƯỢT TRAO ĐỔI MỚI]:\n" . mb_substr($deltaText, 0, 3500);
+        // Nén trích xuất cục bộ 0ms (không gọi HTTP ngoài tránh gây treo/đơ 12–24s trong luồng chat)
+        $combined = ($existingSummary !== '' ? $existingSummary . "\n" : '') . $deltaText;
+        $lines = array_values(array_filter(
+            array_map('trim', preg_split('/\R+/', $combined) ?: []),
+            fn ($line) => $line !== '' && ! str_starts_with($line, '```')
+        ));
 
-        $providers = array_filter([
-            ['key' => (string) env('DEEPSEEK_KEY_MAIN', ''), 'model' => (string) env('DEEPSEEK_MODEL', 'deepseek-v4.1-flash')],
-            ['key' => (string) env('OPENAI_API_KEY', $this->vilaoApiKey), 'model' => (string) env('OPENAI_MODEL', $this->vilaoModel)],
-        ], fn ($p) => $p['key'] !== '');
+        $compact = implode("\n", array_slice($lines, -10));
 
-        foreach ($providers as $p) {
-            try {
-                $res = Http::timeout(12)->withHeaders([
-                    'Authorization' => 'Bearer ' . $p['key'],
-                    'Content-Type' => 'application/json',
-                ])->post($this->vilaoBaseUrl . '/chat/completions', [
-                    'model' => $p['model'],
-                    'messages' => [
-                        ['role' => 'system', 'content' => 'Bạn là bộ nén ngữ cảnh hội thoại học tập. Chỉ xuất 4 gạch đầu dòng ngắn gọn, giữ chính xác thuật ngữ và chi tiết quan trọng.'],
-                        ['role' => 'user', 'content' => $prompt],
-                    ],
-                    'max_tokens' => 500,
-                    'temperature' => 0.2,
-                ]);
-                if ($res->successful()) {
-                    $out = trim((string) $res->json('choices.0.message.content'));
-                    if ($out !== '') {
-                        return $out;
-                    }
-                }
-            } catch (\Throwable $e) {
-                Log::warning('RollingMemory LLM error: ' . $e->getMessage());
-            }
-        }
-
-        // Fallback 1: Python FastAPI LLMLingua-2 / ViT5
-        if ($this->mlServiceUrl !== '') {
-            try {
-                $combined = ($existingSummary !== '' ? $existingSummary . "\n" : '') . $deltaText;
-                $res = Http::timeout(4)->post($this->mlServiceUrl . '/compress-context', [
-                    'context' => mb_substr($combined, 0, 8000),
-                    'rate' => 0.4,
-                ]);
-                if ($res->successful() && ! empty($res->json('compressed_context'))) {
-                    return trim((string) $res->json('compressed_context'));
-                }
-            } catch (\Throwable $e) {
-            }
-        }
-
-        // Fallback 2: Nén trích xuất cục bộ không cần mạng
-        $combinedLines = array_filter(explode("\n", ($existingSummary !== '' ? $existingSummary . "\n" : '') . $deltaText));
-        $compact = implode("\n", array_slice($combinedLines, -8));
-        return mb_substr($compact, 0, 1200);
+        return mb_substr($compact, 0, 1400);
     }
 
     /**
