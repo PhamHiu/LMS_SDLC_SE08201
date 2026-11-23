@@ -113,7 +113,7 @@
                 <span class="w-2 h-2 bg-[#1e4f8f] rounded-full animate-bounce [animation-delay:0.2s]"></span>
                 <span class="w-2 h-2 bg-[#1e4f8f] rounded-full animate-bounce [animation-delay:0.4s]"></span>
             </div>
-            <span class="text-slate-500">BTEC AI đang tra cứu quy chế & soạn câu trả lời...</span>
+            <span class="text-slate-500">Đang suy nghĩ...</span>
         </div>
 
         {{-- Input Form --}}
@@ -160,6 +160,29 @@
                     : collect();
             @endphp
             <form id="btec-ticket-form" class="space-y-3.5">
+                @if ($ticketUser)
+                    <div class="rounded-md border border-slate-200 bg-slate-100/90 p-3 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[11px] font-bold uppercase tracking-wide text-slate-600 flex items-center gap-1.5">
+                                <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                                Thông tin người gửi (Đã khóa xác thực)
+                            </span>
+                            <span class="text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded">Không thể sửa</span>
+                        </div>
+                        <div class="grid grid-cols-3 gap-2">
+                            <div>
+                                <label class="block text-[11px] font-semibold text-slate-500 mb-0.5">ID người gửi</label>
+                                <input type="text" id="ticket-sender-id" value="#{{ $ticketUser->user_id }}" readonly disabled
+                                       class="w-full text-xs font-mono font-bold px-2.5 py-2 rounded-md bg-slate-200/80 border border-slate-300 text-slate-700 cursor-not-allowed select-none">
+                            </div>
+                            <div class="col-span-2">
+                                <label class="block text-[11px] font-semibold text-slate-500 mb-0.5">Họ tên người gửi</label>
+                                <input type="text" id="ticket-sender-name" value="{{ $ticketUser->full_name }}" readonly disabled
+                                       class="w-full text-xs font-semibold px-2.5 py-2 rounded-md bg-slate-200/80 border border-slate-300 text-slate-700 cursor-not-allowed select-none">
+                            </div>
+                        </div>
+                    </div>
+                @endif
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1">Loại yêu cầu</label>
                     <select id="ticket-category" class="w-full text-xs p-2.5 rounded-md bg-white border border-slate-200 text-slate-900 focus:ring-2 focus:ring-orange-500">
@@ -430,7 +453,7 @@
         aiWrap.innerHTML = `
             <div class="w-7 h-7 rounded-full bg-white border border-zinc-200 overflow-hidden flex items-center justify-center shrink-0 mt-0.5"><img src="{{ asset('images/btec_support_logo.png') }}" alt="Trợ lý Học vụ AI" class="w-full h-full object-cover"></div>
             <div class="max-w-[88%] bg-zinc-50 p-3.5 rounded-lg rounded-tl-none border border-zinc-200 text-zinc-800 text-sm leading-relaxed space-y-1.5">
-                <div class="btec-ai-content" id="${bubbleId}"><span class="inline-block w-1.5 h-3.5 bg-zinc-900 ml-0.5 align-middle"></span></div>
+                <div class="btec-ai-content" id="${bubbleId}"><span class="inline-flex items-center gap-2 text-xs text-slate-500 italic"><span class="inline-flex gap-1"><span class="w-1.5 h-1.5 bg-[#1e4f8f] rounded-full animate-bounce"></span><span class="w-1.5 h-1.5 bg-[#1e4f8f] rounded-full animate-bounce [animation-delay:0.15s]"></span><span class="w-1.5 h-1.5 bg-[#1e4f8f] rounded-full animate-bounce [animation-delay:0.3s]"></span></span>Đang suy nghĩ...</span></div>
                 <div id="${bubbleId}-meta" class="hidden"></div>
             </div>
         `;

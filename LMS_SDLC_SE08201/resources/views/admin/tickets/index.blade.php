@@ -58,12 +58,15 @@
                             <span class="rounded border px-2 py-0.5 text-xs font-semibold {{ $badgeClass }}">{{ $ticket->statusLabel() }}</span>
                             <span class="text-sm font-bold text-slate-900">{{ $ticket->topic }}</span>
                         </div>
-                        <p class="text-xs text-slate-500 mt-1.5">
-                            Người gửi: <strong class="text-slate-700">{{ $ticket->user?->full_name ?? 'N/A' }}</strong> ({{ $ticket->user?->email ?? '' }})
+                        <p class="text-xs text-slate-500 mt-1.5 flex flex-wrap items-center gap-1.5">
+                            <span>Người gửi:</span>
+                            <span class="inline-flex items-center gap-1 rounded bg-slate-100 border border-slate-200 px-1.5 py-0.5 font-mono text-[11px] font-bold text-slate-700" title="ID tài khoản đã khóa xác thực">🔒 ID #{{ $ticket->user_id }}</span>
+                            <strong class="text-slate-800">{{ $ticket->user?->full_name ?? 'N/A' }}</strong>
+                            <span>({{ $ticket->user?->email ?? '' }})</span>
                             @if ($ticket->classRoom)
-                                · Lớp: <strong class="text-slate-700">{{ $ticket->classRoom->class_name }}</strong> ({{ $ticket->classRoom->subject?->subject_name ?? '' }})
+                                <span>· Lớp: <strong class="text-slate-700">{{ $ticket->classRoom->class_name }}</strong> ({{ $ticket->classRoom->subject?->subject_name ?? '' }})</span>
                             @endif
-                            · Gửi lúc: {{ $ticket->created_at?->format('H:i d/m/Y') }}
+                            <span>· Gửi lúc: {{ $ticket->created_at?->format('H:i d/m/Y') }}</span>
                         </p>
                     </div>
                     @if ($ticket->assignedTeacher)

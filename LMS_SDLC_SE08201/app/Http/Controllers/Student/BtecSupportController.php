@@ -177,6 +177,26 @@ class BtecSupportController extends Controller
      */
     public function submitTicket(Request $request): JsonResponse
     {
+        $user = $request->user();
+        if (! $user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bạn cần đăng nhập để gửi Ticket hỗ trợ.',
+            ], 401);
+        }
+
+        // Khóa cứng danh tính người gửi theo phiên đăng nhập: chặn mọi hành vi giả mạo ID/Tên từ request
+        if (
+            ($request->filled('user_id') && (int) $request->input('user_id') !== (int) $user->user_id)
+            || ($request->filled('sender_id') && (int) $request->input('sender_id') !== (int) $user->user_id)
+            || ($request->filled('sender_name') && trim((string) $request->input('sender_name')) !== trim((string) $user->full_name))
+        ) {
+            return response()->json([
+                'success' => false,
+                'message' => 'ID và tên người gửi được khóa cố định theo tài khoản đang đăng nhập và không thể thay đổi.',
+            ], 403);
+        }
+
         $validated = $request->validate([
             'topic' => 'required|string|max:150',
             'description' => 'required|string|max:3000',
@@ -184,7 +204,6 @@ class BtecSupportController extends Controller
             'class_id' => 'nullable|integer|exists:classes,class_id',
         ]);
 
-        $user = $request->user();
         $classId = $validated['class_id'] ?? null;
 
         // Xác thực phạm vi lớp học của sinh viên trước khi gắn vào ticket
@@ -206,7 +225,9 @@ class BtecSupportController extends Controller
         return response()->json([
             'success' => true,
             'ticket_code' => $ticket->ticket_code,
-            'message' => "Yêu cầu đã được lưu thành công với mã phiếu: {$ticket->ticket_code}. Quản trị viên đã nhận thông báo và sẽ xử lý hoặc chuyển tiếp giảng viên phụ trách.",
+            'sender_id' => $user->user_id,
+            'sender_name' => $user->full_name,
+            'message' => "Yêu cầu đã được lưu thành công với mã phiếu: {$ticket->ticket_code} (Người gửi: #{$user->user_id} - {$user->full_name}). Quản trị viên đã nhận thông báo và sẽ xử lý hoặc chuyển tiếp giảng viên phụ trách.",
         ]);
     }
 

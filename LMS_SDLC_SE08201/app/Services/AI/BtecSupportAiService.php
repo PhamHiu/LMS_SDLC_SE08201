@@ -666,7 +666,7 @@ QUY TẮC BẮT BUỘC (KHÔNG TRẢ LỜI CHUNG CHUNG, KHÔNG ĐIỀU HƯỚNG 
                 author: $user,
                 recipientUserId: $admin->user_id,
                 title: "Ticket mới #{$code}: {$topic}",
-                body: "Sinh viên {$user->full_name} vừa gửi yêu cầu \"{$topic}\". Nội dung: " . mb_substr($description, 0, 180),
+                body: "Người gửi: {$user->full_name} (ID #{$user->user_id}) vừa gửi yêu cầu \"{$topic}\". Nội dung: " . mb_substr($description, 0, 180),
                 targetUrl: route('admin.tickets.index'),
                 classId: $classId,
             );
