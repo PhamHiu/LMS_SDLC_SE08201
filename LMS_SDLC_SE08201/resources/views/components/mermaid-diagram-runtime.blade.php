@@ -1,7 +1,7 @@
 {{-- Global Mermaid.js + Highlight.js (VS Code Dark+ theme) Runtime cho câu trả lời AI --}}
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/vs2015.min.css">
-<script src="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/lib/highlight.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
 
 <style>
@@ -61,13 +61,31 @@
     .vscode-code-block pre code,
     .vscode-code-block pre code.hljs {
         font-family: 'Cascadia Code', 'JetBrains Mono', Consolas, 'Courier New', monospace !important;
-        font-size: 12.5px !important;
-        line-height: 1.6 !important;
+        font-size: 13px !important;
+        line-height: 1.65 !important;
         background: transparent !important;
         color: #d4d4d4;
         padding: 0 !important;
         tab-size: 4;
     }
+    /* Chuẩn màu VS Code Dark+ */
+    .vscode-code-block .hljs-keyword,
+    .vscode-code-block .hljs-selector-tag,
+    .vscode-code-block .hljs-literal { color: #569cd6 !important; font-weight: 500; }
+    .vscode-code-block .hljs-built_in,
+    .vscode-code-block .hljs-title.function_,
+    .vscode-code-block .hljs-function .hljs-title { color: #dcdcaa !important; }
+    .vscode-code-block .hljs-string,
+    .vscode-code-block .hljs-regexp { color: #ce9178 !important; }
+    .vscode-code-block .hljs-number { color: #b5cea8 !important; }
+    .vscode-code-block .hljs-comment,
+    .vscode-code-block .hljs-quote { color: #6a9955 !important; font-style: italic; }
+    .vscode-code-block .hljs-variable,
+    .vscode-code-block .hljs-params,
+    .vscode-code-block .hljs-attr { color: #9cdcfe !important; }
+    .vscode-code-block .hljs-title.class_,
+    .vscode-code-block .hljs-type { color: #4ec9b0 !important; }
+    .vscode-code-block .hljs-meta { color: #c586c0 !important; }
     .vscode-inline-code {
         font-family: 'Cascadia Code', 'JetBrains Mono', Consolas, 'Courier New', monospace;
         font-size: 0.85em;
@@ -76,6 +94,59 @@
         padding: 1px 6px;
         border-radius: 4px;
         border: 1px solid #333333;
+    }
+    /* Mermaid Diagram — hiện đại, không cắt chữ tiếng Việt */
+    .ai-mermaid-canvas {
+        background-color: #fafcff;
+        background-image: radial-gradient(#dbe4f0 1px, transparent 1px);
+        background-size: 16px 16px;
+        overflow-x: auto;
+        overflow-y: hidden;
+    }
+    .ai-mermaid-canvas svg {
+        height: auto;
+        overflow: visible !important;
+        display: block;
+    }
+    .ai-mermaid-canvas svg foreignObject {
+        overflow: visible !important;
+    }
+    .ai-mermaid-canvas svg .nodeLabel,
+    .ai-mermaid-canvas svg .label,
+    .ai-mermaid-canvas svg .edgeLabel {
+        font-family: 'Be Vietnam Pro', 'Segoe UI', system-ui, sans-serif !important;
+        font-size: 13.5px !important;
+        font-weight: 600 !important;
+        line-height: 1.4 !important;
+        white-space: nowrap;
+    }
+    .ai-mermaid-canvas svg .node rect,
+    .ai-mermaid-canvas svg .node polygon,
+    .ai-mermaid-canvas svg .node circle {
+        rx: 10px;
+        ry: 10px;
+        stroke-width: 1.8px !important;
+        filter: drop-shadow(0 3px 8px rgba(30, 79, 143, 0.10));
+    }
+    .ai-mermaid-canvas svg .node:first-of-type rect {
+        fill: #1e4f8f !important;
+        stroke: #163c6d !important;
+    }
+    .ai-mermaid-canvas svg .node:first-of-type .nodeLabel,
+    .ai-mermaid-canvas svg .node:first-of-type .nodeLabel p,
+    .ai-mermaid-canvas svg .node:first-of-type span,
+    .ai-mermaid-canvas svg .node:first-of-type text {
+        color: #ffffff !important;
+        fill: #ffffff !important;
+        font-weight: 700 !important;
+    }
+    .ai-mermaid-canvas svg .edgePath path.path {
+        stroke: #64748b !important;
+        stroke-width: 1.8px !important;
+    }
+    .ai-mermaid-canvas svg marker path {
+        fill: #64748b !important;
+        stroke: #64748b !important;
     }
 </style>
 
@@ -109,11 +180,37 @@
         if (mermaidReady || typeof window.mermaid === 'undefined') return;
         window.mermaid.initialize({
             startOnLoad: false,
-            theme: 'neutral',
+            theme: 'base',
             securityLevel: 'loose',
-            fontFamily: 'Be Vietnam Pro, system-ui, sans-serif',
-            flowchart: { htmlLabels: false, curve: 'basis', useMaxWidth: true },
-            sequence: { useMaxWidth: true },
+            fontFamily: 'Be Vietnam Pro, Segoe UI, system-ui, sans-serif',
+            themeVariables: {
+                primaryColor: '#eff6ff',
+                primaryTextColor: '#0f172a',
+                primaryBorderColor: '#3b82f6',
+                secondaryColor: '#f0fdf4',
+                secondaryTextColor: '#14532d',
+                secondaryBorderColor: '#22c55e',
+                tertiaryColor: '#fff7ed',
+                tertiaryTextColor: '#7c2d12',
+                tertiaryBorderColor: '#f97316',
+                lineColor: '#64748b',
+                textColor: '#0f172a',
+                mainBkg: '#eff6ff',
+                nodeBorder: '#3b82f6',
+                clusterBkg: '#f8fafc',
+                clusterBorder: '#cbd5e1',
+                edgeLabelBackground: '#ffffff',
+                fontSize: '14px'
+            },
+            flowchart: {
+                htmlLabels: true,
+                curve: 'basis',
+                useMaxWidth: false,
+                padding: 18,
+                nodeSpacing: 36,
+                rankSpacing: 48
+            },
+            sequence: { useMaxWidth: true, actorMargin: 45 },
             class: { useMaxWidth: true },
             er: { useMaxWidth: true }
         });
@@ -236,7 +333,20 @@
                 canvasEl.innerHTML = result.svg;
                 const svg = canvasEl.querySelector('svg');
                 if (svg) {
-                    svg.style.maxWidth = '100%';
+                    const vb = svg.viewBox && svg.viewBox.baseVal;
+                    const naturalW = (vb && vb.width > 0) ? vb.width : parseFloat(svg.getAttribute('width') || '0');
+                    const containerW = canvasEl.clientWidth - 24;
+                    if (naturalW > 0 && containerW > 0 && naturalW > containerW) {
+                        // Không bóp nhỏ quá 0.85x để chữ luôn to rõ; nếu rộng hơn thì cho cuộn ngang mượt
+                        const displayW = Math.max(Math.round(naturalW * 0.88), containerW);
+                        svg.style.width = displayW + 'px';
+                        svg.style.minWidth = displayW + 'px';
+                        svg.style.maxWidth = 'none';
+                        canvasEl.style.justifyContent = 'flex-start';
+                    } else {
+                        svg.style.maxWidth = '100%';
+                        canvasEl.style.justifyContent = 'center';
+                    }
                     svg.style.height = 'auto';
                 }
                 box.setAttribute('data-rendered', 'true');

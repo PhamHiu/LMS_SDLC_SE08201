@@ -265,12 +265,15 @@ class AiTutorService
             ? "- KHÔNG CHÀO LẠI (BẮT BUỘC): Đây là lượt nhắn thứ {$turnCount} — TUYỆT ĐỐI KHÔNG mở đầu bằng \"Chào em\", \"Xin chào\", \"Chào học trò\". Đi thẳng vào nội dung phản hồi."
             : "- Chỉ chào cực ngắn 1 cụm (VD: \"Chào em,\") ở tin nhắn đầu tiên này nếu cần; không dài dòng xã giao.";
 
-        $block = "=== NGUYÊN TẮC NGỮ CẢNH & TƯƠNG TÁC CHUNG (BẮT BUỘC CHO MỌI CHẾ ĐỘ) ===
+        $block = "=== NGUYÊN TẮC NGỮ CẢNH & PHONG CÁCH TRẢ LỜI (BẮT BUỘC CHO MỌI CHẾ ĐỘ) ===
 - Danh xưng: Luôn xưng **\"thầy\"** và gọi sinh viên là **\"em\"** (TUYỆT ĐỐI KHÔNG xưng \"mình\" hay gọi \"bạn\").
 {$greetingRule}
-- LIÊN MẠCH NGỮ CẢNH ĐA LƯỢT: Luôn đọc kỹ toàn bộ lịch sử tin nhắn phía trên (đặc biệt là câu hỏi/bước/gợi ý ở cuối tin nhắn gần nhất của chính thầy). Nếu em trả lời ngắn (VD: \"view ạ\", \"B\", \"em sửa rồi\", \"vì nó nhanh hơn\") hoặc hỏi nối tiếp (\"thế còn cái kia?\") -> BẮT BUỘC nối thẳng vào mạch đang bàn, chấm/nhận xét trực tiếp điều em vừa nói, TUYỆT ĐỐI KHÔNG quên bối cảnh hay giảng lại từ đầu.
-- NGẮN GỌN, TỰ NHIÊN: Viết súc tích (3–5 đoạn ngắn dễ đọc lướt), tự nhiên như thầy trò nhắn tin trực tiếp. Không dùng '###'/'##', không in nhãn meta/suy nghĩ nội bộ, không lạm dụng bảng biểu trừ khi so sánh.
-- HỖ TRỢ TRỰC QUAN (ƯU TIÊN TEXT TRƯỚC): Luôn viết phần giải thích bằng chữ trước rồi mới đặt khối trực quan vào đúng vị trí hợp lý. Code đặt trong khối ```<ngôn_ngữ> ... ```; chỉ vẽ ```mermaid ... ``` (4–7 nút, nhãn tiếng Việt trong ngoặc kép) khi thật sự cần minh họa quy trình/cấu trúc; khi em yêu cầu vẽ/tạo ảnh minh họa thì chèn đúng 1 thẻ `[IMAGE: mô tả ngắn bằng tiếng Anh]` ngay tại vị trí cần hiển thị ảnh (hệ thống sẽ hiển thị text trước rồi tự vẽ ảnh vào đúng vị trí đó sau).";
+- PHONG CÁCH TỰ NHIÊN NHƯ NGƯỜI THẬT: Nói chuyện mộc mạc, gần gũi như thầy giáo thật đang nhắn tin cho học trò — đi thẳng vào trọng tâm, trình bày thoáng bằng tiêu đề ngắn in đậm, gạch đầu dòng và ví dụ dễ hiểu. TUYỆT ĐỐI KHÔNG nói kiểu máy móc hay làm lộ cơ chế hệ thống (CẤM dùng các cụm như \"trong ngữ cảnh\", \"trong hệ thống\", \"theo hồ sơ học lực\", \"thầy sẽ vẽ sơ đồ trực quan và giải thích từng nhánh\"). Nếu em hỏi còn chung chung (chưa rõ môn/chủ đề), chỉ cần hỏi lại 1 câu ngắn tự nhiên như người thật (VD: \"Em đang muốn xem phần nào hoặc môn nào thế, nhắn thầy tên môn để thầy hệ thống lại cho gọn nhé?\"). Không dùng ký hiệu '###'/'##', không in nhãn meta hay suy nghĩ nội bộ.
+- LIÊN MẠCH NGỮ CẢNH ĐA LƯỢT: Luôn đọc kỹ toàn bộ lịch sử tin nhắn phía trên (kể cả code, ví dụ và sơ đồ Mermaid thầy vừa vẽ ở các lượt trước). Nếu em trả lời ngắn (VD: \"view ạ\", \"B\", \"em sửa rồi\") hoặc hỏi nối tiếp về sơ đồ/nội dung vừa nêu (\"giải thích biểu đồ trên đi\", \"nhánh này nghĩa là gì?\") -> BẮT BUỘC bám sát chính xác từng nút/ý đã nêu ở lịch sử phía trên để giải thích, TUYỆT ĐỐI KHÔNG quên ngữ cảnh hay nói chung chung.
+- HỖ TRỢ TRỰC QUAN THÔNG MINH (ƯU TIÊN TEXT TRƯỚC):
+  + Code đặt trong khối ```<ngôn_ngữ> ... ``` có chú thích ngắn gọn dễ hiểu.
+  + SƠ ĐỒ MERMAID (AI TỰ QUYẾT ĐỊNH — KHÔNG ÉP VẼ): KHÔNG cần câu nào cũng vẽ sơ đồ. Thầy tự cân nhắc: chỉ vẽ 1 khối ```mermaid ... ``` (ƯU TIÊN `flowchart LR` trải từ trái sang phải để dễ đọc khi có nhiều nhánh; gọn trong 5–9 nút chính, nhãn tiếng Việt ngắn đặt trong ngoặc kép `\"...\"`) khi sơ đồ thật sự giúp em nhìn ra quy trình, kiến trúc hoặc mối liên hệ nhanh hơn (hoặc khi em yêu cầu). ĐẶC BIỆT: Đã vẽ sơ đồ thì BẮT BUỘC phải có phần giải thích rõ ràng từng nhánh / từng bước trong chính sơ đồ đó ngay bên dưới, tuyệt đối không thả sơ đồ trơ trọi rồi bỏ lửng.
+  + ẢNH MINH HỌA BẤT ĐỒNG BỘ: Chỉ chèn đúng 1 thẻ `[IMAGE: mô tả ngắn bằng tiếng Anh]` khi em yêu cầu vẽ/tạo/xem ảnh minh họa hoặc khi 1 hình ảnh trực quan thực sự cần thiết (hệ thống sẽ hiện chữ trước rồi tự vẽ ảnh vào đúng vị trí đó sau).";
 
         if ($academicProfile) {
             $scoreSummary = $academicProfile['weighted_avg'] !== null
@@ -459,18 +462,25 @@ NHIỆM VỤ & PHONG CÁCH RIÊNG CỦA CHẾ ĐỘ NÀY:
         if ($excludeMessageId !== null) {
             $recentQuery->where('message_id', '<', $excludeMessageId);
         }
-        $recentMsgs = $recentQuery->take(6)->get()->reverse()->values();
+        // Mở rộng cửa sổ ngữ cảnh lên 12 tin nhắn gần nhất và bảo toàn nguyên vẹn sơ đồ Mermaid/code để AI giải thích chuẩn ở lượt sau
+        $recentMsgs = $recentQuery->take(12)->get()->reverse()->values();
         $totalRecent = $recentMsgs->count();
         foreach ($recentMsgs as $idx => $rm) {
             $raw = (string) $rm->content;
-            $isVeryRecent = ($idx >= $totalRecent - 2);
-            $limit = $isVeryRecent ? 3200 : 1400;
+            $isVeryRecent = ($idx >= $totalRecent - 4);
+            $limit = $isVeryRecent ? 4500 : 2000;
 
-            // Giữ nguyên phần ĐẦU + ĐUÔI (nơi chứa câu hỏi kiểm tra nhanh ở cuối tin nhắn trước) để AI không bao giờ mất ngữ cảnh
             if (mb_strlen($raw) > $limit) {
-                $headLen = (int) floor($limit * 0.4);
-                $tailLen = $limit - $headLen;
-                $content = mb_substr($raw, 0, $headLen) . "\n...[lược bớt phần giữa]...\n" . mb_substr($raw, -$tailLen);
+                // Giữ lại khối sơ đồ mermaid nếu nằm ở giữa để AI không bị mất bối cảnh biểu đồ vừa vẽ
+                $mermaidBlock = '';
+                if (preg_match('/```mermaid[\s\S]*?```/i', $raw, $mm)) {
+                    $mermaidBlock = "\n" . $mm[0] . "\n";
+                }
+                $headLen = (int) floor($limit * 0.45);
+                $tailLen = max(300, $limit - $headLen - mb_strlen($mermaidBlock));
+                $content = mb_substr($raw, 0, $headLen)
+                    . ($mermaidBlock !== '' ? "\n...[giữ nguyên sơ đồ đã vẽ]..." . $mermaidBlock : "\n...[lược bớt phần giữa]...\n")
+                    . mb_substr($raw, -$tailLen);
             } else {
                 $content = $raw;
             }
@@ -556,14 +566,14 @@ NHIỆM VỤ & PHONG CÁCH RIÊNG CỦA CHẾ ĐỘ NÀY:
         // Chạy theo chuỗi: DeepSeek (Main/Content) -> dự phòng ChatGPT (vgpt/gpt-6.1-sol)
         foreach ($this->resolveProviderChain($conversation, $attachment) as $provider) {
             try {
-                $response = Http::timeout(30)->withHeaders([
+                $response = Http::timeout(60)->withHeaders([
                     'Authorization' => 'Bearer ' . $provider['key'],
                     'Content-Type' => 'application/json',
                 ])->post($url, [
                     'model' => $provider['model'],
                     'messages' => $messages,
-                    'max_tokens' => 2048,
-                    'temperature' => 0.5,
+                    'max_tokens' => 4096,
+                    'temperature' => 0.6,
                 ]);
 
                 if ($response->successful()) {
@@ -588,18 +598,23 @@ NHIỆM VỤ & PHONG CÁCH RIÊNG CỦA CHẾ ĐỘ NÀY:
             }
         }
 
-        // Sinh ảnh minh họa AI nếu học sinh yêu cầu tạo ảnh hoặc AI gắn thẻ [IMAGE: ...]
-        $aiReplyText = $this->attachGeneratedImageIfNeeded($aiReplyText, $userMessage);
-
         if (empty($aiReplyText)) {
             $aiReplyText = "Chào học trò! Thầy Biết Tuốt đã tiếp nhận câu hỏi của em: \"{$userMessage}\". Thầy đang kiểm tra kết nối với hệ thống AI tri thức, em đợi thầy một lát rồi hỏi lại nhé!";
         }
+
+        // Không chặn phản hồi text để vẽ ảnh đồng bộ: giữ thẻ [IMAGE: ...] để hiện text trước, ảnh tải ngầm (async) sau
+        $deferred = $this->prepareDeferredImageTag($aiReplyText, $userMessage);
+        $aiReplyText = $deferred['text'];
 
         $assistantMsgRecord = AiMessage::create([
             'conversation_id' => $conversation->conversation_id,
             'role' => 'assistant',
             'content' => $aiReplyText,
         ]);
+
+        if (! empty($deferred['pending_prompt'])) {
+            $assistantMsgRecord->setAttribute('pending_image_prompt', $deferred['pending_prompt']);
+        }
 
         // Cập nhật ngay Trí nhớ cuốn chiếu (Rolling Summary) sau lượt chat này
         try {
@@ -655,11 +670,12 @@ NHIỆM VỤ & PHONG CÁCH RIÊNG CỦA CHẾ ĐỘ NÀY:
 
         foreach ($this->resolveProviderChain($conversation, $attachment) as $provider) {
             $totalText = '';
+            $lineBuf = '';
             $payloadJson = json_encode([
                 'model' => $provider['model'],
                 'messages' => $messages,
-                'max_tokens' => 1400,
-                'temperature' => 0.45,
+                'max_tokens' => 4096,
+                'temperature' => 0.6,
                 'stream' => true,
             ]);
 
@@ -671,14 +687,17 @@ NHIỆM VỤ & PHONG CÁCH RIÊNG CỦA CHẾ ĐỘ NÀY:
                 'Content-Type: application/json',
             ]);
             curl_setopt($ch, CURLOPT_POSTFIELDS, $payloadJson);
-            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 6);
+            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 8);
             curl_setopt($ch, CURLOPT_TCP_NODELAY, 1);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 25);
-            curl_setopt($ch, CURLOPT_WRITEFUNCTION, function ($ch, $data) use (&$totalText, $onChunk) {
-                $lines = explode("\n", $data);
-                foreach ($lines as $line) {
-                    $line = trim($line);
-                    if (empty($line) || $line === 'data: [DONE]') {
+            curl_setopt($ch, CURLOPT_TIMEOUT, 90);
+            curl_setopt($ch, CURLOPT_LOW_SPEED_LIMIT, 1);
+            curl_setopt($ch, CURLOPT_LOW_SPEED_TIME, 20);
+            curl_setopt($ch, CURLOPT_WRITEFUNCTION, function ($ch, $data) use (&$totalText, &$lineBuf, $onChunk) {
+                $lineBuf .= $data;
+                while (($pos = strpos($lineBuf, "\n")) !== false) {
+                    $line = trim(substr($lineBuf, 0, $pos));
+                    $lineBuf = substr($lineBuf, $pos + 1);
+                    if ($line === '' || $line === 'data: [DONE]') {
                         continue;
                     }
                     if (str_starts_with($line, 'data: ')) {
@@ -772,8 +791,8 @@ NHIỆM VỤ & PHONG CÁCH RIÊNG CỦA CHẾ ĐỘ NÀY:
             ];
         }
 
-        // Trường hợp 2: Sinh viên chủ động yêu cầu tạo/vẽ ảnh minh họa
-        if (preg_match('/(tạo ảnh|vẽ ảnh|vẽ hình minh họa|tạo hình minh họa|generate image)/iu', $userMessage)) {
+        // Trường hợp 2: Sinh viên chủ động yêu cầu tạo/vẽ/xem ảnh minh họa
+        if (preg_match('/(tạo ảnh|vẽ ảnh|vẽ hình|tạo hình|ảnh minh họa|hình minh họa|cho xem ảnh|cho xem hình|minh họa bằng ảnh|generate image)/iu', $userMessage)) {
             $prompt = 'Clean modern educational illustration for university and college students: ' . mb_substr($userMessage, 0, 220);
             $tag = "\n\n[IMAGE: {$prompt}]";
 

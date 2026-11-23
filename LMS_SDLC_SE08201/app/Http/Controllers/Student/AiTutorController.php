@@ -136,9 +136,11 @@ class AiTutorController extends Controller
         return response()->json([
             'success' => true,
             'data' => [
+                'message_id' => $assistantMessage->message_id,
                 'role' => 'assistant',
                 'content' => $assistantMessage->content,
                 'masked_user_message' => $assistantMessage->getAttribute('masked_user_message'),
+                'pending_image_prompt' => $assistantMessage->getAttribute('pending_image_prompt'),
                 'created_at' => $assistantMessage->created_at->format('H:i d/m/Y'),
                 'attachment' => $attachmentData,
             ]
@@ -183,6 +185,7 @@ class AiTutorController extends Controller
         }
 
         return response()->stream(function () use ($conversation, $messageText, $attachmentData) {
+            @set_time_limit(120);
             while (ob_get_level() > 0) {
                 ob_end_flush();
             }
@@ -224,6 +227,11 @@ class AiTutorController extends Controller
     {
         $conversation = $message->conversation;
         abort_if(! $conversation || $conversation->user_id !== $request->user()->user_id, 403);
+
+        // Giải phóng session lock trước khi gọi API tạo ảnh để không chặn các request chat tiếp theo
+        if ($request->hasSession()) {
+            $request->session()->save();
+        }
 
         $imageUrl = $this->aiTutorService->generateDeferredImageForMessage($message);
 

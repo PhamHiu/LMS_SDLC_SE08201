@@ -449,10 +449,8 @@
         input.disabled = true;
         btn.disabled = true;
 
-        // Hiện typing indicator & cuộn
-        typing.classList.remove('hidden');
-        container.appendChild(typing);
-        scrollToBottom();
+        // Ẩn typing indicator cũ (chỉ dùng duy nhất 1 bong bóng "Thầy Biết Tuốt đang suy nghĩ..." bên dưới)
+        if (typing) typing.classList.add('hidden');
 
         // Chuẩn bị FormData gửi lên server (kèm chế độ đồng hành đang chọn)
         const formData = new FormData();
@@ -485,8 +483,14 @@
                 </div>
             `;
             container.insertAdjacentHTML('beforeend', aiHtml);
+            const aiEl = document.getElementById(aiBubbleId);
             const contentEl = document.getElementById(`${aiBubbleId}-content`);
             const timeEl = document.getElementById(`${aiBubbleId}-time`);
+
+            // Neo khung nhìn đúng 1 lần vào đầu câu trả lời của AI để người dùng đọc từ trên xuống, không bị giật nhảy
+            if (aiEl) {
+                container.scrollTo({ top: Math.max(0, aiEl.offsetTop - 16), behavior: 'smooth' });
+            }
 
             let fullText = '';
             let usedStreaming = false;
@@ -521,7 +525,6 @@
                                     if (json.chunk) {
                                         fullText += json.chunk;
                                         contentEl.innerHTML = formatAiResponse(fullText) + '<span class="inline-block w-2 h-4 bg-amber-600 align-middle ml-1"></span>';
-                                        scrollToBottom();
                                     }
                                     if (json.done) {
                                         if (json.masked_user_message && userMsgTextEl) {
@@ -564,6 +567,9 @@
                     contentEl.innerHTML = formatAiResponse(resData.data.content);
                     if (window.renderMermaidDiagrams) window.renderMermaidDiagrams(contentEl);
                     timeEl.textContent = resData.data.created_at;
+                    if (resData.data.pending_image_prompt && resData.data.message_id) {
+                        fetchDeferredAiImage(resData.data.message_id, contentEl);
+                    }
                 } else {
                     contentEl.innerHTML = '<span class="text-rose-600">⚠️ ' + escapeHtml(resData.message || 'Không thể kết nối') + '</span>';
                 }
@@ -581,8 +587,7 @@
             cancelSelectedFile();
             input.disabled = false;
             btn.disabled = false;
-            input.focus();
-            scrollToBottom();
+            input.focus({ preventScroll: true });
         }
     }
 
